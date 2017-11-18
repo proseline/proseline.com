@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "properties": {
+    "payload": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "public": {
+          "type": "string",
+          "format": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "name",
+        "timestamp",
+        "public"
+      ],
+      "additionalProperties": false
+    },
+    "signature": {
+      "type": "string",
+      "format": "^[a-f0-9]{128}$"
+    }
+  },
+  "required": [
+    "payload",
+    "signature"
+  ],
+  "additionalProperties": false
+}

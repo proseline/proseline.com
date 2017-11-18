@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "priors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/digest"
+      }
+    },
+    "text": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "digest": {
+      "type": "string",
+      "format": "^[a-f0-9]{64}$"
+    }
+  }
+}
