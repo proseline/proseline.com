@@ -92,10 +92,26 @@ function withIndexedDB (callback) {
   }
   request.onupgradeneeded = function () {
     var db = request.result
-    var stores = ['identities', 'drafts', 'notes', 'markers']
-    stores.forEach(function (store) {
-      db.createObjectStore(store)
+    // Identities
+    db.createObjectStore('identities')
+    // Introductions
+    db.createObjectStore('introductions')
+    // Drafts
+    var drafts = db.createObjectStore('drafts')
+    drafts.createIndex('parents', 'parents', {
+      unique: false,
+      multiEntry: true
     })
+    // Notes
+    var notes = db.createObjectStore('notes')
+    notes.createIndex('draft', ['payload', 'draft'], {unique: false})
+    notes.createIndex('parents', ['payload', 'parents'], {
+      unique: false,
+      multiEntry: true
+    })
+    // Markers
+    var markers = db.createObjectStore('markers')
+    markers.createIndex('public', ['payload', 'public'], {unique: false})
   }
   request.onerror = function () {
     callback(request.error)
