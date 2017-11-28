@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "payload": {
+      "type": "object"
+    },
+    "public": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{128}$"
+    }
+  },
+  "required": [
+    "payload",
+    "public",
+    "signature"
+  ],
+  "additionalProperties": false
+}

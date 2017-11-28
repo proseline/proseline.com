@@ -1,37 +1,34 @@
 {
   "type": "object",
   "properties": {
-    "payload": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "minLength": 1
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "public": {
-          "type": "string",
-          "format": "^[a-f0-9]{64}$"
-        }
-      },
-      "required": [
-        "name",
-        "timestamp",
-        "public"
-      ],
-      "additionalProperties": false
-    },
-    "signature": {
+    "identifier": {
       "type": "string",
-      "format": "^[a-f0-9]{128}$"
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "draft": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "public": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   },
   "required": [
-    "payload",
-    "signature"
+    "identifier",
+    "name",
+    "timestamp",
+    "draft",
+    "public"
   ],
   "additionalProperties": false
 }

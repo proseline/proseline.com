@@ -3,18 +3,14 @@ var assert = require('assert')
 
 var ajv = new AJV()
 
-var documentSchema = require('./schemas/document')
-ajv.validateSchema(documentSchema)
-assert.deepEqual(ajv.errors, null, 'document schema')
+function validate (name) {
+  var schema = require('./schemas/' + name)
+  ajv.validateSchema(schema)
+  assert.deepEqual(ajv.errors, null, name + ' schema')
+}
 
-var markerSchema = require('./schemas/marker')
-ajv.validateSchema(markerSchema)
-assert.deepEqual(ajv.errors, null, 'marker schema')
-
-var noteSchema = require('./schemas/note')
-ajv.validateSchema(noteSchema)
-assert.deepEqual(ajv.errors, null, 'note schema')
-
-var draftSchema = require('./schemas/draft')
-ajv.validateSchema(draftSchema)
-assert.deepEqual(ajv.errors, null, 'draft schema')
+validate('draft')
+validate('envelope')
+validate('introduction')
+validate('marker')
+validate('note')

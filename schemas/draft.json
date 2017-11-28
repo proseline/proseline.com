@@ -1,20 +1,30 @@
 {
   "type": "object",
   "properties": {
-    "priors": {
+    "parents": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/digest"
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
       }
     },
     "text": {
       "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "public": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   },
-  "definitions": {
-    "digest": {
-      "type": "string",
-      "format": "^[a-f0-9]{64}$"
-    }
-  }
+  "required": [
+    "parents",
+    "text",
+    "timestamp",
+    "public"
+  ],
+  "additionalProperties": false
 }
