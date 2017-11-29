@@ -8,11 +8,11 @@ module.exports = function (mark, state, send) {
   name.className = 'markName'
   name.appendChild(document.createTextNode(mark.payload.name))
   div.appendChild(name)
-  div.appendChild(renderTimestamp(mark.payload.timestamp))
+  div.appendChild(document.createTextNode(' — '))
   var user = document.createElement('span')
   user.className = 'intro'
   if (own) {
-    user.appendChild(document.createTextNode('(yours)'))
+    user.appendChild(document.createTextNode('You'))
     // TODO: Delete mark button.
   } else if (intro) {
     user.appendChild(
@@ -22,5 +22,7 @@ module.exports = function (mark, state, send) {
     )
   }
   div.appendChild(user)
+  div.appendChild(document.createTextNode(' — '))
+  div.appendChild(renderTimestamp(mark.payload.timestamp))
   return div
 }
