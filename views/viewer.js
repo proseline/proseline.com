@@ -81,28 +81,49 @@ function marks (state, send) {
   return section
 }
 
-function parents (state) {
+function parents (state, send) {
   var section = document.createElement('section')
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Parents'))
   section.appendChild(h2)
-  var parents = state.draft.payload.parents
-  if (parents.length === 0) {
-    var p = document.createElement('p')
-    p.appendChild(document.createTextNode('None.'))
-    section.appendChild(p)
-  } else {
-    var ul = document.createElement('ul')
-    parents.forEach(function (digest) {
-      var li = document.createElement('li')
-      var a = document.createElement('a')
-      a.href = '/drafts/' + digest
-      a.appendChild(document.createTextNode('parent'))
-      li.appendChild(a)
-      ul.appendChild(li)
-    })
-    section.appendChild(ul)
-  }
+  var parents = state.parents
+  var ul = document.createElement('ul')
+  parents.forEach(function (parent, index) {
+    var li = document.createElement('li')
+    li.id = 'parent-' + parent.digest
+    // <a>
+    var a = document.createElement('a')
+    a.href = '/drafts/' + parent.digest
+    a.appendChild(byline(state, parent.public, state.intros[parent.public]))
+    a.appendChild(document.createTextNode(' — '))
+    a.appendChild(renderTimestamp(parent.payload.timestamp))
+    li.appendChild(a)
+    // Comparison Button
+    var button = document.createElement('button')
+    if (
+      state.diff &&
+      state.diff.source === 'parents' &&
+      state.diff.index === index
+    ) {
+      button.id = 'stopDiffing'
+      button.appendChild(document.createTextNode('Stop Comparing'))
+      button.addEventListener('click', function () {
+        send('stop diffing')
+      })
+    } else {
+      button.id = 'diff' + parent.digest
+      button.appendChild(document.createTextNode('Compare'))
+      button.addEventListener('click', function () {
+        send('diff', {
+          source: 'parents',
+          index: index
+        })
+      })
+    }
+    li.appendChild(button)
+    ul.appendChild(li)
+  })
+  section.appendChild(ul)
   return section
 }
 
@@ -125,17 +146,24 @@ function children (state, send) {
     li.appendChild(a)
     // Comparison Button
     var button = document.createElement('button')
-    if (!state.diff || state.diff.index !== index) {
-      button.id = 'diff' + child.digest
-      button.appendChild(document.createTextNode('Compare'))
-      button.addEventListener('click', function () {
-        send('diff', index)
-      })
-    } else {
+    if (
+      state.diff &&
+      state.diff.source === 'children' &&
+      state.diff.index === index
+    ) {
       button.id = 'stopDiffing'
       button.appendChild(document.createTextNode('Stop Comparing'))
       button.addEventListener('click', function () {
         send('stop diffing')
+      })
+    } else {
+      button.id = 'diff' + child.digest
+      button.appendChild(document.createTextNode('Compare'))
+      button.addEventListener('click', function () {
+        send('diff', {
+          source: 'children',
+          index: index
+        })
       })
     }
     li.appendChild(button)

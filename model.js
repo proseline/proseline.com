@@ -128,29 +128,43 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         }
       }, function (error, results) {
         if (error) return done(error)
-        // Get intros for all relevant public keys.
-        var publicKeys = [results.draft.public]
-        results.marks.forEach(addPublicKey)
-        results.notes.forEach(addPublicKey)
-        results.children.forEach(addPublicKey)
-        function addPublicKey (object) {
-          var publicKey = object.public
-          if (!publicKeys.includes(publicKey)) {
-            publicKeys.push(publicKey)
+        results.draft.digest = digest
+        var parents = results.draft.payload.parents
+        runParallel(parents.map(function (digest) {
+          return function (done) {
+            get(db, 'drafts', digest, function (error, parent) {
+              if (error) return done(error)
+              parent.digest = digest
+              done(null, parent)
+            })
           }
-        }
-        var jobs = {}
-        publicKeys.forEach(function (publicKey) {
-          jobs[publicKey] = function (done) {
-            get(db, 'intros', publicKey, done)
-          }
-        })
-        runParallel(jobs, function (error, intros) {
+        }), function (error, parents) {
           if (error) return done(error)
-          results.draft.digest = digest
-          results.intros = intros
-          reduce('draft', results)
-          done()
+          results.parents = parents
+          // Get intros for all relevant public keys.
+          var publicKeys = [results.draft.public]
+          results.marks.forEach(addPublicKey)
+          results.notes.forEach(addPublicKey)
+          results.parents.forEach(addPublicKey)
+          results.children.forEach(addPublicKey)
+          function addPublicKey (object) {
+            var publicKey = object.public
+            if (!publicKeys.includes(publicKey)) {
+              publicKeys.push(publicKey)
+            }
+          }
+          var introsTasks = {}
+          publicKeys.forEach(function (publicKey) {
+            introsTasks[publicKey] = function (done) {
+              get(db, 'intros', publicKey, done)
+            }
+          })
+          runParallel(introsTasks, function (error, intros) {
+            if (error) return done(error)
+            results.intros = intros
+            reduce('draft', results)
+            done()
+          })
         })
       })
     })
@@ -167,6 +181,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notesTree: treeifyNotes(notes),
       intros: data.intros || {},
       replyTo: null,
+      parents: data.parents || [],
       children: children,
       diff: null,
       parent: null,
@@ -174,13 +189,19 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  handler('diff', function (index, state, reduce, done) {
+  handler('diff', function (data, state, reduce, done) {
     reduce('diff', {
-      index: index,
-      changes: diff.diffLines(
-        state.draft.payload.text,
-        state.children[index].payload.text
-      )
+      source: data.source,
+      index: data.index,
+      changes: data.source === 'children'
+        ? diff.diffLines(
+          state.draft.payload.text,
+          state.children[data.index].payload.text
+        )
+        : diff.diffLines(
+          state.parents[data.index].payload.text,
+          state.draft.payload.text
+        )
     })
     done()
   })
