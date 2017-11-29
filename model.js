@@ -119,7 +119,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             reduce('draft', {
               draft: draft,
               introduction: results.intro,
-              marks: results.marks
+              marks: results.marks.marks,
+              markIntroductions: results.marks.markIntroductions
             })
             done()
           })

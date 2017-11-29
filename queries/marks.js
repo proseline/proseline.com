@@ -6,7 +6,7 @@ module.exports = function (db, digest, callback) {
     if (error) return callback(error)
     var publicKeys = []
     marks.forEach(function (mark) {
-      var publicKey = mark.publicKey
+      var publicKey = mark.public
       if (!publicKeys.includes(publicKey)) {
         publicKeys.push(publicKey)
       }

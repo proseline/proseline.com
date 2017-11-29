@@ -3,14 +3,15 @@
 var commonmark = require('commonmark')
 
 var loading = require('./loading')
+var renderMark = require('./partials/mark')
+var renderTimestamp = require('./partials/timestamp')
 
 module.exports = function (digest, state, send) {
   var main = document.createElement('main')
   if (state.draft && state.draft.digest === digest) {
     main.appendChild(author(state))
-    main.appendChild(marks(state))
+    main.appendChild(marks(state, send))
     main.appendChild(renderText(state.draft))
-    main.appendChild(markForm(send))
   } else {
     main.appendChild(
       loading(function () {
@@ -51,49 +52,26 @@ function byline (state) {
 
 function dateline (draft) {
   var p = document.createElement('p')
-  p.appendChild(
-    document.createTextNode(
-      formatTimestamp(draft.payload.timestamp)
-    )
-  )
+  p.appendChild(renderTimestamp(draft.payload.timestamp))
   return p
 }
 
-function marks (state) {
+function marks (state, send) {
   var section = document.createElement('section')
-  // <h1>
-  var h1 = document.createElement('h1')
-  h1.appendChild(document.createTextNode('Marks'))
-  section.appendChild(h1)
+  // <h2>
+  var h2 = document.createElement('h2')
+  h2.appendChild(document.createTextNode('Marks'))
+  section.appendChild(h2)
   // <ul>
   var ul = document.createElement('ul')
   state.marks.forEach(function (mark) {
     var li = document.createElement('li')
-    var name = document.createElement('span')
-    name.className = 'markName'
-    name.appendChild(document.createTextNode(mark.payload.name))
-    li.appendChild(name)
-    var date = document.createElement('span')
-    date.className = 'timestamp'
-    date.appendChild(
-      document.createTextNode(
-        formatTimestamp(mark.payload.timestamp)
-      )
-    )
-    var intro = state.markIntroductions[mark.public]
-    if (intro) {
-      var user = document.createElement('span')
-      user.className = 'introduction'
-      // TODO: Show "self" when matches state.introduction.
-      user.appendChild(
-        document.createTextNode(
-          intro.payload.name + ' on ' + intro.payload.device
-        )
-      )
-    }
-    li.appendChild(date)
+    li.appendChild(renderMark(mark, state, send))
     ul.appendChild(li)
   })
+  var formLI = document.createElement('li')
+  formLI.appendChild(markForm(send))
+  ul.appendChild(formLI)
   section.appendChild(ul)
   return section
 }
@@ -134,8 +112,4 @@ function markForm (send) {
   button.appendChild(document.createTextNode('Mark'))
   form.appendChild(button)
   return form
-}
-
-function formatTimestamp (timestamp) {
-  return new Date(timestamp).toLocaleString()
 }
