@@ -1,4 +1,5 @@
 var hash = require('./crypto/hash')
+var random = require('./crypto/random')
 var runParallel = require('run-parallel')
 var sign = require('./crypto/sign')
 var stringify = require('json-stable-stringify')
@@ -167,7 +168,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       if (data.mark) {
         var mark = data.mark
-        putMark(mark, digest, identity, function (error) {
+        putMark(null, mark, digest, identity, function (error) {
           if (error) return done(error)
           window.history.pushState({}, null, '/mark/' + mark)
           done()
@@ -182,11 +183,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Marks
 
   handler('mark', function (name, state, reduce, done) {
-    putMark(name, state.draft.digest, state.identity, done)
+    putMark(null, name, state.draft.digest, state.identity, done)
   })
 
-  function putMark (name, draft, identity, callback) {
+  function putMark (identifier, name, draft, identity, callback) {
+    identifier = identifier || random(4)
     var mark = {
+      identifier: identifier,
       name: name,
       timestamp: new Date().toISOString(),
       draft: draft
@@ -197,8 +200,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       public: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
-    var digest = hash(stringified)
-    put('marks', digest, envelope, callback)
+    var key = identity.publicKey + ':' + identifier
+    put('marks', key, envelope, callback)
   }
 
   // IndexedDB Helper

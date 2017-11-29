@@ -40,7 +40,6 @@ function getMarks (db, digest, callback) {
     var cursor = request.result
     if (cursor) {
       var value = cursor.value
-      value.digest = cursor.primaryKey
       marks.push(value)
       cursor.continue()
     } else {

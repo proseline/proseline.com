@@ -134,6 +134,7 @@ function withIndexedDB (callback) {
     var marks = db.createObjectStore('marks')
     marks.createIndex('public', 'public', {unique: false})
     marks.createIndex('draft', 'payload.draft', {unique: false})
+    marks.createIndex('identifier', 'payload.identifier', {unique: false})
   }
   request.onerror = function () {
     callback(request.error)

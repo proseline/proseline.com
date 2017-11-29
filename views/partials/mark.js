@@ -1,28 +1,31 @@
 var renderTimestamp = require('./timestamp')
 
 module.exports = function (mark, state, send) {
+  var own = mark.public === state.identity.publicKey
   var intro = state.markIntroductions[mark.public]
-  var own = intro && intro.digest === state.introduction.digest
   var div = document.createElement('div')
   var name = document.createElement('span')
   name.className = 'markName'
   name.appendChild(document.createTextNode(mark.payload.name))
   div.appendChild(name)
   div.appendChild(renderTimestamp(mark.payload.timestamp))
-  if (intro) {
-    var user = document.createElement('span')
-    user.className = 'introduction'
-    if (own) {
-      user.appendChild(document.createTextNode('(yours)'))
-      // TODO: Delete mark button.
-    } else {
-      user.appendChild(
-        document.createTextNode(
-          intro.payload.name + ' on ' + intro.payload.device
-        )
+  var user = document.createElement('span')
+  user.className = 'introduction'
+  if (own) {
+    user.appendChild(document.createTextNode('(yours)'))
+    // TODO: Delete mark button.
+  } else if (intro) {
+    user.appendChild(
+      document.createTextNode(
+        intro.payload.name + ' on ' + intro.payload.device
       )
-    }
-    div.appendChild(user)
+    )
   }
+  div.appendChild(user)
+  var code = document.createElement('code')
+  code.appendChild(
+    document.createTextNode(mark.payload.identifier)
+  )
+  div.appendChild(code)
   return div
 }
