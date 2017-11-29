@@ -7,8 +7,12 @@ module.exports = function (digest, state, send) {
   if (state.draft && state.draft.digest === digest) {
     main.appendChild(author(state))
     main.appendChild(marks(state, send))
-    main.appendChild(parents(state, send))
-    main.appendChild(children(state, send))
+    if (state.draft.payload.parents.length !== 0) {
+      main.appendChild(parents(state, send))
+    }
+    if (state.children.length !== 0) {
+      main.appendChild(children(state, send))
+    }
     main.appendChild(renderText(state))
     main.appendChild(newDraftButton(state, send))
     main.appendChild(notes(state, send))
