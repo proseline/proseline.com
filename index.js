@@ -265,7 +265,7 @@ window.addEventListener('click', function (event) {
   var node = findLocalLinkAnchor(event.target)
   if (node) {
     event.preventDefault()
-    window.history.pushState({}, null, pathOf(node.href))
+    window.history.pushState({}, null, pathOf(node.href) || '/')
     update()
   }
 })
