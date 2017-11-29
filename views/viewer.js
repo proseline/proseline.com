@@ -112,40 +112,36 @@ function children (state, send) {
   h2.appendChild(document.createTextNode('Children'))
   section.appendChild(h2)
   var children = state.children
-  if (children.length === 0) {
-    var p = document.createElement('p')
-    p.appendChild(document.createTextNode('None.'))
-    section.appendChild(p)
-  } else {
-    var ul = document.createElement('ul')
-    children.forEach(function (child, index) {
-      var li = document.createElement('li')
-      li.id = 'child-' + child.digest
-      // <a>
-      var a = document.createElement('a')
-      a.href = '/drafts/' + child.digest
-      a.appendChild(document.createTextNode('child'))
-      li.appendChild(a)
-      // Comparison Button
-      var button = document.createElement('button')
-      if (!state.diff || state.diff.index !== index) {
-        button.id = 'diff' + child.digest
-        button.appendChild(document.createTextNode('Compare'))
-        button.addEventListener('click', function () {
-          send('diff', index)
-        })
-      } else {
-        button.id = 'stopDiffing'
-        button.appendChild(document.createTextNode('Stop Comparing'))
-        button.addEventListener('click', function () {
-          send('stop diffing')
-        })
-      }
-      li.appendChild(button)
-      ul.appendChild(li)
-    })
-    section.appendChild(ul)
-  }
+  var ul = document.createElement('ul')
+  children.forEach(function (child, index) {
+    var li = document.createElement('li')
+    li.id = 'child-' + child.digest
+    // <a>
+    var a = document.createElement('a')
+    a.href = '/drafts/' + child.digest
+    a.appendChild(byline(state, child.public, state.intros[child.public]))
+    a.appendChild(document.createTextNode(' — '))
+    a.appendChild(renderTimestamp(child.payload.timestamp))
+    li.appendChild(a)
+    // Comparison Button
+    var button = document.createElement('button')
+    if (!state.diff || state.diff.index !== index) {
+      button.id = 'diff' + child.digest
+      button.appendChild(document.createTextNode('Compare'))
+      button.addEventListener('click', function () {
+        send('diff', index)
+      })
+    } else {
+      button.id = 'stopDiffing'
+      button.appendChild(document.createTextNode('Stop Comparing'))
+      button.addEventListener('click', function () {
+        send('stop diffing')
+      })
+    }
+    li.appendChild(button)
+    ul.appendChild(li)
+  })
+  section.appendChild(ul)
   return section
 }
 

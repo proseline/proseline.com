@@ -132,6 +132,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var publicKeys = [results.draft.public]
         results.marks.forEach(addPublicKey)
         results.notes.forEach(addPublicKey)
+        results.children.forEach(addPublicKey)
         function addPublicKey (object) {
           var publicKey = object.public
           if (!publicKeys.includes(publicKey)) {
