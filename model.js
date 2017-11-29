@@ -1,4 +1,4 @@
-var diff = require('fast-diff')
+var diff = require('diff')
 var hash = require('./crypto/hash')
 var random = require('./crypto/random')
 var runParallel = require('run-parallel')
@@ -184,7 +184,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('diff', function (index, state, reduce, done) {
     reduce('diff', {
       index: index,
-      tuples: diff(
+      changes: diff.diffLines(
         state.draft.payload.text,
         state.children[index].payload.text
       )

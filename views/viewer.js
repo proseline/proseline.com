@@ -142,28 +142,29 @@ function renderText (state) {
   var article = document.createElement('article')
   article.className = 'draftText'
   if (state.diff) {
-    state.diff.tuples.forEach(function (tuple) {
-      var element
-      var operation = tuple[0]
-      if (operation === 0) {
-        element = document.createTextNode(tuple[1])
+    state.diff.changes.forEach(function (change) {
+      var p = document.createElement('p')
+      var text = document.createTextNode(change.value)
+      if (change.added) {
+        var ins = document.createElement('ins')
+        ins.appendChild(text)
+        p.appendChild(ins)
+      } else if (change.removed) {
+        var del = document.createElement('del')
+        del.appendChild(text)
+        p.appendChild(del)
       } else {
-        if (operation === -1) {
-          element = document.createElement('del')
-        } else if (operation === 1) {
-          element = document.createElement('ins')
-        }
-        element.appendChild(document.createTextNode(tuple[1]))
+        p.appendChild(text)
       }
-      article.appendChild(element)
+      article.appendChild(p)
     })
   } else {
     draft.payload.text
       .split('\n')
       .forEach(function (line, index) {
-        var span = document.createElement('span')
-        span.appendChild(document.createTextNode(line))
-        article.appendChild(span)
+        var p = document.createElement('p')
+        p.appendChild(document.createTextNode(line))
+        article.appendChild(p)
       })
   }
   return article
