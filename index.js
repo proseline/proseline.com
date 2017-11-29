@@ -1,7 +1,8 @@
 var assert = require('assert')
-var createIdentity = require('./crypto/create-identity')
 var runSeries = require('run-series')
-var getLatestIntro = require('./queries/latest-intro')
+
+var createIdentity = require('./crypto/create-identity')
+var get = require('./queries/get')
 
 runSeries([
   detectFeatures,
@@ -61,7 +62,7 @@ function setupIdentity (done) {
         } else {
           getIdentity(publicKey, function (error, identity) {
             if (error) return done(error)
-            getLatestIntro(db, identity.publicKey, function (error, intro) {
+            getIntro(identity.publicKey, function (error, intro) {
               if (error || intro === undefined) {
                 done(null, identity)
               } else {
@@ -73,15 +74,11 @@ function setupIdentity (done) {
       })
 
       function getIdentity (key, callback) {
-        var transaction = db.transaction(['identities'], 'readonly')
-        transaction.onerror = function () {
-          callback(transaction.error)
-        }
-        var store = transaction.objectStore('identities')
-        var request = store.get(key)
-        request.onsuccess = function () {
-          callback(null, request.result)
-        }
+        get(db, 'identities', key, callback)
+      }
+
+      function getIntro (publicKey, callback) {
+        get(db, 'intros', publicKey, callback)
       }
     })
   }

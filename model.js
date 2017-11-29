@@ -6,7 +6,6 @@ var sign = require('./crypto/sign')
 var stringify = require('json-stable-stringify')
 
 var getChildren = require('./queries/children')
-var getLatestIntro = require('./queries/latest-intro')
 var getMarks = require('./queries/marks')
 var getNotes = require('./queries/notes')
 
@@ -39,8 +38,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       public: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
-    var digest = hash(stringified)
-    put('intros', digest, envelope, function (error) {
+    put('intros', identity.publicKey, envelope, function (error) {
       if (error) return done(error)
       reduce('intro', envelope)
       done()
@@ -143,7 +141,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         // TODO: Consolidate getting intros for marks and notes.
         runParallel({
           intro: function (done) {
-            getLatestIntro(db, draft.public, done)
+            get('intros', draft.public, done)
           },
           marks: function (done) {
             getMarks(db, draft.digest, done)

@@ -1,5 +1,6 @@
-var getLatestIntro = require('./latest-intro')
 var runParallel = require('run-parallel')
+
+var get = require('./get')
 
 module.exports = function (db, digest, callback) {
   getMarks(db, digest, function (error, marks) {
@@ -14,7 +15,7 @@ module.exports = function (db, digest, callback) {
     var jobs = {}
     publicKeys.forEach(function (publicKey) {
       jobs[publicKey] = function (done) {
-        getLatestIntro(db, publicKey, done)
+        get(db, 'intros', publicKey, done)
       }
     })
     runParallel(jobs, function (error, markIntros) {
