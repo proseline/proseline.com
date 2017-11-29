@@ -22,10 +22,5 @@ module.exports = function (mark, state, send) {
     )
   }
   div.appendChild(user)
-  var code = document.createElement('code')
-  code.appendChild(
-    document.createTextNode(mark.payload.identifier)
-  )
-  div.appendChild(code)
   return div
 }
