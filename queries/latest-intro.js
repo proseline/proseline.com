@@ -1,3 +1,5 @@
+// TODO: Store a single intro per public key.
+
 module.exports = function (db, publicKey, callback) {
   var transaction = db.transaction(['intros'], 'readonly')
   transaction.onerror = function () {

@@ -11,6 +11,7 @@ module.exports = function (digest, state, send) {
     main.appendChild(children(state, send))
     main.appendChild(renderText(state))
     main.appendChild(newDraftButton(state, send))
+    main.appendChild(notes(state, send))
   } else {
     main.appendChild(
       loading(function () {
@@ -26,27 +27,28 @@ function author (state) {
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Author'))
   section.appendChild(h2)
-  section.appendChild(byline(state))
+  section.appendChild(byline(state, state.draft.public, state.intro))
   section.appendChild(dateline(state.draft))
   return section
 }
 
-function byline (state) {
-  var intro = state.intro
-  var draft = state.draft
-  var p = document.createElement('p')
-  if (intro && intro.public === draft.public) {
-    p.appendChild(
+function byline (state, publicKey, intro) {
+  var returned
+  if (state.identity.publicKey === publicKey) {
+    returned = document.createElement('span')
+    returned.appendChild(document.createTextNode('You'))
+  } else if (intro) {
+    returned = document.createElement('span')
+    returned.appendChild(
       document.createTextNode(
         intro.payload.name + ' on ' + intro.payload.device
       )
     )
   } else {
-    var code = document.createElement('code')
-    code.appendChild(document.createTextNode(draft.public))
-    p.appendChild(code)
+    returned = document.createElement('code')
+    returned.appendChild(document.createTextNode(publicKey))
   }
-  return p
+  return returned
 }
 
 function dateline (draft) {
@@ -193,4 +195,100 @@ function newDraftButton (state, send) {
   a.appendChild(document.createTextNode('New Draft'))
   div.appendChild(a)
   return div
+}
+
+function notes (state, send) {
+  var section = document.createElement('section')
+  var h2 = document.createElement('h2')
+  h2.appendChild(document.createTextNode('Notes'))
+  section.appendChild(h2)
+  section.appendChild(notesList(state, send))
+  return section
+}
+
+function notesList (state, send) {
+  var notes = state.notes
+  var replyTo = state.replyTo
+  var ol = document.createElement('ol')
+  ol.className = 'notesList'
+  notes.forEach(function (note) {
+    ol.appendChild(noteLI(state, note, send))
+  })
+  var directLI = document.createElement('li')
+  if (replyTo) {
+    var button = document.createElement('button')
+    button.appendChild(document.createTextNode('Add a Direct Note'))
+    button.addEventListener('click', function () {
+      send('reply to', null)
+    })
+    directLI.appendChild(button)
+  } else {
+    directLI.appendChild(noteForm(null, send))
+  }
+  ol.appendChild(directLI)
+  return ol
+}
+
+function noteLI (state, note, send) {
+  var li = document.createElement('li')
+  li.id = 'note-' + note.digest
+  var replyTo = state.replyTo
+  // <blockquote>
+  var blockquote = document.createElement('blockquote')
+  blockquote.appendChild(
+    document.createTextNode(note.payload.text)
+  )
+  li.appendChild(blockquote)
+  // <p>
+  var p = document.createElement('p')
+  p.className = 'byline'
+  var intro = state.noteIntros[note.public]
+  p.appendChild(byline(state, note.public, intro))
+  p.appendChild(document.createTextNode(' — '))
+  p.appendChild(renderTimestamp(note.payload.timestamp))
+  li.appendChild(p)
+  if (replyTo === note.digest) {
+    li.appendChild(noteForm(note.digest, send))
+  } else {
+    // <button>
+    var button = document.createElement('button')
+    button.addEventListener('click', function () {
+      send('reply to', note.digest)
+    })
+    button.appendChild(document.createTextNode('Reply'))
+    li.appendChild(button)
+  }
+  if (note.children.length !== 0) {
+    var ol = document.createElement('ol')
+    note.children.forEach(function (child) {
+      ol.appendChild(noteLI(state, child, send))
+    })
+    li.appendChild(ol)
+  }
+  return li
+}
+
+function noteForm (parent, send) {
+  var form = document.createElement('form')
+  form.className = 'noteForm'
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    send('note', {
+      parent: parent,
+      text: textarea.value
+    })
+  })
+  // <textarea>
+  var textarea = document.createElement('textarea')
+  textarea.required = true
+  form.appendChild(textarea)
+  // <button>
+  var button = document.createElement('button')
+  button.type = 'submit'
+  button.appendChild(
+    document.createTextNode(parent ? 'Reply' : 'Add a Note')
+  )
+  form.appendChild(button)
+  return form
 }

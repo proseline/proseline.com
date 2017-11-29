@@ -126,10 +126,11 @@ function withIndexedDB (callback) {
     // Notes
     var notes = db.createObjectStore('notes')
     notes.createIndex('draft', 'payload.draft', {unique: false})
-    notes.createIndex('parents', 'payload.parents', {
+    notes.createIndex('parent', 'payload.parent', {
       unique: false,
       multiEntry: true
     })
+    notes.createIndex('public', 'public', {unique: false})
     // Marks
     var marks = db.createObjectStore('marks')
     marks.createIndex('public', 'public', {unique: false})

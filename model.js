@@ -5,9 +5,10 @@ var runParallel = require('run-parallel')
 var sign = require('./crypto/sign')
 var stringify = require('json-stable-stringify')
 
+var getChildren = require('./queries/children')
 var getLatestIntro = require('./queries/latest-intro')
 var getMarks = require('./queries/marks')
-var getChildren = require('./queries/children')
+var getNotes = require('./queries/notes')
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
@@ -15,6 +16,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       identity: null,
       intro: null,
       marks: null,
+      notes: null,
+      replyTo: null,
       parent: null,
       draft: null,
       ownMarks: null
@@ -108,6 +111,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draft: function (done) {
         getDraft(digest, done)
       },
+      notes: function (done) {
+        withIndexedDB(function (error, db) {
+          if (error) return done(error)
+          getNotes(db, digest, done)
+        })
+      },
       children: function (done) {
         withIndexedDB(function (error, db) {
           if (error) return done(error)
@@ -117,6 +126,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }, function (error, results) {
       if (error) return done(error)
       results.draft.children = results.children
+      results.draft.notes = results.notes.notes
+      results.draft.noteIntros = results.notes.intros
       reduce('draft', results.draft)
       done()
     })
@@ -129,12 +140,16 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draft.digest = digest
       withIndexedDB(function (error, db) {
         if (error) return callback(error)
+        // TODO: Consolidate getting intros for marks and notes.
         runParallel({
           intro: function (done) {
             getLatestIntro(db, draft.public, done)
           },
           marks: function (done) {
             getMarks(db, draft.digest, done)
+          },
+          notes: function (done) {
+            getNotes(db, draft.digest, done)
           }
         }, function (error, results) {
           if (error) return callback(error)
@@ -156,6 +171,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       intro: data.intro || null,
       marks: data.marks || [],
       markIntros: data.markIntros || {},
+      notes: data.notes || [],
+      noteIntros: data.noteIntros || {},
+      replyTo: null,
       children: children,
       diff: null,
       parent: null,
@@ -286,6 +304,44 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       callback(null, envelope)
     })
   }
+
+  // Notes
+
+  handler('note', function (data, state, reduce, done) {
+    var identity = state.identity
+    var note = {
+      draft: state.draft.digest,
+      parent: data.parent,
+      text: data.text,
+      timestamp: new Date().toISOString()
+    }
+    var stringified = stringify(note)
+    var envelope = {
+      payload: note,
+      public: identity.publicKey,
+      signature: sign(stringified, identity.secretKey)
+    }
+    var digest = hash(stringified)
+    put('notes', digest, envelope, function (error) {
+      if (error) return done(error)
+      reduce('push note', envelope)
+      done()
+    })
+  })
+
+  reduction('push note', function (note, state) {
+    // TODO: re-treeify notes
+    return {notes: state.notes.concat(note)}
+  })
+
+  handler('reply to', function (parent, state, reduce, done) {
+    reduce('reply to', parent)
+    done()
+  })
+
+  reduction('reply to', function (parent, state) {
+    return {replyTo: parent}
+  })
 
   // IndexedDB Helper
 

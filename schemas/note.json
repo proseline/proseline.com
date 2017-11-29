@@ -5,12 +5,16 @@
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
-    "parents": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^[a-f0-9]{64}$"
-      }
+    "parent": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
     },
     "text": {
       "type": "string",
@@ -23,7 +27,7 @@
   },
   "required": [
     "draft",
-    "parents",
+    "parent",
     "text",
     "timestamp"
   ],
