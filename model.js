@@ -139,8 +139,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  handler('load mark', function (digest, state, reduce, done) {
-    get('marks', digest, function (error, mark) {
+  handler('load mark', function (key, state, reduce, done) {
+    get('marks', key, function (error, mark) {
       if (error) return done(error)
       // TODO: Handle mark not found.
       window.history.pushState({}, null, '/drafts/' + mark.payload.draft)
@@ -168,11 +168,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       if (data.mark) {
         var mark = data.mark
-        putMark(null, mark, digest, identity, function (error) {
-          if (error) return done(error)
-          window.history.pushState({}, null, '/mark/' + mark)
-          done()
-        })
+        putMark(
+          null, mark, digest, identity,
+          function (error, identifier) {
+            if (error) return done(error)
+            window.history.pushState(
+              {}, null,
+              '/marks/' + identity.publicKey + ':' + identifier
+            )
+            done()
+          }
+        )
       } else {
         window.history.pushState({}, null, '/drafts/' + digest)
         done()
@@ -183,7 +189,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Marks
 
   handler('mark', function (name, state, reduce, done) {
-    putMark(null, name, state.draft.digest, state.identity, done)
+    putMark(
+      null, name, state.draft.digest, state.identity,
+      function (error, identifier) {
+        if (error) return done(error)
+        done()
+      }
+    )
   })
 
   function putMark (identifier, name, draft, identity, callback) {
@@ -201,7 +213,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       signature: sign(stringified, identity.secretKey)
     }
     var key = identity.publicKey + ':' + identifier
-    put('marks', key, envelope, callback)
+    put('marks', key, envelope, function (error) {
+      if (error) return callback(error)
+      callback(null, identifier)
+    })
   }
 
   // IndexedDB Helper
