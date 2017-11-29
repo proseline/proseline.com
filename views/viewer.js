@@ -196,7 +196,7 @@ function markForm (send) {
   form.appendChild(name)
   // Button
   var button = document.createElement('button')
-  button.appendChild(document.createTextNode('Mark'))
+  button.appendChild(document.createTextNode('Mark this Draft'))
   form.appendChild(button)
   return form
 }
