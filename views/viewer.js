@@ -220,7 +220,7 @@ function notes (state, send) {
 }
 
 function notesList (state, send) {
-  var notes = state.notes
+  var notes = state.notesTree
   var replyTo = state.replyTo
   var ol = document.createElement('ol')
   ol.className = 'notesList'
@@ -255,7 +255,7 @@ function noteLI (state, note, send) {
   // <p>
   var p = document.createElement('p')
   p.className = 'byline'
-  var intro = state.noteIntros[note.public]
+  var intro = state.intros[note.public]
   p.appendChild(byline(state, note.public, intro))
   p.appendChild(document.createTextNode(' — '))
   p.appendChild(renderTimestamp(note.payload.timestamp))

@@ -1,9 +1,11 @@
 var diff = require('diff')
+var runParallel = require('run-parallel')
+var stringify = require('json-stable-stringify')
+
 var hash = require('./crypto/hash')
 var random = require('./crypto/random')
-var runParallel = require('run-parallel')
 var sign = require('./crypto/sign')
-var stringify = require('json-stable-stringify')
+var treeifyNotes = require('./utilities/treeify-notes')
 
 var getChildren = require('./queries/children')
 var getMarks = require('./queries/marks')
@@ -16,6 +18,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       intro: null,
       marks: null,
       notes: null,
+      intros: null,
       replyTo: null,
       parent: null,
       draft: null,
@@ -105,72 +108,63 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load draft', function (digest, state, reduce, done) {
-    runParallel({
-      draft: function (done) {
-        getDraft(digest, done)
-      },
-      notes: function (done) {
-        withIndexedDB(function (error, db) {
-          if (error) return done(error)
-          getNotes(db, digest, done)
-        })
-      },
-      children: function (done) {
-        withIndexedDB(function (error, db) {
-          if (error) return done(error)
-          getChildren(db, digest, done)
-        })
-      }
-    }, function (error, results) {
+    withIndexedDB(function (error, db) {
       if (error) return done(error)
-      results.draft.children = results.children
-      results.draft.notes = results.notes.notes
-      results.draft.noteIntros = results.notes.intros
-      reduce('draft', results.draft)
-      done()
-    })
-  })
-
-  function getDraft (digest, callback) {
-    get('drafts', digest, function (error, draft) {
-      if (error) return callback(error)
-      if (draft === undefined) return callback()
-      draft.digest = digest
-      withIndexedDB(function (error, db) {
-        if (error) return callback(error)
-        // TODO: Consolidate getting intros for marks and notes.
-        runParallel({
-          intro: function (done) {
-            get('intros', draft.public, done)
-          },
-          marks: function (done) {
-            getMarks(db, draft.digest, done)
-          },
-          notes: function (done) {
-            getNotes(db, draft.digest, done)
-          }
-        }, function (error, results) {
-          if (error) return callback(error)
-          callback(null, {
-            draft: draft,
-            intro: results.intro,
-            marks: results.marks.marks,
-            markIntros: results.marks.markIntros
+      runParallel({
+        draft: function (done) {
+          get(db, 'drafts', digest, done)
+        },
+        marks: function (done) {
+          getMarks(db, digest, done)
+        },
+        notes: function (done) {
+          getNotes(db, digest, done)
+        },
+        children: function (done) {
+          withIndexedDB(function (error, db) {
+            if (error) return done(error)
+            getChildren(db, digest, done)
           })
+        }
+      }, function (error, results) {
+        if (error) return done(error)
+        // Get intros for all relevant public keys.
+        var publicKeys = [results.draft.public]
+        results.marks.forEach(addPublicKey)
+        results.notes.forEach(addPublicKey)
+        function addPublicKey (object) {
+          var publicKey = object.public
+          if (!publicKeys.includes(publicKey)) {
+            publicKeys.push(publicKey)
+          }
+        }
+        var jobs = {}
+        publicKeys.forEach(function (publicKey) {
+          jobs[publicKey] = function (done) {
+            get(db, 'intros', publicKey, done)
+          }
+        })
+        runParallel(jobs, function (error, intros) {
+          if (error) return done(error)
+          results.draft.digest = digest
+          results.intros = intros
+          reduce('draft', results)
+          done()
         })
       })
     })
-  }
+  })
 
   reduction('draft', function (data, state) {
     var children = data.children || []
+    var notes = data.notes || []
     return {
       draft: data.draft,
       intro: data.intro || null,
       marks: data.marks || [],
-      markIntros: data.markIntros || {},
-      notes: data.notes || [],
-      noteIntros: data.noteIntros || {},
+      notes: notes,
+      notesTree: treeifyNotes(notes),
+      intros: data.intros || {},
       replyTo: null,
       children: children,
       diff: null,
@@ -200,29 +194,29 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load parent', function (digest, state, reduce, done) {
-    getDraft(digest, function (error, results) {
+    withIndexedDB(function (error, db) {
       if (error) return done(error)
-      reduce('parent', results)
-      done()
+      get(db, 'drafts', digest, function (error, draft) {
+        if (error) return done(error)
+        reduce('parent', draft)
+        done()
+      })
     })
   })
 
   reduction('parent', function (data, state) {
-    return {
-      parent: data.draft,
-      intro: data.intro || null,
-      marks: data.marks || [],
-      markIntros: data.markIntros || {},
-      ownMarks: null
-    }
+    return {parent: data.draft}
   })
 
   handler('load mark', function (key, state, reduce, done) {
-    get('marks', key, function (error, mark) {
+    withIndexedDB(function (error, db) {
       if (error) return done(error)
-      // TODO: Handle mark not found.
-      window.history.replaceState({}, null, '/drafts/' + mark.payload.draft)
-      done()
+      get(db, 'marks', key, function (error, mark) {
+        if (error) return done(error)
+        // TODO: Handle mark not found.
+        window.history.replaceState({}, null, '/drafts/' + mark.payload.draft)
+        done()
+      })
     })
   })
 
@@ -326,9 +320,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('push note', function (note, state) {
-    // TODO: re-treeify notes
-    return {notes: state.notes.concat(note)}
+  reduction('push note', function (newNote, state) {
+    var notes = state.notes.concat(newNote)
+    return {
+      notes: notes,
+      notesTree: treeifyNotes(notes),
+      replyTo: null
+    }
   })
 
   handler('reply to', function (parent, state, reduce, done) {
@@ -357,18 +355,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  function get (store, key, callback) {
-    withIndexedDB(function (error, db) {
-      if (error) return callback(error)
-      var transaction = db.transaction([store], 'readonly')
-      transaction.onerror = function () {
-        callback(transaction.error)
-      }
-      var objectStore = transaction.objectStore(store)
-      var request = objectStore.get(key)
-      request.onsuccess = function () {
-        callback(null, request.result)
-      }
-    })
+  function get (db, store, key, callback) {
+    var transaction = db.transaction([store], 'readonly')
+    transaction.onerror = function () {
+      callback(transaction.error)
+    }
+    var objectStore = transaction.objectStore(store)
+    var request = objectStore.get(key)
+    request.onsuccess = function () {
+      callback(null, request.result)
+    }
   }
 }
