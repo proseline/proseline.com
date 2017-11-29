@@ -1,6 +1,7 @@
 var assert = require('assert')
 var createIdentity = require('./crypto/create-identity')
 var runSeries = require('run-series')
+var getLatestIntro = require('./queries/latest-introduction')
 
 runSeries([
   detectFeatures,
@@ -37,12 +38,15 @@ function detectFeatures (done) {
 }
 
 function setupIdentity (done) {
-  loadDefaultIdentity(function (error, loaded) {
+  loadDefaultIdentity(function (error, identity, intro) {
     if (error) return done(error)
-    if (loaded === undefined) {
+    if (identity === undefined) {
       writeIdentity(done)
     } else {
-      state.identity = loaded
+      state.identity = identity
+      if (intro) {
+        state.introduction = intro
+      }
       done()
     }
   })
@@ -55,7 +59,16 @@ function setupIdentity (done) {
         if (publicKey === undefined) {
           done()
         } else {
-          getIdentity(publicKey, done)
+          getIdentity(publicKey, function (error, identity) {
+            if (error) return done(error)
+            getLatestIntro(db, identity.publicKey, function (error, intro) {
+              if (error || intro === undefined) {
+                done(null, identity)
+              } else {
+                done(null, identity, intro)
+              }
+            })
+          })
         }
       })
 
@@ -102,7 +115,8 @@ function withIndexedDB (callback) {
     // Identities
     db.createObjectStore('identities')
     // Introductions
-    db.createObjectStore('introductions')
+    var introductions = db.createObjectStore('introductions')
+    introductions.createIndex('public', 'public', {unique: false})
     // Drafts
     var drafts = db.createObjectStore('drafts')
     drafts.createIndex('parents', 'payload.parents', {
@@ -119,6 +133,7 @@ function withIndexedDB (callback) {
     // Marks
     var marks = db.createObjectStore('marks')
     marks.createIndex('public', 'public', {unique: false})
+    marks.createIndex('draft', 'payload.draft', {unique: false})
   }
   request.onerror = function () {
     callback(request.error)

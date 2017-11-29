@@ -10,11 +10,16 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 256
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
     "name",
-    "device"
+    "device",
+    "timestamp"
   ],
   "additionalProperties": false
 }
