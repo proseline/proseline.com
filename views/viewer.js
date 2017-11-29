@@ -116,20 +116,28 @@ function children (state, send) {
     var ul = document.createElement('ul')
     children.forEach(function (child, index) {
       var li = document.createElement('li')
+      li.id = 'child-' + child.digest
       // <a>
       var a = document.createElement('a')
       a.href = '/drafts/' + child.digest
       a.appendChild(document.createTextNode('child'))
       li.appendChild(a)
       // Comparison Button
+      var button = document.createElement('button')
       if (!state.diff || state.diff.index !== index) {
-        var button = document.createElement('button')
+        button.id = 'diff' + child.digest
         button.appendChild(document.createTextNode('Compare'))
         button.addEventListener('click', function () {
           send('diff', index)
         })
-        li.appendChild(button)
+      } else {
+        button.id = 'stopDiffing'
+        button.appendChild(document.createTextNode('Stop Comparing'))
+        button.addEventListener('click', function () {
+          send('stop diffing')
+        })
       }
+      li.appendChild(button)
       ul.appendChild(li)
     })
     section.appendChild(ul)

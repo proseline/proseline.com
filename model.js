@@ -193,7 +193,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('stop diffing', function (_, state, reduce, done) {
-    console.log('stopping')
     reduce('diff', null)
     done()
   })
