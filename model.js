@@ -193,18 +193,35 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     reduce('diff', {
       source: data.source,
       index: data.index,
-      changes: data.source === 'children'
-        ? diff.diffLines(
-          state.draft.payload.text,
-          state.children[data.index].payload.text
-        )
-        : diff.diffLines(
-          state.parents[data.index].payload.text,
-          state.draft.payload.text
-        )
+      changes: splitChanges(
+        data.source === 'children'
+          ? diff.diffLines(
+            state.draft.payload.text,
+            state.children[data.index].payload.text
+          )
+          : diff.diffLines(
+            state.parents[data.index].payload.text,
+            state.draft.payload.text
+          )
+      )
     })
     done()
   })
+
+  function splitChanges (changes) {
+    var returned = []
+    changes.forEach(function (change) {
+      change.value
+        .split('\n')
+        .forEach(function (line) {
+          var newChange = {value: line}
+          newChange.added = change.added
+          newChange.removed = change.removed
+          returned.push(newChange)
+        })
+    })
+    return returned
+  }
 
   handler('stop diffing', function (_, state, reduce, done) {
     reduce('diff', null)
