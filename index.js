@@ -108,6 +108,7 @@ function withIndexedDB (callback) {
     callback(null, request.result)
   }
   request.onupgradeneeded = function () {
+    // TODO: Version IndexedDB.
     var db = request.result
     // Identities
     db.createObjectStore('identities')
