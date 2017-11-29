@@ -14,17 +14,12 @@
     "timestamp": {
       "type": "string",
       "format": "date-time"
-    },
-    "public": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
     }
   },
   "required": [
     "parents",
     "text",
-    "timestamp",
-    "public"
+    "timestamp"
   ],
   "additionalProperties": false
 }

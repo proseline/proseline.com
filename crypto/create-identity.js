@@ -6,6 +6,8 @@ module.exports = function () {
   sodium.crypto_sign_keypair(publicKey, secretKey)
   return {
     secretKey: secretKey.toString('hex'),
-    publicKey: publicKey.toString('hex')
+    publicKey: publicKey.toString('hex'),
+    name: null,
+    device: null
   }
 }

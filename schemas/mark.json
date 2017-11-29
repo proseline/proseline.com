@@ -1,10 +1,6 @@
 {
   "type": "object",
   "properties": {
-    "identifier": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
-    },
     "name": {
       "type": "string",
       "minLength": 1,
@@ -17,18 +13,12 @@
     "draft": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
-    },
-    "public": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
     }
   },
   "required": [
-    "identifier",
     "name",
     "timestamp",
-    "draft",
-    "public"
+    "draft"
   ],
   "additionalProperties": false
 }
