@@ -2,7 +2,7 @@ var renderTimestamp = require('./timestamp')
 
 module.exports = function (mark, state, send) {
   var own = mark.public === state.identity.publicKey
-  var intro = state.markIntroductions[mark.public]
+  var intro = state.markIntros[mark.public]
   var div = document.createElement('div')
   var name = document.createElement('span')
   name.className = 'markName'
@@ -10,7 +10,7 @@ module.exports = function (mark, state, send) {
   div.appendChild(name)
   div.appendChild(renderTimestamp(mark.payload.timestamp))
   var user = document.createElement('span')
-  user.className = 'introduction'
+  user.className = 'intro'
   if (own) {
     user.appendChild(document.createTextNode('(yours)'))
     // TODO: Delete mark button.

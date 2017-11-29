@@ -1,4 +1,4 @@
-var getLatestIntro = require('./latest-introduction')
+var getLatestIntro = require('./latest-intro')
 var runParallel = require('run-parallel')
 
 module.exports = function (db, digest, callback) {
@@ -21,7 +21,7 @@ module.exports = function (db, digest, callback) {
       if (error) return callback(error)
       callback(null, {
         marks: marks,
-        markIntroductions: markIntros
+        markIntros: markIntros
       })
     })
   })

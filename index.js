@@ -1,7 +1,7 @@
 var assert = require('assert')
 var createIdentity = require('./crypto/create-identity')
 var runSeries = require('run-series')
-var getLatestIntro = require('./queries/latest-introduction')
+var getLatestIntro = require('./queries/latest-intro')
 
 runSeries([
   detectFeatures,
@@ -45,7 +45,7 @@ function setupIdentity (done) {
     } else {
       state.identity = identity
       if (intro) {
-        state.introduction = intro
+        state.intro = intro
       }
       done()
     }
@@ -114,9 +114,9 @@ function withIndexedDB (callback) {
     var db = request.result
     // Identities
     db.createObjectStore('identities')
-    // Introductions
-    var introductions = db.createObjectStore('introductions')
-    introductions.createIndex('public', 'public', {unique: false})
+    // Intros
+    var intros = db.createObjectStore('intros')
+    intros.createIndex('public', 'public', {unique: false})
     // Drafts
     var drafts = db.createObjectStore('drafts')
     drafts.createIndex('parents', 'payload.parents', {

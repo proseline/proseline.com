@@ -5,11 +5,11 @@ module.exports = function (state, send) {
   h1.appendChild(document.createTextNode('Your Identity'))
   section.appendChild(h1)
 
-  if (state.introduction === null) {
-    section.appendChild(introductionForm(send))
+  if (state.intro === null) {
+    section.appendChild(introForm(send))
   } else {
     var p = document.createElement('p')
-    var payload = state.introduction.payload
+    var payload = state.intro.payload
     p.appendChild(
       document.createTextNode(
         payload.name + ' on ' + payload.device
@@ -20,9 +20,9 @@ module.exports = function (state, send) {
   return section
 }
 
-function introductionForm (send) {
+function introForm (send) {
   var form = document.createElement('form')
-  form.className = 'introduction'
+  form.className = 'intro'
 
   // Name
   var input = document.createElement('input')

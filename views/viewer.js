@@ -33,7 +33,7 @@ function author (state) {
 }
 
 function byline (state) {
-  var intro = state.introduction
+  var intro = state.intro
   var draft = state.draft
   var p = document.createElement('p')
   if (intro && intro.public === draft.public) {

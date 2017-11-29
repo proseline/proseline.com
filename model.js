@@ -4,44 +4,44 @@ var runParallel = require('run-parallel')
 var sign = require('./crypto/sign')
 var stringify = require('json-stable-stringify')
 
-var getLatestIntro = require('./queries/latest-introduction')
+var getLatestIntro = require('./queries/latest-intro')
 var getMarks = require('./queries/marks')
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
     return {
       identity: null,
-      introduction: null,
+      intro: null,
       marks: null,
       draft: null
     }
   })
 
-  // Introduction
+  // Intro
 
   handler('introduce', function (data, state, reduce, done) {
     var identity = state.identity
-    var introduction = {
+    var intro = {
       name: data.name,
       device: data.device,
       timestamp: new Date().toISOString()
     }
-    var stringified = stringify(introduction)
+    var stringified = stringify(intro)
     var envelope = {
-      payload: introduction,
+      payload: intro,
       public: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     var digest = hash(stringified)
-    put('introductions', digest, envelope, function (error) {
+    put('intros', digest, envelope, function (error) {
       if (error) return done(error)
-      reduce('introduction', envelope)
+      reduce('intro', envelope)
       done()
     })
   })
 
-  reduction('introduction', function (newIntroduction, state) {
-    return {introduction: newIntroduction}
+  reduction('intro', function (newIntro, state) {
+    return {intro: newIntro}
   })
 
   handler('identity name', function (newName, state, reduce, done) {
@@ -119,9 +119,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             if (error) return done(error)
             reduce('draft', {
               draft: draft,
-              introduction: results.intro,
+              intro: results.intro,
               marks: results.marks.marks,
-              markIntroductions: results.marks.markIntroductions
+              markIntros: results.marks.markIntros
             })
             done()
           })
@@ -133,9 +133,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reduction('draft', function (data, state) {
     return {
       draft: data.draft,
-      introduction: data.introduction || null,
+      intro: data.intro || null,
       marks: data.marks || [],
-      markIntroductions: data.markIntroductions || {}
+      markIntros: data.markIntros || {}
     }
   })
 
