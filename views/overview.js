@@ -4,14 +4,14 @@ var identityLine = require('./partials/identity-line')
 module.exports = function (state, send) {
   var main = document.createElement('main')
   main.appendChild(identityLine(state, send))
-  if (state.marks === null) {
+  if (state.ownMarks === null) {
     main.appendChild(
       loading(function () {
-        send('load marks')
+        send('load own marks')
       })
     )
   } else {
-    main.appendChild(marksList(state.marks))
+    main.appendChild(marksList(state.ownMarks))
   }
   main.appendChild(newDraft(send))
   return main

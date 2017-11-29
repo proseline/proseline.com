@@ -13,7 +13,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       identity: null,
       intro: null,
       marks: null,
-      draft: null
+      draft: null,
+      ownMarks: null
     }
   })
 
@@ -69,7 +70,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Loading
 
-  handler('load marks', function (_, state, reduce, done) {
+  handler('load own marks', function (_, state, reduce, done) {
     withIndexedDB(function (error, db) {
       if (error) return done(error)
       var transaction = db.transaction(['marks'], 'readonly')
@@ -88,15 +89,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           marks.push(value)
           cursor.continue()
         } else {
-          reduce('marks', marks)
+          reduce('own marks', marks)
           done()
         }
       }
     })
   })
 
-  reduction('marks', function (newMarks, state) {
-    return {marks: newMarks}
+  reduction('own marks', function (newMarks, state) {
+    return {ownMarks: newMarks}
   })
 
   handler('load draft', function (digest, state, reduce, done) {
@@ -135,7 +136,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draft: data.draft,
       intro: data.intro || null,
       marks: data.marks || [],
-      markIntros: data.markIntros || {}
+      markIntros: data.markIntros || {},
+      ownMarks: null
     }
   })
 
@@ -143,7 +145,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     get('marks', key, function (error, mark) {
       if (error) return done(error)
       // TODO: Handle mark not found.
-      window.history.pushState({}, null, '/drafts/' + mark.payload.draft)
+      window.history.replaceState({}, null, '/drafts/' + mark.payload.draft)
       done()
     })
   })
@@ -170,11 +172,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var mark = data.mark
         putMark(
           null, mark, digest, identity,
-          function (error, identifier) {
+          function (error, mark) {
             if (error) return done(error)
             window.history.pushState(
               {}, null,
-              '/marks/' + identity.publicKey + ':' + identifier
+              '/marks/' + identity.publicKey + ':' + mark.payload.identifier
             )
             done()
           }
@@ -191,11 +193,16 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('mark', function (name, state, reduce, done) {
     putMark(
       null, name, state.draft.digest, state.identity,
-      function (error, identifier) {
+      function (error, mark) {
         if (error) return done(error)
+        reduce('push mark', mark)
         done()
       }
     )
+  })
+
+  reduction('push mark', function (mark, state) {
+    return {marks: state.marks.concat(mark)}
   })
 
   function putMark (identifier, name, draft, identity, callback) {
@@ -215,7 +222,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var key = identity.publicKey + ':' + identifier
     put('marks', key, envelope, function (error) {
       if (error) return callback(error)
-      callback(null, identifier)
+      callback(null, envelope)
     })
   }
 
