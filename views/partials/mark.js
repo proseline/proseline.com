@@ -1,8 +1,8 @@
 var renderTimestamp = require('./timestamp')
 
 module.exports = function (mark, state, send) {
-  var own = mark.public === state.identity.publicKey
-  var intro = state.intros[mark.public]
+  var own = mark.publicKey === state.identity.publicKey
+  var intro = state.intros[mark.publicKey]
   var div = document.createElement('div')
   var name = document.createElement('span')
   name.className = 'markName'

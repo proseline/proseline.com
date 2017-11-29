@@ -4,7 +4,7 @@
     "payload": {
       "type": "object"
     },
-    "public": {
+    "publicKey": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
@@ -15,7 +15,7 @@
   },
   "required": [
     "payload",
-    "public",
+    "publicKey",
     "signature"
   ],
   "additionalProperties": false

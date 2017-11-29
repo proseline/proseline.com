@@ -1,18 +1,18 @@
 {
   "type": "object",
   "properties": {
-    "public": {
+    "publicKey": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
-    "secret": {
+    "secretKey": {
       "type": "string",
       "pattern": "^[a-f0-9]{128}$"
     }
   },
   "required": [
-    "public",
-    "secret"
+    "publicKey",
+    "secretKey"
   ],
   "additionalProperties": false
 }

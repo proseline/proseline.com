@@ -31,7 +31,7 @@ function author (state) {
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Author'))
   section.appendChild(h2)
-  section.appendChild(byline(state, state.draft.public, state.intro))
+  section.appendChild(byline(state, state.draft.publicKey, state.intro))
   section.appendChild(dateline(state.draft))
   return section
 }
@@ -94,7 +94,7 @@ function parents (state, send) {
     // <a>
     var a = document.createElement('a')
     a.href = '/drafts/' + parent.digest
-    a.appendChild(byline(state, parent.public, state.intros[parent.public]))
+    a.appendChild(byline(state, parent.publicKey, state.intros[parent.publicKey]))
     a.appendChild(document.createTextNode(' — '))
     a.appendChild(renderTimestamp(parent.payload.timestamp))
     li.appendChild(a)
@@ -140,7 +140,7 @@ function children (state, send) {
     // <a>
     var a = document.createElement('a')
     a.href = '/drafts/' + child.digest
-    a.appendChild(byline(state, child.public, state.intros[child.public]))
+    a.appendChild(byline(state, child.publicKey, state.intros[child.publicKey]))
     a.appendChild(document.createTextNode(' — '))
     a.appendChild(renderTimestamp(child.payload.timestamp))
     li.appendChild(a)
@@ -279,8 +279,8 @@ function noteLI (state, note, send) {
   // <p>
   var p = document.createElement('p')
   p.className = 'byline'
-  var intro = state.intros[note.public]
-  p.appendChild(byline(state, note.public, intro))
+  var intro = state.intros[note.publicKey]
+  p.appendChild(byline(state, note.publicKey, intro))
   p.appendChild(document.createTextNode(' — '))
   p.appendChild(renderTimestamp(note.payload.timestamp))
   li.appendChild(p)

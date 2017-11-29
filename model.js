@@ -38,7 +38,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var stringified = stringify(intro)
     var envelope = {
       payload: intro,
-      public: identity.publicKey,
+      publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     put('intros', identity.publicKey, envelope, function (error) {
@@ -85,7 +85,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         done(transaction.error)
       }
       var objectStore = transaction.objectStore('marks')
-      var index = objectStore.index('public')
+      var index = objectStore.index('publicKey')
       var request = index.openCursor(state.identity.publicKey)
       var marks = []
       request.onsuccess = function () {
@@ -142,13 +142,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           if (error) return done(error)
           results.parents = parents
           // Get intros for all relevant public keys.
-          var publicKeys = [results.draft.public]
+          var publicKeys = [results.draft.publicKey]
           results.marks.forEach(addPublicKey)
           results.notes.forEach(addPublicKey)
           results.parents.forEach(addPublicKey)
           results.children.forEach(addPublicKey)
           function addPublicKey (object) {
-            var publicKey = object.public
+            var publicKey = object.publicKey
             if (!publicKeys.includes(publicKey)) {
               publicKeys.push(publicKey)
             }
@@ -254,7 +254,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var stringified = stringify(draft)
     var envelope = {
       payload: draft,
-      public: identity.publicKey,
+      publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     var digest = hash(stringified)
@@ -308,7 +308,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var stringified = stringify(mark)
     var envelope = {
       payload: mark,
-      public: identity.publicKey,
+      publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     var key = identity.publicKey + ':' + identifier
@@ -331,7 +331,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var stringified = stringify(note)
     var envelope = {
       payload: note,
-      public: identity.publicKey,
+      publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     var digest = hash(stringified)
