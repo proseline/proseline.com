@@ -11,7 +11,10 @@ module.exports = function (digest, state, send) {
   if (state.draft && state.draft.digest === digest) {
     main.appendChild(author(state))
     main.appendChild(marks(state, send))
+    main.appendChild(parents(state, send))
+    main.appendChild(children(state, send))
     main.appendChild(renderText(state.draft))
+    main.appendChild(newDraftButton(state, send))
   } else {
     main.appendChild(
       loading(function () {
@@ -76,6 +79,56 @@ function marks (state, send) {
   return section
 }
 
+function parents (state) {
+  var section = document.createElement('section')
+  var h2 = document.createElement('h2')
+  h2.appendChild(document.createTextNode('Parents'))
+  section.appendChild(h2)
+  var parents = state.draft.payload.parents
+  if (parents.length === 0) {
+    var p = document.createElement('p')
+    p.appendChild(document.createTextNode('None.'))
+    section.appendChild(p)
+  } else {
+    var ul = document.createElement('ul')
+    parents.forEach(function (digest) {
+      var li = document.createElement('li')
+      var a = document.createElement('a')
+      a.href = '/drafts/' + digest
+      a.appendChild(document.createTextNode('parent'))
+      li.appendChild(a)
+      ul.appendChild(li)
+    })
+    section.appendChild(ul)
+  }
+  return section
+}
+
+function children (state) {
+  var section = document.createElement('section')
+  var h2 = document.createElement('h2')
+  h2.appendChild(document.createTextNode('Children'))
+  section.appendChild(h2)
+  var children = state.children
+  if (children.length === 0) {
+    var p = document.createElement('p')
+    p.appendChild(document.createTextNode('None.'))
+    section.appendChild(p)
+  } else {
+    var ul = document.createElement('ul')
+    children.forEach(function (child) {
+      var li = document.createElement('li')
+      var a = document.createElement('a')
+      a.href = '/drafts/' + child.digest
+      a.appendChild(document.createTextNode('child'))
+      li.appendChild(a)
+      ul.appendChild(li)
+    })
+    section.appendChild(ul)
+  }
+  return section
+}
+
 function renderText (draft) {
   var reader = new commonmark.Parser()
   var writer = new commonmark.HtmlRenderer()
@@ -112,4 +165,13 @@ function markForm (send) {
   button.appendChild(document.createTextNode('Mark'))
   form.appendChild(button)
   return form
+}
+
+function newDraftButton (state, send) {
+  var div = document.createElement('div')
+  var a = document.createElement('a')
+  a.href = '/drafts/new/' + state.draft.digest
+  a.appendChild(document.createTextNode('New Draft'))
+  div.appendChild(a)
+  return div
 }

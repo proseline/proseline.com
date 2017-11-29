@@ -230,6 +230,8 @@ function render () {
   var path = pathOf(window.location.href)
   if (path === '' || path === '/') {
     return renderOverview(state, action)
+  } else if (startsWith('/drafts/new/')) {
+    return renderEditor(state, action, path.substring(12))
   } else if (startsWith('/drafts/new')) {
     return renderEditor(state, action)
   } else if (startsWith('/drafts/')) {

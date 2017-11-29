@@ -6,6 +6,7 @@ var stringify = require('json-stable-stringify')
 
 var getLatestIntro = require('./queries/latest-intro')
 var getMarks = require('./queries/marks')
+var getChildren = require('./queries/children')
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
@@ -13,6 +14,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       identity: null,
       intro: null,
       marks: null,
+      parent: null,
       draft: null,
       ownMarks: null
     }
@@ -101,39 +103,74 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load draft', function (digest, state, reduce, done) {
-    get('drafts', digest, function (error, draft) {
-      if (error) return done(error)
-      if (draft === undefined) {
-        // TODO
-      } else {
-        draft.digest = digest
+    runParallel({
+      draft: function (done) {
+        getDraft(digest, done)
+      },
+      children: function (done) {
         withIndexedDB(function (error, db) {
           if (error) return done(error)
-          runParallel({
-            intro: function (done) {
-              getLatestIntro(db, draft.public, done)
-            },
-            marks: function (done) {
-              getMarks(db, draft.digest, done)
-            }
-          }, function (error, results) {
-            if (error) return done(error)
-            reduce('draft', {
-              draft: draft,
-              intro: results.intro,
-              marks: results.marks.marks,
-              markIntros: results.marks.markIntros
-            })
-            done()
-          })
+          getChildren(db, digest, done)
         })
       }
+    }, function (error, results) {
+      if (error) return done(error)
+      results.draft.children = results.children
+      reduce('draft', results.draft)
+      done()
     })
   })
+
+  function getDraft (digest, callback) {
+    get('drafts', digest, function (error, draft) {
+      if (error) return callback(error)
+      if (draft === undefined) return callback()
+      draft.digest = digest
+      withIndexedDB(function (error, db) {
+        if (error) return callback(error)
+        runParallel({
+          intro: function (done) {
+            getLatestIntro(db, draft.public, done)
+          },
+          marks: function (done) {
+            getMarks(db, draft.digest, done)
+          }
+        }, function (error, results) {
+          if (error) return callback(error)
+          callback(null, {
+            draft: draft,
+            intro: results.intro,
+            marks: results.marks.marks,
+            markIntros: results.marks.markIntros
+          })
+        })
+      })
+    })
+  }
 
   reduction('draft', function (data, state) {
     return {
       draft: data.draft,
+      intro: data.intro || null,
+      marks: data.marks || [],
+      markIntros: data.markIntros || {},
+      children: data.children || [],
+      parent: null,
+      ownMarks: null
+    }
+  })
+
+  handler('load parent', function (digest, state, reduce, done) {
+    getDraft(digest, function (error, results) {
+      if (error) return done(error)
+      reduce('parent', results)
+      done()
+    })
+  })
+
+  reduction('parent', function (data, state) {
+    return {
+      parent: data.draft,
       intro: data.intro || null,
       marks: data.marks || [],
       markIntros: data.markIntros || {},
