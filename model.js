@@ -1,3 +1,4 @@
+var diff = require('fast-diff')
 var hash = require('./crypto/hash')
 var random = require('./crypto/random')
 var runParallel = require('run-parallel')
@@ -149,15 +150,38 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   }
 
   reduction('draft', function (data, state) {
+    var children = data.children || []
     return {
       draft: data.draft,
       intro: data.intro || null,
       marks: data.marks || [],
       markIntros: data.markIntros || {},
-      children: data.children || [],
+      children: children,
+      diff: null,
       parent: null,
       ownMarks: null
     }
+  })
+
+  handler('diff', function (index, state, reduce, done) {
+    reduce('diff', {
+      index: index,
+      tuples: diff(
+        state.draft.payload.text,
+        state.children[index].payload.text
+      )
+    })
+    done()
+  })
+
+  handler('stop diffing', function (_, state, reduce, done) {
+    console.log('stopping')
+    reduce('diff', null)
+    done()
+  })
+
+  reduction('diff', function (diff, state) {
+    return {diff: diff}
   })
 
   handler('load parent', function (digest, state, reduce, done) {

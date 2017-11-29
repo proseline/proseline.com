@@ -8,7 +8,7 @@
     ]
   },
   "dependencies": {
-    "commonmark": "^0.28.1",
+    "fast-diff": "^1.1.2",
     "is-sha-256-hex-digest": "^1.0.0",
     "json-parse-errback": "^2.0.1",
     "json-stable-stringify": "^1.0.1",

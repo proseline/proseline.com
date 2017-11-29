@@ -1,7 +1,3 @@
-/* global DOMParser */
-
-var commonmark = require('commonmark')
-
 var loading = require('./loading')
 var renderMark = require('./partials/mark')
 var renderTimestamp = require('./partials/timestamp')
@@ -13,7 +9,7 @@ module.exports = function (digest, state, send) {
     main.appendChild(marks(state, send))
     main.appendChild(parents(state, send))
     main.appendChild(children(state, send))
-    main.appendChild(renderText(state.draft))
+    main.appendChild(renderText(state))
     main.appendChild(newDraftButton(state, send))
   } else {
     main.appendChild(
@@ -104,7 +100,7 @@ function parents (state) {
   return section
 }
 
-function children (state) {
+function children (state, send) {
   var section = document.createElement('section')
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Children'))
@@ -116,12 +112,22 @@ function children (state) {
     section.appendChild(p)
   } else {
     var ul = document.createElement('ul')
-    children.forEach(function (child) {
+    children.forEach(function (child, index) {
       var li = document.createElement('li')
+      // <a>
       var a = document.createElement('a')
       a.href = '/drafts/' + child.digest
       a.appendChild(document.createTextNode('child'))
       li.appendChild(a)
+      // Comparison Button
+      if (!state.diff || state.diff.index !== index) {
+        var button = document.createElement('button')
+        button.appendChild(document.createTextNode('Compare'))
+        button.addEventListener('click', function () {
+          send('diff', index)
+        })
+        li.appendChild(button)
+      }
       ul.appendChild(li)
     })
     section.appendChild(ul)
@@ -129,21 +135,34 @@ function children (state) {
   return section
 }
 
-function renderText (draft) {
-  var reader = new commonmark.Parser()
-  var writer = new commonmark.HtmlRenderer()
-  var parsed = reader.parse(draft.payload.text)
-  var rendered = writer.render(parsed, {
-    smart: true,
-    safe: true
-  })
+function renderText (state) {
+  var draft = state.draft
   var article = document.createElement('article')
   article.className = 'draftText'
-  var body = new DOMParser()
-    .parseFromString(rendered, 'text/html')
-    .body
-  while (body.hasChildNodes()) {
-    article.appendChild(body.firstChild)
+  if (state.diff) {
+    state.diff.tuples.forEach(function (tuple) {
+      var element
+      var operation = tuple[0]
+      if (operation === 0) {
+        element = document.createTextNode(tuple[1])
+      } else {
+        if (operation === -1) {
+          element = document.createElement('del')
+        } else if (operation === 1) {
+          element = document.createElement('ins')
+        }
+        element.appendChild(document.createTextNode(tuple[1]))
+      }
+      article.appendChild(element)
+    })
+  } else {
+    draft.payload.text
+      .split('\n')
+      .forEach(function (line, index) {
+        var span = document.createElement('span')
+        span.appendChild(document.createTextNode(line))
+        article.appendChild(span)
+      })
   }
   return article
 }
