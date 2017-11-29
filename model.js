@@ -220,6 +220,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       get(db, 'drafts', digest, function (error, draft) {
         if (error) return done(error)
+        draft.digest = digest
         reduce('parent', draft)
         done()
       })
@@ -227,7 +228,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('parent', function (data, state) {
-    return {parent: data.draft}
+    return {parent: data}
   })
 
   handler('load mark', function (key, state, reduce, done) {
