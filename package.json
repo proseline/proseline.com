@@ -30,7 +30,6 @@
     "es2020": "^1.1.9",
     "husky": "^0.14.3",
     "licensee": "^4.5.0",
-    "licensify": "^3.1.3",
     "lint-staged": "^5.0.0",
     "node-sass": "^4.7.1",
     "npm-run-all": "^4.1.2",
@@ -49,7 +48,7 @@
   "scripts": {
     "build": "npm-run-all --parallel build:*",
     "build:css": "node-sass --output-style compressed styles/styles.sass > build/styles.css",
-    "build:js": "browserify -p [ browserify-header --file header.js ] -p licensify -p common-shakeify index.js | uglifyjs --comments warnings=false > build/browser.js",
+    "build:js": "browserify -p common-shakeify -p [ browserify-header --file header.js ] index.js | uglifyjs --comments '/license/' > build/browser.js",
     "build:licenses": "brlicenses -f full index.js > build/LICENSES",
     "chromedriver": "chromedriver --url-base=/wd/hub",
     "licenses": "licensee --production --errors-only | tee licenses.log",
@@ -57,6 +56,6 @@
     "precommit": "lint-staged",
     "test": "tape test/*.test.js",
     "watch:css": "node-sass --watch --source-map true --output build styles/styles.sass",
-    "watch:js": "watchify --ignore-transform uglifyify index.js -o build/browser.js -dv"
+    "watch:js": "watchify -p common-shakeify --ignore-transform uglifyify index.js -o build/browser.js -dv"
   }
 }
