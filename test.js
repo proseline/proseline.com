@@ -12,5 +12,5 @@ function validate (name) {
 validate('draft')
 validate('envelope')
 validate('intro')
-validate('marker')
+validate('mark')
 validate('note')
