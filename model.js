@@ -1,4 +1,4 @@
-var diff = require('diff')
+var diff = require('diff/lib/diff/line').diffLines
 var runParallel = require('run-parallel')
 var stringify = require('json-stable-stringify')
 
@@ -195,11 +195,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       index: data.index,
       changes: splitChanges(
         data.source === 'children'
-          ? diff.diffLines(
+          ? diff(
             state.draft.payload.text,
             state.children[data.index].payload.text
           )
-          : diff.diffLines(
+          : diff(
             state.parents[data.index].payload.text,
             state.draft.payload.text
           )
