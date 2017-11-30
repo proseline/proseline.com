@@ -15,6 +15,7 @@ module.exports = function (digest, state, send) {
     }
     main.appendChild(renderText(state))
     main.appendChild(newDraftButton(state, send))
+    main.appendChild(lineButton(state, send))
     main.appendChild(notes(state, send))
   } else {
     main.appendChild(
@@ -230,6 +231,15 @@ function newDraftButton (state, send) {
   var a = document.createElement('a')
   a.href = '/drafts/new/' + state.draft.digest
   a.appendChild(document.createTextNode('New Draft'))
+  div.appendChild(a)
+  return div
+}
+
+function lineButton (state, send) {
+  var div = document.createElement('div')
+  var a = document.createElement('a')
+  a.href = '/lines/' + state.draft.digest
+  a.appendChild(document.createTextNode('View Line'))
   div.appendChild(a)
   return div
 }

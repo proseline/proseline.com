@@ -8,6 +8,7 @@
     ]
   },
   "dependencies": {
+    "cytoscape": "^3.2.6",
     "diff": "^3.4.0",
     "is-sha-256-hex-digest": "^1.0.0",
     "json-parse-errback": "^2.0.1",

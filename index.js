@@ -220,6 +220,7 @@ var renderLoading = require('./views/loading')
 var renderNotFound = require('./views/not-found')
 var renderOverview = require('./views/overview')
 var renderViewer = require('./views/viewer')
+var renderGraph = require('./views/graph')
 
 var pathOf = require('./utilities/path-of')
 
@@ -235,6 +236,8 @@ function render () {
     return renderEditor(state, action)
   } else if (startsWith('/drafts/')) {
     return renderViewer(path.substring(8), state, action)
+  } else if (startsWith('/lines/')) {
+    return renderGraph(path.substring(7), state, action)
   } else if (startsWith('/marks/')) {
     return renderLoading(function () {
       action('load mark', path.substring(7))
