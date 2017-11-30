@@ -6,7 +6,8 @@
       "items": {
         "type": "string",
         "pattern": "^[a-f0-9]{64}$"
-      }
+      },
+      "maxItems": 2
     },
     "text": {
       "type": "string"
