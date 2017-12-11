@@ -81,12 +81,40 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Projects
 
   handler('create project', function (data, state, reduce, done) {
-    var secretKey = random(32)
+    createProject(null, null, data.title, function (error, project) {
+      if (error) return done(error)
+      reduce('new project', project)
+      redirectToProject(project.discoveryKey)
+      done()
+    })
+  })
+
+  handler('join project', function (secretKey, state, reduce, done) {
     var discoveryKey = hashHex(secretKey)
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.getProject(discoveryKey, function (error, project) {
+        if (error) return done(error)
+        if (project) return redirect()
+        createProject(secretKey, discoveryKey, function (error) {
+          if (error) return done(error)
+          redirect()
+        })
+      })
+    })
+    function redirect () {
+      redirectToProject(discoveryKey)
+      done()
+    }
+  })
+
+  function createProject (secretKey, discoveryKey, title, callback) {
+    secretKey = secretKey || random(32)
+    discoveryKey = discoveryKey || hashHex(secretKey)
     var project = {
       secretKey: secretKey,
       discoveryKey: discoveryKey,
-      title: data.title
+      title: title || 'Untitled Project'
     }
     runSeries([
       function (done) {
@@ -102,12 +130,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         })
       }
     ], function (error) {
-      if (error) return done(error)
-      reduce('new project', project)
-      window.history.pushState({}, null, '/projects/' + discoveryKey)
-      done()
+      if (error) return callback(error)
+      callback(null, project)
     })
-  })
+  }
+
+  function redirectToProject (discoveryKey) {
+    window.history.pushState({}, null, '/projects/' + discoveryKey)
+  }
 
   reduction('new project', function (newProject, state) {
     return {projects: state.projects.concat(newProject)}

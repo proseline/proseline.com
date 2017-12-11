@@ -132,8 +132,9 @@ var renderEditor = require('./views/editor')
 var renderLoading = require('./views/loading')
 var renderNotFound = require('./views/not-found')
 var renderOverview = require('./views/overview')
-var renderProjectCreator = require('./views/project/create')
 var renderProject = require('./views/project/view')
+var renderProjectCreator = require('./views/project/create')
+var renderProjectJoin = require('./views/project/join')
 var renderViewer = require('./views/viewer')
 
 var pathOf = require('./utilities/path-of')
@@ -144,6 +145,8 @@ function render () {
   var path = pathOf(window.location.href)
   if (path === '' || path === '/') {
     return renderOverview(state, action)
+  } else if (/^\/[a-f0-9]{64}$/.test(path)) {
+    return renderProjectJoin(state, action, path.substring(1))
   } else if (startsWith('/projects/new')) {
     return renderProjectCreator(state, action)
   } else if (startsWith('/projects/')) {

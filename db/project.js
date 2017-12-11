@@ -46,7 +46,8 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     marks.createIndex('identifier', 'payload.identifier', {unique: false})
 
     // Logs
-    db.createObjectStore('logs')
+    var logs = db.createObjectStore('logs')
+    logs.createIndex('publicKey', 'publicKey', {unique: false})
   }
 
   callback()
