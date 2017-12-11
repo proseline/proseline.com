@@ -83,6 +83,7 @@ prototype._listKeysAndValues = function (store, callback) {
     }
   }
 }
+
 prototype._listKeys = function (store, callback) {
   var transaction = this._db.transaction([store], 'readonly')
   transaction.onerror = function () {

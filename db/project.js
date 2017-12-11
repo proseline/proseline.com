@@ -178,6 +178,10 @@ Project.prototype.getMarks = function (digest, callback) {
   }
 }
 
+Project.prototype.listMarks = function (callback) {
+  this._listValues('marks', callback)
+}
+
 // Notes
 
 Project.prototype.getNotes = function (digest, callback) {

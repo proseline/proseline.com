@@ -11,6 +11,7 @@ module.exports = function (state, send, discoveryKey, digest) {
       })
     )
   } else if (state.draft && state.draft.digest === digest) {
+    main.appendChild(project(state))
     main.appendChild(author(state))
     main.appendChild(marks(state, send))
     if (state.draft.entry.payload.parents.length !== 0) {
@@ -33,6 +34,21 @@ module.exports = function (state, send, discoveryKey, digest) {
     )
   }
   return main
+}
+
+function project (state) {
+  var section = document.createElement('section')
+
+  var h1 = document.createElement('h1')
+  section.appendChild(h1)
+  h1.appendChild(document.createTextNode(state.title))
+
+  var a = document.createElement('a')
+  section.appendChild(a)
+  a.href = '/projects/' + state.discoveryKey
+  a.appendChild(document.createTextNode('back to overview'))
+
+  return section
 }
 
 function author (state) {
@@ -237,7 +253,10 @@ function markForm (send) {
 function newDraftButton (state, send) {
   var div = document.createElement('div')
   var a = document.createElement('a')
-  a.href = '/drafts/new/' + state.draft.digest
+  a.href = (
+    '/projects/' + state.discoveryKey +
+    '/drafts/new/' + state.draft.digest
+  )
   a.appendChild(document.createTextNode('New Draft'))
   div.appendChild(a)
   return div

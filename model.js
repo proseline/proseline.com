@@ -153,22 +153,22 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load project', function (discoveryKey, state, reduce, done) {
-    runParallel({
-      project: function (done) {
-        withIndexedDB('proseline', function (error, db) {
-          if (error) return done(error)
-          db.getProject(discoveryKey, done)
-        })
-      },
-      identity: function (done) {
-        withIndexedDB(discoveryKey, function (error, db) {
-          if (error) return done(error)
-          db.getDefaultIdentity(done)
-        })
-      }
-    }, function (error, results) {
+    withIndexedDB(discoveryKey, function (error, db) {
       if (error) return done(error)
-      withIndexedDB(discoveryKey, function (error, db) {
+      runParallel({
+        project: function (done) {
+          withIndexedDB('proseline', function (error, db) {
+            if (error) return done(error)
+            db.getProject(discoveryKey, done)
+          })
+        },
+        identity: function (done) {
+          db.getDefaultIdentity(done)
+        },
+        projectMarks: function (done) {
+          db.listMarks(done)
+        }
+      }, function (error, results) {
         if (error) return done(error)
         db.getLogHead(results.identity.publicKey, function (error, head) {
           if (error) return done(error)
@@ -186,7 +186,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: data.project.discoveryKey,
       secretKey: data.project.secretKey,
       identity: data.identity,
-      head: data.head
+      head: data.head,
+      projectMarks: data.projectMarks || []
     }
   })
 
@@ -381,6 +382,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             function (error, mark) {
               if (error) return done(error)
               reduce('increment head', 1)
+              reduce('push mark', mark)
               window.history.pushState(
                 {}, null,
                 '/projects/' + state.discoveryKey +
@@ -416,7 +418,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('push mark', function (mark, state) {
-    return {marks: state.marks.concat(mark)}
+    return {
+      marks: state.marks.concat(mark),
+      projectMarks: state.projectMarks.concat(mark)
+    }
   })
 
   function putMark (identifier, name, draft, state, callback) {
