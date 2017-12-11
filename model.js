@@ -1,3 +1,4 @@
+var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
@@ -8,10 +9,6 @@ var hashHex = require('./crypto/hash-hex')
 var random = require('./crypto/random')
 var sign = require('./crypto/sign')
 var treeifyNotes = require('./utilities/treeify-notes')
-
-var getChildren = require('./queries/children')
-var getMarks = require('./queries/marks')
-var getNotes = require('./queries/notes')
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
@@ -54,11 +51,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
-    put('intros', identity.publicKey, envelope, function (error) {
+    withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
-      reduce('increment head', 1)
-      reduce('intro', envelope)
-      done()
+      db.putIntro(identity.publicKey, envelope, function (error) {
+        if (error) return done(error)
+        reduce('increment head', 1)
+        reduce('intro', envelope)
+        done()
+      })
     })
   })
 
@@ -69,29 +69,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reduction('intro', function (newIntro, state) {
     return {intro: newIntro}
   })
-
-  handler('identity name', function (newName, state, reduce, done) {
-    updateIdentity('name', newName, state, reduce, done)
-  })
-
-  handler('identity device', function (newDevice, state, reduce, done) {
-    updateIdentity('device', newDevice, state, reduce, done)
-  })
-
-  reduction('identity', function (newIdentity, state) {
-    return {identity: newIdentity}
-  })
-
-  function updateIdentity (key, value, state, reduce, done) {
-    var changes = {}
-    changes[key] = value
-    var newIdentity = Object.assign({}, state.identity, changes)
-    put('identities', newIdentity.publicKey, newIdentity, function (error) {
-      if (error) return done(error)
-      reduce('identity', newIdentity)
-      done()
-    })
-  }
 
   // Projects
 
@@ -195,49 +172,48 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         if (error) return done(error)
         db.getLogHead(results.identity.publicKey, function (error, head) {
           if (error) return done(error)
-          reduce('project', results.project)
-          reduce('identity', results.identity)
-          reduce('head', head)
+          results.head = head
+          reduce('project', results)
           done()
         })
       })
     })
   })
 
-  reduction('project', function (newProject, state) {
+  reduction('project', function (data, state) {
     return {
-      title: newProject.title,
-      discoveryKey: newProject.discoveryKey,
-      secretKey: newProject.secretKey
+      title: data.project.title,
+      discoveryKey: data.project.discoveryKey,
+      secretKey: data.project.secretKey,
+      identity: data.identity,
+      head: data.head
     }
   })
 
-  handler('load draft', function (digest, state, reduce, done) {
-    withIndexedDB(function (error, db) {
+  handler('load draft', function (data, state, reduce, done) {
+    var digest = data.digest
+    withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
       runParallel({
         draft: function (done) {
-          get(db, 'drafts', digest, done)
+          db.getDraft(digest, done)
         },
         marks: function (done) {
-          getMarks(db, digest, done)
+          db.getMarks(digest, done)
         },
         notes: function (done) {
-          getNotes(db, digest, done)
+          db.getNotes(digest, done)
         },
         children: function (done) {
-          withIndexedDB(function (error, db) {
-            if (error) return done(error)
-            getChildren(db, digest, done)
-          })
+          db.getChildren(digest, done)
         }
       }, function (error, results) {
         if (error) return done(error)
         results.draft.digest = digest
-        var parents = results.draft.payload.parents
+        var parents = results.draft.entry.payload.parents
         runParallel(parents.map(function (digest) {
           return function (done) {
-            get(db, 'drafts', digest, function (error, parent) {
+            db.getDraft(digest, function (error, parent) {
               if (error) return done(error)
               parent.digest = digest
               done(null, parent)
@@ -261,7 +237,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           var introsTasks = {}
           publicKeys.forEach(function (publicKey) {
             introsTasks[publicKey] = function (done) {
-              get(db, 'intros', publicKey, done)
+              db.getIntro(publicKey, done)
             }
           })
           runParallel(introsTasks, function (error, intros) {
@@ -301,12 +277,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       changes: splitChanges(
         data.source === 'children'
           ? diff(
-            state.draft.payload.text,
-            state.children[data.index].payload.text
+            state.draft.entry.payload.text,
+            state.children[data.index].entry.payload.text
           )
           : diff(
-            state.parents[data.index].payload.text,
-            state.draft.payload.text
+            state.parents[data.index].entry.payload.text,
+            state.draft.entry.payload.text
           )
       )
     })
@@ -337,12 +313,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {diff: diff}
   })
 
-  handler('load parent', function (digest, state, reduce, done) {
-    withIndexedDB(function (error, db) {
+  handler('load parent', function (data, state, reduce, done) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      get(db, 'drafts', digest, function (error, draft) {
+      db.getDraft(data.digest, function (error, draft) {
         if (error) return done(error)
-        draft.digest = digest
+        draft.digest = data.digest
         reduce('parent', draft)
         done()
       })
@@ -353,13 +329,20 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {parent: data}
   })
 
-  handler('load mark', function (key, state, reduce, done) {
-    withIndexedDB(function (error, db) {
+  handler('load mark', function (data, state, reduce, done) {
+    assert(data.hasOwnProperty('discoveryKey'))
+    assert(data.hasOwnProperty('publicKey'))
+    assert(data.hasOwnProperty('identifier'))
+    withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
-      get(db, 'marks', key, function (error, mark) {
+      db.getMark(data.publicKey, data.identifier, function (error, mark) {
         if (error) return done(error)
         // TODO: Handle mark not found.
-        window.history.replaceState({}, null, '/drafts/' + mark.payload.draft)
+        window.history.replaceState(
+          {}, null,
+          '/projects/' + data.discoveryKey +
+          '/drafts/' + mark.entry.payload.draft
+        )
         done()
       })
     })
@@ -386,27 +369,35 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       signature: sign(stringified, identity.secretKey)
     }
     var digest = hash(stringified)
-    put('drafts', digest, envelope, function (error) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      reduce('increment head', 1)
-      if (data.mark) {
-        var mark = data.mark
-        putMark(
-          null, mark, digest, state,
-          function (error, mark) {
-            if (error) return done(error)
-            reduce('increment head', 1)
-            window.history.pushState(
-              {}, null,
-              '/marks/' + identity.publicKey + ':' + mark.payload.identifier
-            )
-            done()
-          }
-        )
-      } else {
-        window.history.pushState({}, null, '/drafts/' + digest)
-        done()
-      }
+      db.putDraft(digest, envelope, function (error) {
+        if (error) return done(error)
+        reduce('increment head', 1)
+        if (data.mark) {
+          var mark = data.mark
+          putMark(
+            null, mark, digest, state,
+            function (error, mark) {
+              if (error) return done(error)
+              reduce('increment head', 1)
+              window.history.pushState(
+                {}, null,
+                '/projects/' + state.discoveryKey +
+                '/marks/' + identity.publicKey + ':' + mark.entry.payload.identifier
+              )
+              done()
+            }
+          )
+        } else {
+          window.history.pushState(
+            {}, null,
+            '/projects/' + state.discoveryKey +
+            '/drafts/' + digest
+          )
+          done()
+        }
+      })
     })
   })
 
@@ -448,10 +439,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
-    var key = identity.publicKey + ':' + identifier
-    put('marks', key, envelope, function (error) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return callback(error)
-      callback(null, envelope)
+      db.putMark(identity.publicKey, identifier, envelope, function (error) {
+        if (error) return callback(error)
+        callback(null, envelope)
+      })
     })
   }
 
@@ -477,11 +470,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       signature: sign(stringified, identity.secretKey)
     }
     var digest = hash(stringified)
-    put('notes', digest, envelope, function (error) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      reduce('increment head', 1)
-      reduce('push note', envelope)
-      done()
+      db.putNote(digest, envelope, function (error) {
+        if (error) return done(error)
+        reduce('increment head', 1)
+        reduce('push note', envelope)
+        done()
+      })
     })
   })
 
@@ -502,33 +498,4 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reduction('reply to', function (parent, state) {
     return {replyTo: parent}
   })
-
-  // IndexedDB Helper
-
-  function put (store, key, value, callback) {
-    withIndexedDB(function (error, db) {
-      if (error) return callback(error)
-      var transaction = db.transaction([store], 'readwrite')
-      transaction.oncomplete = function () {
-        callback()
-      }
-      transaction.onerror = function () {
-        callback(transaction.error)
-      }
-      var objectStore = transaction.objectStore(store)
-      objectStore.put(value, key)
-    })
-  }
-
-  function get (db, store, key, callback) {
-    var transaction = db.transaction([store], 'readonly')
-    transaction.onerror = function () {
-      callback(transaction.error)
-    }
-    var objectStore = transaction.objectStore(store)
-    var request = objectStore.get(key)
-    request.onsuccess = function () {
-      callback(null, request.result)
-    }
-  }
 }

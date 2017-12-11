@@ -1,11 +1,26 @@
 var loading = require('./loading')
 
-module.exports = function (state, send, parentDigest) {
+module.exports = function (state, send, discoveryKey, parentDigest) {
   var main = document.createElement('main')
-  if (parentDigest && state.parent === null) {
+  if (state.discoveryKey !== discoveryKey) {
     main.appendChild(
       loading(function () {
-        send('load parent', parentDigest)
+        send('load project', discoveryKey)
+      })
+    )
+  } else if (
+    parentDigest &&
+    (
+      state.parent === null ||
+      state.parent.digest !== parentDigest
+    )
+  ) {
+    main.appendChild(
+      loading(function () {
+        send('load parent', {
+          discoveryKey: discoveryKey,
+          digest: parentDigest
+        })
       })
     )
   } else {
@@ -15,6 +30,7 @@ module.exports = function (state, send, parentDigest) {
       event.preventDefault()
       event.stopPropagation()
       send('save', {
+        discoveryKey: discoveryKey,
         text: textarea.value,
         parents: parent ? [parent.digest] : [],
         mark: mark.value
@@ -39,7 +55,7 @@ module.exports = function (state, send, parentDigest) {
     var textarea = document.createElement('textarea')
     textarea.className = 'editor'
     if (parent) {
-      textarea.value = state.parent.payload.text
+      textarea.value = state.parent.entry.payload.text
     }
     form.appendChild(textarea)
   }

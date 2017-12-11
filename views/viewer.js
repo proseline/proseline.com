@@ -2,12 +2,18 @@ var loading = require('./loading')
 var renderMark = require('./partials/mark')
 var renderTimestamp = require('./partials/timestamp')
 
-module.exports = function (digest, state, send) {
+module.exports = function (state, send, discoveryKey, digest) {
   var main = document.createElement('main')
-  if (state.draft && state.draft.digest === digest) {
+  if (discoveryKey && state.discoveryKey !== discoveryKey) {
+    main.appendChild(
+      loading(function () {
+        send('load project', discoveryKey)
+      })
+    )
+  } else if (state.draft && state.draft.digest === digest) {
     main.appendChild(author(state))
     main.appendChild(marks(state, send))
-    if (state.draft.payload.parents.length !== 0) {
+    if (state.draft.entry.payload.parents.length !== 0) {
       main.appendChild(parents(state, send))
     }
     if (state.children.length !== 0) {
@@ -19,7 +25,10 @@ module.exports = function (digest, state, send) {
   } else {
     main.appendChild(
       loading(function () {
-        send('load draft', digest)
+        send('load draft', {
+          discoveryKey: discoveryKey,
+          digest: digest
+        })
       })
     )
   }
@@ -45,7 +54,7 @@ function byline (state, publicKey, intro) {
     returned = document.createElement('span')
     returned.appendChild(
       document.createTextNode(
-        intro.payload.name + ' on ' + intro.payload.device
+        intro.entry.payload.name + ' on ' + intro.entry.payload.device
       )
     )
   } else {
@@ -57,7 +66,7 @@ function byline (state, publicKey, intro) {
 
 function dateline (draft) {
   var p = document.createElement('p')
-  p.appendChild(renderTimestamp(draft.payload.timestamp))
+  p.appendChild(renderTimestamp(draft.entry.payload.timestamp))
   return p
 }
 
@@ -96,7 +105,7 @@ function parents (state, send) {
     a.href = '/drafts/' + parent.digest
     a.appendChild(byline(state, parent.publicKey, state.intros[parent.publicKey]))
     a.appendChild(document.createTextNode(' — '))
-    a.appendChild(renderTimestamp(parent.payload.timestamp))
+    a.appendChild(renderTimestamp(parent.entry.payload.timestamp))
     li.appendChild(a)
     // Comparison Button
     var button = document.createElement('button')
@@ -142,7 +151,7 @@ function children (state, send) {
     a.href = '/drafts/' + child.digest
     a.appendChild(byline(state, child.publicKey, state.intros[child.publicKey]))
     a.appendChild(document.createTextNode(' — '))
-    a.appendChild(renderTimestamp(child.payload.timestamp))
+    a.appendChild(renderTimestamp(child.entry.payload.timestamp))
     li.appendChild(a)
     // Comparison Button
     var button = document.createElement('button')
@@ -195,7 +204,7 @@ function renderText (state) {
       article.appendChild(p)
     })
   } else {
-    draft.payload.text
+    draft.entry.payload.text
       .split('\n')
       .forEach(function (line, index) {
         var p = document.createElement('p')
@@ -273,7 +282,7 @@ function noteLI (state, note, send) {
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   blockquote.appendChild(
-    document.createTextNode(note.payload.text)
+    document.createTextNode(note.entry.payload.text)
   )
   li.appendChild(blockquote)
   // <p>
@@ -282,7 +291,7 @@ function noteLI (state, note, send) {
   var intro = state.intros[note.publicKey]
   p.appendChild(byline(state, note.publicKey, intro))
   p.appendChild(document.createTextNode(' — '))
-  p.appendChild(renderTimestamp(note.payload.timestamp))
+  p.appendChild(renderTimestamp(note.entry.payload.timestamp))
   li.appendChild(p)
   if (replyTo === note.digest) {
     li.appendChild(noteForm(note.digest, send))

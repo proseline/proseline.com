@@ -143,30 +143,46 @@ var rendered
 
 function render () {
   var path = pathOf(window.location.href)
+  // Home
   if (path === '' || path === '/') {
     return renderOverview(state, action)
+  // Join Link
   } else if (/^\/[a-f0-9]{64}$/.test(path)) {
     return renderProjectJoin(state, action, path.substring(1))
-  } else if (startsWith('/projects/new')) {
+  // New Project
+  } else if (path.indexOf('/projects/new') === 0) {
     return renderProjectCreator(state, action)
-  } else if (startsWith('/projects/')) {
-    return renderProject(state, action, path.substring(10))
-  } else if (startsWith('/drafts/new/')) {
-    return renderEditor(state, action, path.substring(12))
-  } else if (startsWith('/drafts/new')) {
-    return renderEditor(state, action)
-  } else if (startsWith('/drafts/')) {
-    return renderViewer(path.substring(8), state, action)
-  } else if (startsWith('/marks/')) {
-    return renderLoading(function () {
-      action('load mark', path.substring(7))
-    })
+  // /project/{discovery key}
+  } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
+    var discoveryKey = path.substr(10, 64)
+    var remainder = path.substr(74)
+    if (remainder === '' || remainder === '/') {
+      return renderProject(state, action, discoveryKey)
+    // New Draft
+    } else if (remainder === '/drafts/new') {
+      return renderEditor(state, action, discoveryKey)
+    // New Draft with Parent
+    } else if (/^\/drafts\/new\/[a-f0-9]{64}$/.test(remainder)) {
+      var parent = remainder.substr(12, 64)
+      return renderEditor(state, action, discoveryKey, parent)
+    // View Drafts
+    } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
+      var digest = remainder.substr(8, 64)
+      return renderViewer(state, action, discoveryKey, digest)
+    // Mark
+    } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
+      return renderLoading(function () {
+        action('load mark', {
+          discoveryKey: discoveryKey,
+          publicKey: remainder.substr(7, 64),
+          identifier: remainder.substr(7 + 64 + 1, 8)
+        })
+      })
+    } else {
+      return renderNotFound(state, action)
+    }
   } else {
     return renderNotFound(state, action)
-  }
-
-  function startsWith (prefix) {
-    return path.indexOf(prefix) === 0
   }
 }
 

@@ -13,9 +13,22 @@ module.exports = function (state, send, discoveryKey) {
     h1.appendChild(document.createTextNode(state.title))
     main.appendChild(h1)
 
+    main.appendChild(newDraftSection(state))
+
     main.appendChild(shareSection(state))
   }
   return main
+}
+
+function newDraftSection (state) {
+  var section = document.createElement('section')
+
+  var a = document.createElement('a')
+  a.href = '/projects/' + state.discoveryKey + '/drafts/new'
+  a.appendChild(document.createTextNode('New Draft'))
+  section.appendChild(a)
+
+  return section
 }
 
 function shareSection (state) {
