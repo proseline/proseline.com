@@ -167,6 +167,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         },
         projectMarks: function (done) {
           db.listMarks(done)
+        },
+        draftBriefs: function (done) {
+          db.listDraftBriefs(done)
+        },
+        intros: function (done) {
+          db.listIntros(done)
         }
       }, function (error, results) {
         if (error) return done(error)
@@ -186,8 +192,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: data.project.discoveryKey,
       secretKey: data.project.secretKey,
       identity: data.identity,
+      intros: data.intros,
       head: data.head,
-      projectMarks: data.projectMarks || []
+      projectMarks: data.projectMarks || [],
+      draftBriefs: data.draftBriefs || []
     }
   })
 

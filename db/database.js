@@ -62,7 +62,7 @@ prototype._put = function (store, key, value, callback) {
   objectStore.put(value, key)
 }
 
-prototype._listKeysAndValues = function (store, callback) {
+prototype._list = function (store, iterator, callback) {
   var transaction = this._db.transaction([store], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
@@ -73,10 +73,7 @@ prototype._listKeysAndValues = function (store, callback) {
   request.onsuccess = function () {
     var cursor = request.result
     if (cursor) {
-      results.push({
-        key: cursor.key,
-        value: cursor.value
-      })
+      results.push(iterator(cursor))
       cursor.continue()
     } else {
       callback(null, results)
@@ -84,60 +81,25 @@ prototype._listKeysAndValues = function (store, callback) {
   }
 }
 
-prototype._listKeys = function (store, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
-  transaction.onerror = function () {
-    callback(transaction.error)
-  }
-  var objectStore = transaction.objectStore(store)
-  var request = objectStore.openCursor()
-  var keys = []
-  request.onsuccess = function () {
-    var cursor = request.result
-    if (cursor) {
-      keys.push(cursor.key)
-      cursor.continue()
-    } else {
-      callback(null, keys)
+prototype._listKeysAndValues = function (store, callback) {
+  this._list(store, function (cursor) {
+    return {
+      key: cursor.key,
+      value: cursor.value
     }
-  }
+  }, callback)
+}
+
+prototype._listKeys = function (store, callback) {
+  this._list(store, function (cursor) {
+    return cursor.key
+  }, callback)
 }
 
 prototype._listValues = function (store, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
-  transaction.onerror = function () {
-    callback(transaction.error)
-  }
-  var objectStore = transaction.objectStore(store)
-  var request = objectStore.openCursor()
-  var values = []
-  request.onsuccess = function () {
-    var cursor = request.result
-    if (cursor) {
-      values.push(cursor.value)
-      cursor.continue()
-    } else {
-      callback(null, values)
-    }
-  }
-}
-prototype._listKeys = function (store, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
-  transaction.onerror = function () {
-    callback(transaction.error)
-  }
-  var objectStore = transaction.objectStore(store)
-  var request = objectStore.openCursor()
-  var keys = []
-  request.onsuccess = function () {
-    var cursor = request.result
-    if (cursor) {
-      keys.push(cursor.key)
-      cursor.continue()
-    } else {
-      callback(null, keys)
-    }
-  }
+  this._list(store, function (cursor) {
+    return cursor.value
+  }, callback)
 }
 
 prototype._countFromIndex = function (storeName, indexName, lower, upper, callback) {

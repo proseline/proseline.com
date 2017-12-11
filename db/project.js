@@ -91,6 +91,12 @@ Project.prototype.getIntro = function (publicKey, callback) {
   this._get('intros', publicKey, callback)
 }
 
+// Intros
+
+Project.prototype.listIntros = function (callback) {
+  this._listValues('intros', callback)
+}
+
 // Logs
 
 Project.prototype.getLogHead = function (publicKey, callback) {
@@ -140,6 +146,19 @@ Project.prototype.getChildren = function (digest, callback) {
       callback(null, children)
     }
   }
+}
+
+Project.prototype.listDraftBriefs = function (callback) {
+  this._list('drafts', function (cursor) {
+    var value = cursor.value
+    var payload = value.entry.payload
+    return {
+      digest: cursor.key,
+      publicKey: value.publicKey,
+      parents: payload.parents,
+      timestamp: payload.timestamp
+    }
+  }, callback)
 }
 
 // Marks
