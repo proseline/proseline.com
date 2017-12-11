@@ -12,6 +12,24 @@ module.exports = function (state, send, discoveryKey) {
     var h1 = document.createElement('h1')
     h1.appendChild(document.createTextNode(state.title))
     main.appendChild(h1)
+
+    main.appendChild(shareSection(state))
   }
   return main
+}
+
+function shareSection (state) {
+  var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  h2.appendChild(document.createTextNode('Share'))
+  section.appendChild(h2)
+
+  var a = document.createElement('a')
+  var url = 'https://proseline.com/' + state.secretKey
+  a.appendChild(document.createTextNode(url))
+  a.setAttribute('href', url)
+  section.appendChild(a)
+
+  return section
 }

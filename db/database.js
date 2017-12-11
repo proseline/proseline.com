@@ -1,4 +1,5 @@
 var IndexedDB = require('./indexeddb')
+var IDBKeyRange = require('./idbkeyrange')
 
 module.exports = Database
 
@@ -135,5 +136,18 @@ prototype._listKeys = function (store, callback) {
     } else {
       callback(null, keys)
     }
+  }
+}
+
+prototype._countFromIndex = function (storeName, indexName, lower, upper, callback) {
+  var transaction = this._db.transaction([storeName], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore(storeName)
+  var index = objectStore.index(indexName)
+  var request = index.count(IDBKeyRange.bound(lower, upper))
+  request.onsuccess = function () {
+    callback(null, request.result)
   }
 }

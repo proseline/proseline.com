@@ -16,7 +16,6 @@ var getNotes = require('./queries/notes')
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
     return {
-      identity: null,
       intro: null,
       marks: null,
       notes: null,
@@ -25,9 +24,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       parent: null,
       draft: null,
       // Project
+      identity: null,
       secretKey: null,
       discoveryKey: null,
       title: null,
+      head: null,
       // Overview
       projects: null
     }
@@ -42,17 +43,27 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       device: data.device,
       timestamp: new Date().toISOString()
     }
-    var stringified = stringify(intro)
+    var entry = {
+      project: state.discoveryKey,
+      index: state.head,
+      payload: intro
+    }
+    var stringified = stringify(entry)
     var envelope = {
-      payload: intro,
+      entry: entry,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     put('intros', identity.publicKey, envelope, function (error) {
       if (error) return done(error)
+      reduce('increment head', 1)
       reduce('intro', envelope)
       done()
     })
+  })
+
+  reduction('increment head', function (count, state) {
+    return {head: state.head + count}
   })
 
   reduction('intro', function (newIntro, state) {
@@ -165,12 +176,30 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load project', function (discoveryKey, state, reduce, done) {
-    withIndexedDB('proseline', function (error, db) {
+    runParallel({
+      project: function (done) {
+        withIndexedDB('proseline', function (error, db) {
+          if (error) return done(error)
+          db.getProject(discoveryKey, done)
+        })
+      },
+      identity: function (done) {
+        withIndexedDB(discoveryKey, function (error, db) {
+          if (error) return done(error)
+          db.getDefaultIdentity(done)
+        })
+      }
+    }, function (error, results) {
       if (error) return done(error)
-      db.getProject(discoveryKey, function (error, project) {
+      withIndexedDB(discoveryKey, function (error, db) {
         if (error) return done(error)
-        reduce('project', project)
-        done()
+        db.getLogHead(results.identity.publicKey, function (error, head) {
+          if (error) return done(error)
+          reduce('project', results.project)
+          reduce('identity', results.identity)
+          reduce('head', head)
+          done()
+        })
       })
     })
   })
@@ -345,21 +374,28 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    var stringified = stringify(draft)
+    var entry = {
+      project: state.discoveryKey,
+      index: state.head,
+      payload: draft
+    }
+    var stringified = stringify(entry)
     var envelope = {
-      payload: draft,
+      entry: entry,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     var digest = hash(stringified)
     put('drafts', digest, envelope, function (error) {
       if (error) return done(error)
+      reduce('increment head', 1)
       if (data.mark) {
         var mark = data.mark
         putMark(
-          null, mark, digest, identity,
+          null, mark, digest, state,
           function (error, mark) {
             if (error) return done(error)
+            reduce('increment head', 1)
             window.history.pushState(
               {}, null,
               '/marks/' + identity.publicKey + ':' + mark.payload.identifier
@@ -378,9 +414,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   handler('mark', function (name, state, reduce, done) {
     putMark(
-      null, name, state.draft.digest, state.identity,
+      null, name, state.draft.digest, state,
       function (error, mark) {
         if (error) return done(error)
+        reduce('increment head', 1)
         reduce('push mark', mark)
         done()
       }
@@ -391,17 +428,23 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {marks: state.marks.concat(mark)}
   })
 
-  function putMark (identifier, name, draft, identity, callback) {
+  function putMark (identifier, name, draft, state, callback) {
     identifier = identifier || random(4)
+    var identity = state.identity
     var mark = {
       identifier: identifier,
       name: name,
       timestamp: new Date().toISOString(),
       draft: draft
     }
-    var stringified = stringify(mark)
+    var entry = {
+      project: state.discoveryKey,
+      index: state.head,
+      payload: mark
+    }
+    var stringified = stringify(entry)
     var envelope = {
-      payload: mark,
+      entry: entry,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
@@ -422,15 +465,21 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    var stringified = stringify(note)
+    var entry = {
+      project: state.discoveryKey,
+      index: state.head,
+      payload: note
+    }
+    var stringified = stringify(entry)
     var envelope = {
-      payload: note,
+      payload: entry,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
     var digest = hash(stringified)
     put('notes', digest, envelope, function (error) {
       if (error) return done(error)
+      reduce('increment head', 1)
       reduce('push note', envelope)
       done()
     })

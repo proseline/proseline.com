@@ -90,3 +90,22 @@ Project.prototype.getDefaultIdentity = function (callback) {
 Project.prototype.getIntro = function (publicKey, callback) {
   this._get('intros', publicKey, callback)
 }
+
+// Logs
+
+Project.prototype.getLogHead = function (publicKey, callback) {
+  this._countFromIndex(
+    'logs', 'publicKey',
+    publicKey + ':' + formatIndex(MIN_INDEX),
+    publicKey + ':' + formatIndex(MAX_INDEX),
+    callback
+  )
+}
+
+var MIN_INDEX = 0
+
+var MAX_INDEX = 99999
+
+function formatIndex (index) {
+  return index.toString().padStart(5, '0')
+}
