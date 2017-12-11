@@ -1,21 +1,14 @@
+var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var runSeries = require('run-series')
 
-var createIdentity = require('./crypto/create-identity')
-var get = require('./queries/get')
-
 runSeries([
   detectFeatures,
-  setupIdentity,
+  setupDatabase,
   launchApplication
 ], function (error) {
   if (error) throw error
 })
-
-var indexedDB
-var state = {
-  identity: null
-}
 
 function detectFeatures (done) {
   runSeries([
@@ -23,13 +16,7 @@ function detectFeatures (done) {
   ], done)
 
   function detectIndexedDB (done) {
-    indexedDB = (
-      window.indexedDB ||
-      window.mozIndexedDB ||
-      window.webkitIndexedDB ||
-      window.msIndexedDB
-    )
-    if (!indexedDB) {
+    if (!IndexedDB) {
       var error = new Error('no IndexedDB')
       error.userMessage = 'You must enable IndexedDB in your web browser to use Proseline.'
       done(error)
@@ -38,117 +25,24 @@ function detectFeatures (done) {
   }
 }
 
-function setupIdentity (done) {
-  loadDefaultIdentity(function (error, identity, intro) {
-    if (error) return done(error)
-    if (identity === undefined) {
-      writeIdentity(done)
-    } else {
-      state.identity = identity
-      if (intro) {
-        state.intro = intro
-      }
-      done()
-    }
-  })
+var ProjectDatabase = require('./db/project')
+var ProselineDatabase = require('./db/proseline')
 
-  function loadDefaultIdentity (done) {
-    withIndexedDB(function (error, db) {
-      if (error) return done(error)
-      getIdentity('default', function (error, publicKey) {
-        if (error) return done(error)
-        if (publicKey === undefined) {
-          done()
-        } else {
-          getIdentity(publicKey, function (error, identity) {
-            if (error) return done(error)
-            getIntro(identity.publicKey, function (error, intro) {
-              if (error || intro === undefined) {
-                done(null, identity)
-              } else {
-                done(null, identity, intro)
-              }
-            })
-          })
-        }
-      })
-
-      function getIdentity (key, callback) {
-        get(db, 'identities', key, callback)
-      }
-
-      function getIntro (publicKey, callback) {
-        get(db, 'intros', publicKey, callback)
-      }
-    })
-  }
-
-  function writeIdentity (done) {
-    var identity = createIdentity()
-    withIndexedDB(function (error, db) {
-      if (error) return done(error)
-      var transaction = db.transaction(['identities'], 'readwrite')
-      transaction.oncomplete = function () {
-        state.identity = identity
-        done()
-      }
-      transaction.onerror = function () {
-        done(transaction.error)
-      }
-      var store = transaction.objectStore('identities')
-      store.put(identity.publicKey, 'default')
-      store.put(identity, identity.publicKey)
-    })
-  }
+var databases = {
+  proseline: new ProselineDatabase()
 }
 
-function withIndexedDB (callback) {
-  var request = indexedDB.open('proseline')
-  request.onsuccess = function () {
-    callback(null, request.result)
-  }
-  request.onupgradeneeded = function () {
-    // TODO: Version IndexedDB.
-    var db = request.result
-    // Identities
-    db.createObjectStore('identities')
-    // Intros
-    var intros = db.createObjectStore('intros')
-    intros.createIndex('publicKey', 'publicKey', {unique: false})
-    // Drafts
-    var drafts = db.createObjectStore('drafts')
-    drafts.createIndex('parents', 'payload.parents', {
-      unique: false,
-      multiEntry: true
-    })
-    // Notes
-    var notes = db.createObjectStore('notes')
-    notes.createIndex('draft', 'payload.draft', {unique: false})
-    notes.createIndex('parent', 'payload.parent', {
-      unique: false,
-      multiEntry: true
-    })
-    notes.createIndex('publicKey', 'publicKey', {unique: false})
-    // Marks
-    var marks = db.createObjectStore('marks')
-    marks.createIndex('publicKey', 'publicKey', {unique: false})
-    marks.createIndex('draft', 'payload.draft', {unique: false})
-    marks.createIndex('identifier', 'payload.identifier', {unique: false})
-  }
-  request.onerror = function () {
-    callback(request.error)
-  }
+function setupDatabase (done) {
+  databases.proseline.init(done)
 }
 
 var EventEmitter = require('events').EventEmitter
 var nanomorph = require('nanomorph')
 var nanoraf = require('nanoraf')
 
-function update () {
-  nanomorph(rendered, render())
-}
-
 // State Management
+
+var state = {}
 
 var actions = new EventEmitter()
   .on('error', function (error) {
@@ -208,8 +102,27 @@ require('./model')(
       }
     }))
   },
-  withIndexedDB
+  function withDatabase (id, callback) {
+    if (databases.hasOwnProperty(id)) {
+      callback(null, databases[id])
+    } else {
+      var db = new ProjectDatabase(id)
+      databases[id] = db
+      db.init(function (error) {
+        if (error) {
+          delete databases[id]
+          callback(error)
+        } else {
+          callback(null, db)
+        }
+      })
+    }
+  }
 )
+
+function update () {
+  nanomorph(rendered, render())
+}
 
 function resetState () {
   Object.assign(state, initializer())
@@ -219,6 +132,8 @@ var renderEditor = require('./views/editor')
 var renderLoading = require('./views/loading')
 var renderNotFound = require('./views/not-found')
 var renderOverview = require('./views/overview')
+var renderProjectCreator = require('./views/project/create')
+var renderProject = require('./views/project/view')
 var renderViewer = require('./views/viewer')
 
 var pathOf = require('./utilities/path-of')
@@ -229,6 +144,10 @@ function render () {
   var path = pathOf(window.location.href)
   if (path === '' || path === '/') {
     return renderOverview(state, action)
+  } else if (startsWith('/projects/new')) {
+    return renderProjectCreator(state, action)
+  } else if (startsWith('/projects/')) {
+    return renderProject(state, action, path.substring(10))
   } else if (startsWith('/drafts/new/')) {
     return renderEditor(state, action, path.substring(12))
   } else if (startsWith('/drafts/new')) {

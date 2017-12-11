@@ -1,8 +1,10 @@
 var diff = require('diff/lib/diff/line').diffLines
 var runParallel = require('run-parallel')
+var runSeries = require('run-series')
 var stringify = require('json-stable-stringify')
 
 var hash = require('./crypto/hash')
+var hashHex = require('./crypto/hash-hex')
 var random = require('./crypto/random')
 var sign = require('./crypto/sign')
 var treeifyNotes = require('./utilities/treeify-notes')
@@ -22,7 +24,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replyTo: null,
       parent: null,
       draft: null,
-      ownMarks: null
+      title: null,
+      projects: null
     }
   })
 
@@ -75,36 +78,71 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  // Loading
+  // Projects
 
-  handler('load own marks', function (_, state, reduce, done) {
-    withIndexedDB(function (error, db) {
+  handler('create project', function (data, state, reduce, done) {
+    var secretKey = random(32)
+    var discoveryKey = hashHex(secretKey)
+    var project = {
+      secretKey: secretKey,
+      discoveryKey: discoveryKey,
+      title: data.title
+    }
+    runSeries([
+      function (done) {
+        withIndexedDB('proseline', function (error, db) {
+          if (error) return done(error)
+          db.putProject(project, done)
+        })
+      },
+      function (done) {
+        withIndexedDB(discoveryKey, function (error, db) {
+          if (error) return done(error)
+          db.createIdentity(true, done)
+        })
+      }
+    ], function (error) {
       if (error) return done(error)
-      var transaction = db.transaction(['marks'], 'readonly')
-      transaction.onerror = function () {
-        done(transaction.error)
-      }
-      var objectStore = transaction.objectStore('marks')
-      var index = objectStore.index('publicKey')
-      var request = index.openCursor(state.identity.publicKey)
-      var marks = []
-      request.onsuccess = function () {
-        var cursor = request.result
-        if (cursor) {
-          var value = cursor.value
-          value.digest = cursor.primaryKey
-          marks.push(value)
-          cursor.continue()
-        } else {
-          reduce('own marks', marks)
-          done()
-        }
-      }
+      reduce('new project', project)
+      window.history.pushState({}, null, '/projects/' + discoveryKey)
+      done()
     })
   })
 
-  reduction('own marks', function (newMarks, state) {
-    return {ownMarks: newMarks}
+  reduction('new project', function (newProject, state) {
+    return {projects: state.projects.concat(newProject)}
+  })
+
+  // Loading
+
+  handler('load projects', function (_, state, reduce, done) {
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.listProjects(function (error, projects) {
+        if (error) return done(error)
+        reduce('projects', projects)
+        done()
+      })
+    })
+  })
+
+  reduction('projects', function (projects, state) {
+    return {projects: projects}
+  })
+
+  handler('load project', function (discoveryKey, state, reduce, done) {
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.getProject(discoveryKey, function (error, project) {
+        if (error) return done(error)
+        reduce('title', project.title)
+        done()
+      })
+    })
+  })
+
+  reduction('title', function (newTitle, state) {
+    return {title: newTitle}
   })
 
   handler('load draft', function (digest, state, reduce, done) {

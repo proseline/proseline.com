@@ -1,38 +1,36 @@
 var loading = require('./loading')
-var identityLine = require('./partials/identity-line')
 
 module.exports = function (state, send) {
   var main = document.createElement('main')
-  main.appendChild(identityLine(state, send))
-  if (state.ownMarks === null) {
+  if (state.projects === null) {
     main.appendChild(
       loading(function () {
-        send('load own marks')
+        send('load projects')
       })
     )
   } else {
-    main.appendChild(marksList(state.ownMarks))
+    main.appendChild(projectsList(state.projects))
   }
-  main.appendChild(newDraft(send))
+  main.appendChild(newProject(send))
   return main
 }
 
-function marksList (marks) {
+function projectsList (projects) {
   var section = document.createElement('section')
   var h1 = document.createElement('h1')
-  h1.appendChild(document.createTextNode('Your marks'))
+  h1.appendChild(document.createTextNode('Your projects'))
   section.appendChild(h1)
-  if (marks.length === 0) {
+  if (projects.length === 0) {
     var p = document.createElement('p')
-    p.appendChild(document.createTextNode('You do not have any marks.'))
+    p.appendChild(document.createTextNode('You do not have any projects.'))
     section.appendChild(p)
   } else {
     var ul = document.createElement('ul')
-    marks.forEach(function (mark) {
+    projects.forEach(function (project) {
       var li = document.createElement('li')
       var a = document.createElement('a')
-      a.href = '/marks/' + mark.digest
-      a.appendChild(document.createTextNode(mark.payload.name))
+      a.href = '/projects/' + project.discoveryKey
+      a.appendChild(document.createTextNode(project.title))
       li.appendChild(a)
       ul.appendChild(li)
     })
@@ -41,9 +39,9 @@ function marksList (marks) {
   return section
 }
 
-function newDraft (send) {
+function newProject (send) {
   var a = document.createElement('a')
-  a.appendChild(document.createTextNode('New Draft'))
-  a.href = '/drafts/new'
+  a.appendChild(document.createTextNode('New Project'))
+  a.href = '/projects/new'
   return a
 }
