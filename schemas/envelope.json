@@ -1,6 +1,14 @@
 {
   "type": "object",
   "properties": {
+    "project": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "index": {
+      "type": "integer",
+      "minimum": 0
+    },
     "payload": {
       "type": "object"
     },
@@ -14,6 +22,8 @@
     }
   },
   "required": [
+    "project",
+    "index",
     "payload",
     "publicKey",
     "signature"
