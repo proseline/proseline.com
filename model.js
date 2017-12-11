@@ -24,7 +24,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replyTo: null,
       parent: null,
       draft: null,
+      // Project
+      secretKey: null,
+      discoveryKey: null,
       title: null,
+      // Overview
       projects: null
     }
   })
@@ -165,14 +169,18 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       db.getProject(discoveryKey, function (error, project) {
         if (error) return done(error)
-        reduce('title', project.title)
+        reduce('project', project)
         done()
       })
     })
   })
 
-  reduction('title', function (newTitle, state) {
-    return {title: newTitle}
+  reduction('project', function (newProject, state) {
+    return {
+      title: newProject.title,
+      discoveryKey: newProject.discoveryKey,
+      secretKey: newProject.secretKey
+    }
   })
 
   handler('load draft', function (digest, state, reduce, done) {

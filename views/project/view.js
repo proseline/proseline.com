@@ -2,7 +2,7 @@ var loading = require('../loading')
 
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
-  if (discoveryKey && state.title === null) {
+  if (discoveryKey && state.discoveryKey !== discoveryKey) {
     main.appendChild(
       loading(function () {
         send('load project', discoveryKey)
