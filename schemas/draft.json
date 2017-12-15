@@ -3,7 +3,7 @@
   "properties": {
     "parents": {
       "type": "array",
- ,     "items": {
+      "items": {
         "type": "string",
         "pattern": "^[a-f0-9]{64}$"
       },
