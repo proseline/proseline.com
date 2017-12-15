@@ -427,8 +427,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('push mark', function (mark, state) {
     return {
-      marks: state.marks.concat(mark),
-      projectMarks: state.projectMarks.concat(mark)
+      marks: state.marks
+        ? state.marks.concat(mark)
+        : [mark],
+      projectMarks: state.projectMarks
+        ? state.projectMarks.concat(mark)
+        : [mark]
     }
   })
 
