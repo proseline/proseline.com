@@ -383,6 +383,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       db.putDraft(digest, envelope, function (error) {
         if (error) return done(error)
         reduce('increment head', 1)
+        reduce('push brief', {
+          digest: digest,
+          publicKey: envelope.publicKey,
+          parents: draft.parents,
+          timestamp: draft.timestamp
+        })
         if (data.mark) {
           var mark = data.mark
           putMark(
@@ -409,6 +415,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         }
       })
     })
+  })
+
+  reduction('push brief', function (brief, state) {
+    return {draftBriefs: (state.draftBriefs || []).concat(brief)}
   })
 
   // Marks
