@@ -1,6 +1,9 @@
 {
   "type": "object",
   "properties": {
+    "type": {
+      "const": "draft"
+    },
     "parents": {
       "type": "array",
       "items": {
@@ -19,6 +22,7 @@
     }
   },
   "required": [
+    "type",
     "parents",
     "text",
     "timestamp"

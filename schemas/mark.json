@@ -1,6 +1,9 @@
 {
   "type": "object",
   "properties": {
+    "type": {
+      "const": "mark"
+    },
     "identifier": {
       "type": "string",
       "pattern": "^[a-f0-9]{8}$"
@@ -20,6 +23,7 @@
     }
   },
   "required": [
+    "type",
     "identifier",
     "name",
     "timestamp",

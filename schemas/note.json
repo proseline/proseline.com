@@ -1,6 +1,9 @@
 {
   "type": "object",
   "properties": {
+    "type": {
+      "const": "note"
+    },
     "draft": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
@@ -26,6 +29,7 @@
     }
   },
   "required": [
+    "type",
     "draft",
     "parent",
     "text",

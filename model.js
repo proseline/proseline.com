@@ -36,6 +36,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('introduce', function (data, state, reduce, done) {
     var identity = state.identity
     var intro = {
+      type: 'intro',
       name: data.name,
       device: data.device,
       timestamp: new Date().toISOString()
@@ -362,6 +363,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('save', function (data, state, reduce, done) {
     var identity = state.identity
     var draft = {
+      type: 'draft',
       parents: data.parents,
       text: data.text,
       timestamp: new Date().toISOString()
@@ -450,6 +452,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     identifier = identifier || random(4)
     var identity = state.identity
     var mark = {
+      type: 'mark',
       identifier: identifier,
       name: name,
       timestamp: new Date().toISOString(),
@@ -480,6 +483,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('note', function (data, state, reduce, done) {
     var identity = state.identity
     var note = {
+      type: 'note',
       draft: state.draft.digest,
       parent: data.parent,
       text: data.text,
