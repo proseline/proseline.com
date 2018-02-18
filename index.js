@@ -133,7 +133,7 @@ var renderLoading = require('./views/loading')
 var renderNotFound = require('./views/not-found')
 var renderOverview = require('./views/overview')
 var renderProject = require('./views/project/view')
-var renderProjectCreator = require('./views/project/create')
+var renderProjectCreate = require('./views/project/create')
 var renderProjectJoin = require('./views/project/join')
 var renderViewer = require('./views/viewer')
 
@@ -151,7 +151,7 @@ function render () {
     return renderProjectJoin(state, action, path.substring(1))
   // New Project
   } else if (path.indexOf('/projects/new') === 0) {
-    return renderProjectCreator(state, action)
+    return renderProjectCreate(state, action)
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
     var discoveryKey = path.substr(10, 64)
