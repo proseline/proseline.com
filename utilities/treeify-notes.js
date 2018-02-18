@@ -1,6 +1,6 @@
 var byTimestamp = require('./by-timestamp')
 var hash = require('../crypto/hash')
-var stringify = require('json-stable-stringify')
+var stringify = require('./stringify')
 
 module.exports = function (notes) {
   var map = {}

@@ -2,7 +2,7 @@ var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
-var stringify = require('json-stable-stringify')
+var stringify = require('./utilities/stringify')
 
 var hash = require('./crypto/hash')
 var hashHex = require('./crypto/hash-hex')
