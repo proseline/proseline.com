@@ -224,3 +224,7 @@ Project.prototype.getNotes = function (digest, callback) {
     }
   }
 }
+
+Project.prototype.putNote = function (digest, envelope, callback) {
+  this._put('notes', digest, envelope, callback)
+}

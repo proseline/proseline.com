@@ -1,10 +1,12 @@
 var byTimestamp = require('./by-timestamp')
+var hash = require('../crypto/hash')
+var stringify = require('json-stable-stringify')
 
 module.exports = function (notes) {
   var map = {}
   notes.forEach(function (note) {
     note.children = []
-    map[note.digest] = note
+    map[hash(stringify(note.entry))] = note
   })
   notes.forEach(function (note) {
     var parentDigest = note.entry.payload.parent

@@ -492,7 +492,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     var stringified = stringify(entry)
     var envelope = {
-      payload: entry,
+      entry: entry,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
