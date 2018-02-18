@@ -1,7 +1,6 @@
 var HUBS = require('./hubs')
 var signalhub = require('signalhub')
 var webRTCSwarm = require('webrtc-swarm')
-var Protocol = require('./protocol')
 
 module.exports = {joinSwarm, leaveSwarm}
 

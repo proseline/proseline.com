@@ -1,143 +1,115 @@
 var Protocol = require('./protocol')
+var assert = require('assert')
+var flushWriteStream = require('flush-write-stream')
 var hash = require('../crypto/hash')
-var pump = require('pump')
 var stringify = require('../utilities/stringify')
-var through2 = require('through2')
 var validate = require('../schemas/validate')
 
-module.exports = function (source) {
-  var stream = new Protocol()
+module.exports = function (options) {
+  assert.equal(typeof options.secretKey, 'string')
+  assert.equal(typeof options.discoveryKey, 'string')
+  assert(Buffer.isbuffer(options.nonce))
+  assert(Buffer.isbuffer(options.peerNonce))
+  assert(options.data)
+  var discoveryKey = options.discoveryKey
+  var data = options.data
 
-  var done = false
-  var sentWants = false
-  var sentHeads = false
-  var peerSentWants = false
-  var peerSentHeads = false
+  var protocol = new Protocol(options)
 
-  function pipe (source, sink, done) {
-    var destroy = function () {
-      source.destroy()
-    }
+  // Store a list of envelopes that we've requested, so we can
+  // check the list to avoid offering this peer envelopes we've
+  // just received from it.
+  var requestedFromPeer = []
 
-    stream.on('close', destroy)
-    stream.on('finish', destroy)
-    source.on('end', function () {
-      stream.removeListener('close', destroy)
-      stream.removeListener('finish', destroy)
-    })
-    return pump(source, sink, done)
-  }
+  // Stream log information from our database.
+  var logsStream = data.createLogsStream()
+  var updateStream = data.createUpdateStream()
 
-  function update (callback) {
-    var waiting = (
-      done ||
-      !sentWants || !sentHeads ||
-      !peerSentWants || !peerSentHeads
-    )
-    if (waiting) return callback()
-    done = true
-    sendChanges()
-    callback()
-  }
-
-  function sendChanges () {
-    pipe(source, through2.obj(function (chunk, _, callback) {
-      stream.node(chunk, callback)
+  // Offer currently known logs.
+  logsStream
+    .pipe(flushWriteStream.obj(function (chunk, _, done) {
+      protocol.offer(chunk, done)
     }))
-  }
-
-  function sendSentWants (callback) {
-    sentWants = true
-    stream.sentWants()
-    update(callback)
-  }
-
-  function sendSentHeads (callback) {
-    sentHeads = true
-    stream.sentHeads()
-    update(callback)
-  }
-
-  function sendEntry (publicKey, index, callback) {
-    source.getEntry(publicKey, index, function (error, entry) {
-      if (error) return done(error)
-      if (entry === undefined) done()
-      // TODO: Send entry.
+    .once('finish', function () {
+      // Offer updates that come later.
+      updateStream
+        .pipe(flushWriteStream.obj(function (chunk, _, done) {
+          var requestIndex = requestedFromPeer
+            .findIndex(function (request) {
+              return (
+                request.publicKey === chunk.publicKey &&
+                request.index === chunk.index
+              )
+            })
+          if (requestIndex === -1) {
+            protocol.offer(chunk, done)
+          } else {
+            requestedFromPeer.split(requestIndex, 1)
+            done()
+          }
+        }))
     })
-  }
 
-  function receiveEntry (envelope, callback) {
+  // When our peer requests an envelope...
+  protocol.on('request', function (message, callback) {
+    var publicKey = message.publicKey
+    var index = message.index
+    data.getEnvelope(publicKey, index, function (error, envelope) {
+      if (error) return callback(error)
+      if (envelope === undefined) return callback()
+      protocol.envelope(envelope, callback)
+    })
+  })
+
+  // TODO: Prevent duplicate requests for the same envelope.
+
+  // When our peer offers envelopes...
+  protocol.on('offer', function (message, callback) {
+    var publicKey = message.publicKey
+    var offeredIndex = message.index
+    data.getLogHead(publicKey, function (error, head) {
+      if (error) return callback(error)
+      if (head !== undefined && head >= offeredIndex) return callback()
+      var index = head ? (head + 1) : 0
+      requestNextEnvelope()
+      function requestNextEnvelope () {
+        if (index > offeredIndex) return callback()
+        protocol.request({publicKey, index}, function (error) {
+          if (error) return callback(error)
+          requestedFromPeer.push({publicKey, index})
+          index++
+          requestNextEnvelope()
+        })
+      }
+    })
+  })
+
+  // When our peer sends an envelope...
+  protocol.on('envelope', function (envelope, callback) {
+    // Validate envelope schema and signature.
     if (!validate.envelope(envelope)) return callback()
+    // Validate payload.
     if (!validate.payload(envelope.entry.payload)) return callback()
+    // Ensure payload is for this project.
+    if (envelope.entry.project !== discoveryKey) return callback()
+    // Discover type and write to our database.
     var type = envelope.entry.payload.type
     var digest
     if (type === 'draft') {
       digest = hash(stringify(envelope.entry))
-      source.putDraft(digest, envelope, callback)
+      data.putDraft(digest, envelope, callback)
     } else if (type === 'note') {
       digest = hash(stringify(envelope.entry))
-      source.putNote(digest, envelope, callback)
+      data.putNote(digest, envelope, callback)
     } else if (type === 'mark') {
-      source.putMark(envelope, callback)
+      data.putMark(envelope, callback)
     } else if (type === 'intro') {
-      source.putIntro(envelope, callback)
+      data.putIntro(envelope, callback)
     } else {
       callback()
     }
-  }
-
-  stream.once('sentHeads', function (callback) {
-    if (!sentWants) sendSentWants(noop)
-    peerSentHeads = true
-    update(callback)
-  })
-
-  stream.once('sentWants', function (callback) {
-    peerSentWants = true
-    update(callback)
-  })
-
-  stream.on('want', function (publicKey, index, callback) {
-    sendEntry(publicKey, index, callback)
-  })
-
-  stream.on('have', function (publicKey, index, callback) {
-    source.getLogHead(publicKey, function (error, head) {
-      if (error) return done(error)
-      if (head && index > head) {
-        stream.want({
-          publicKey: publicKey,
-          head: head || index
-        }, callback)
-      } else {
-        callback()
-      }
-    })
-  })
-
-  stream.on('entry', receiveEntry)
-
-  stream.on('handshake', function (handshake, callback) {
-    pipe(
-      source.streamLogs(),
-      through2.obj(function (publicKey, _, done) {
-        source.getLogHead(publicKey, function (error, head) {
-          if (error) return callback(error)
-          stream.have({
-            publicKey: publicKey,
-            head: head
-          }, callback)
-        })
-      }),
-      function (error) {
-        if (error) return callback(error)
-        sendSentHeads(callback)
-      }
-    )
   })
 
   // Extend our handshake.
-  stream.handshake({version: 1})
+  protocol.handshake({version: 1})
 }
-
-function noop () { }

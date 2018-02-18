@@ -81,6 +81,26 @@ prototype._list = function (store, iterator, callback) {
   }
 }
 
+prototype._listIndexedValues = function (store, indexName, callback) {
+  var transaction = this._db.transaction([store], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore(store)
+  var index = objectStore.index(indexName)
+  var request = index.openKeyCursor()
+  var results = []
+  request.onsuccess = function () {
+    var cursor = request.result
+    if (cursor) {
+      results.push(cursor.key)
+      cursor.continue()
+    } else {
+      callback(null, results)
+    }
+  }
+}
+
 prototype._listKeysAndValues = function (store, callback) {
   this._list(store, function (cursor) {
     return {

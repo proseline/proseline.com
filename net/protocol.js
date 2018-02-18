@@ -1,18 +1,51 @@
 var Duplexify = require('duplexify')
+var assert = require('assert')
 var inherits = require('util').inherits
 var lengthPrefixedStream = require('length-prefixed-stream')
+var parseJSON = require('json-parse-errback')
 var protocolBuffers = require('protocol-buffers')
+var pumpify = require('pumpify')
+var sodium = require('sodium-javascript')
 var through2 = require('through2')
 
 module.exports = Protocol
 
-function Protocol () {
+function Protocol (options) {
   if (!(this instanceof Protocol)) return new Protocol()
+
+  assert.equal(typeof options.secretKey, 'string')
+  assert(Buffer.isbuffer(options.nonce))
+  assert.equal(options.nonce.byteLength, 24)
+  assert(Buffer.isbuffer(options.peerNonce))
+  assert.equal(options.peerNonce.byteLength, 24)
+  var secretKey = options.secretKey
+  var nonce = options.nonce
+  var peerNonce = options.peerNonce
+
   var self = this
-  self._encoder = lengthPrefixedStream.encode()
+  self._secretKeyBuffer = Buffer.from(secretKey, 'hex')
+  self._nonce = nonce
+  self._peerNonce = peerNonce
+  // Create XOR streams to encrypt messages.
+  self._crypto = sodium.crypto_stream_xor_instance(
+    self._nonce, self._secretKeyBuffer
+  )
+  self._peerCrypto = sodium.crypto_stream_xor_instance(
+    self._peerNonce, self._secretKeyBuffer
+  )
+  self._encoder = pumpify(
+    // Prefix our messages with their length.
+    lengthPrefixedStream.encode(),
+    // Encrypt our length-prefixed messages.
+    through2(function (chunk, _, done) {
+      self._crypto.update(chunk, chunk)
+      done(null, chunk)
+    })
+  )
   self._decoder = lengthPrefixedStream.decode()
   self._decoder.pipe(
     through2.obj(function (data, encoding, callback) {
+      self._peerCrypto.update(data, data)
       self._decode(data, callback)
     })
       .on('error', function (error) {
@@ -25,15 +58,19 @@ function Protocol () {
 inherits(Protocol, Duplexify)
 
 var messages = protocolBuffers(`
-message Node {
+// Log Entries
+message Envelope {
   required string publicKey = 1;
   required string signature = 2;
   required string entry = 3;
 }
 
+// Dual Purpose:
+// 1. offer log entries
+// 2. request log entries
 message Log {
   required string publicKey = 1;
-  required uint32 head = 2;
+  required uint32 index = 2;
 }
 
 message Handshake {
@@ -41,33 +78,30 @@ message Handshake {
 }
 `)
 
-messages.Empty = {
-  encodingLength: function () { return 0 },
-  encode: function (data, buffer, offset) { return buffer }
-}
+// Message Type Prefixes
+var HANDSHAKE = 0
+var OFFER_LOG = 1
+var REQUEST_LOG = 2
+var ENVELOPE = 3
 
 Protocol.prototype.handshake = function (handshake, callback) {
-  this._encode(0, messages.Handshake, handshake, callback)
+  this._encode(HANDSHAKE, messages.Handshake, handshake, callback)
 }
 
-Protocol.prototype.have = function (have, callback) {
-  this._encode(1, messages.Log, have, callback)
+Protocol.prototype.offer = function (offer, callback) {
+  this._encode(OFFER_LOG, messages.Log, offer, callback)
 }
 
-Protocol.prototype.want = function (want, callback) {
-  this._encode(2, messages.Log, want, callback)
+Protocol.prototype.request = function (request, callback) {
+  this._encode(REQUEST_LOG, messages.Log, request, callback)
 }
 
-Protocol.prototype.node = function (node, callback) {
-  this._encode(3, messages.Node, node, callback)
-}
-
-Protocol.prototype.sentHeads = function (callback) {
-  this._encode(4, messages.Empty, null, callback)
-}
-
-Protocol.prototype.sentWants = function (callback) {
-  this._encode(5, messages.Empty, null, callback)
+Protocol.prototype.envelope = function (envelope, callback) {
+  this._encode(ENVELOPE, messages.Envelope, {
+    publicKey: envelope.publicKey,
+    signature: envelope.signature,
+    entry: JSON.stringify(envelope.entry)
+  }, callback)
 }
 
 Protocol.prototype.finalize = function (callback) {
@@ -75,12 +109,16 @@ Protocol.prototype.finalize = function (callback) {
   self._finalize(function (error) {
     if (error) return self.destroy(error)
     self._encoder.end(callback)
+    self._crypto.final()
+    self._crypto = null
+    self._peerCrypto.final()
+    self._peerCrypto = null
   })
 }
 
-Protocol.prototype._encode = function (type, encoding, data, callback) {
+Protocol.prototype._encode = function (prefix, encoding, data, callback) {
   var buffer = Buffer.alloc(encoding.encodingLength(data) + 1)
-  buffer[0] = type
+  buffer[0] = prefix
   encoding.encode(data, buffer, 1)
   this._encoder.write(buffer, callback)
 }
@@ -91,19 +129,19 @@ Protocol.prototype._decode = function (data, callback) {
   } catch (error) {
     return callback(error)
   }
-  var type = data[0]
-  if (type === 0) {
+  var prefix = data[0]
+  if (prefix === HANDSHAKE) {
     this.emit('handshake', message, callback) || callback()
-  } else if (type === 1) {
-    this.emit('have', message, callback) || callback()
-  } else if (type === 2) {
-    this.emit('want', message, callback) || callback()
-  } else if (type === 3) {
-    this.emit('node', message, callback) || callback()
-  } else if (type === 4) {
-    this.emit('sentHeads', callback) || callback()
-  } else if (type === 5) {
-    this.emit('sentWants', callback) || callback()
+  } else if (prefix === OFFER_LOG) {
+    this.emit('offer', message, callback) || callback()
+  } else if (prefix === REQUEST_LOG) {
+    this.emit('request', message, callback) || callback()
+  } else if (prefix === ENVELOPE) {
+    parseJSON(message.entry, function (error, entry) {
+      if (error) return callback(error)
+      message.entry = entry
+      this.emit('envelope', message, callback) || callback()
+    })
   } else {
     callback()
   }
@@ -111,8 +149,13 @@ Protocol.prototype._decode = function (data, callback) {
 
 function decodeMessage (data) {
   var type = data[0]
-  if (type === 0) return messages.Handshake.decode(data, 1)
-  else if (type === 1 || type === 2) return messages.Log.decode(data, 1)
-  else if (type === 3) return messages.Node.decode(data, 1)
-  else return null
+  if (type === HANDSHAKE) {
+    return messages.Handshake.decode(data, 1)
+  } else if (type === OFFER_LOG || type === REQUEST_LOG) {
+    return messages.Log.decode(data, 1)
+  } else if (type === ENVELOPE) {
+    return messages.Envelope.decode(data, 1)
+  } else {
+    return null
+  }
 }

@@ -1,10 +1,16 @@
 var Database = require('./database')
 var createIdentity = require('../crypto/create-identity')
 var inherits = require('inherits')
+var runParallel = require('run-parallel')
+var through2 = require('through2')
+
+// TODO: Stream existing logs.
+// TODO: Stream envelopes.
 
 module.exports = Project
 
 function Project (secretKey) {
+  this._updateStreams = []
   Database.call(this, {
     name: secretKey,
     version: 1
@@ -112,6 +118,10 @@ Project.prototype.getLogHead = function (publicKey, callback) {
   )
 }
 
+Project.prototype.listLogs = function (callback) {
+  this._listIndexedValues('logs', 'publicKey', callback)
+}
+
 var MIN_INDEX = 0
 var INDEX_DIGITS = 5
 var MAX_INDEX = Number('9'.repeat(INDEX_DIGITS))
@@ -127,15 +137,59 @@ function formatEntryIndex (index) {
 Project.prototype._log = function (key, envelope, callback) {
   var self = this
   var entryKey = logEntryKey(envelope.publicKey, envelope.entry.index)
+  // Put raw envelope.
   self._put('logs', entryKey, envelope, function (error) {
     if (error) return callback(error)
+    // Put payload by type.
     var store = envelope.entry.payload.type + 's'
-    self._put(store, key, envelope, callback)
+    self._put(store, key, envelope, function (error) {
+      if (error) return callback(error)
+      // Write update to update streams.
+      runParallel(
+        self._updateStreams.map(function (stream) {
+          return function (done) {
+            stream.write({
+              publicKey: envelope.publicKey,
+              index: envelope.entry.index
+            }, done)
+          }
+        }),
+        callback
+      )
+    })
   })
 }
 
-Prototype.project.getEntry = function (publicKey, index, callback) {
+Project.prototype.getEnvelope = function (publicKey, index, callback) {
   this._get(logEntryKey(publicKey, index), callback)
+}
+
+Project.prototype.createLogsStream = function () {
+  var stream = through2.obj()
+  var self = this
+  self.listLogs(function (error, publicKeys) {
+    if (error) return stream.destroy(error)
+    runParallel(
+      publicKeys.map(function (publicKey) {
+        return function (done) {
+          self.getLogHead(publicKey, function (error, index) {
+            if (error) return done(error)
+            stream.write({publicKey, index}, done)
+          })
+        }
+      }),
+      function (error) {
+        stream.destroy(error)
+      }
+    )
+  })
+  return stream
+}
+
+Project.prototype.createUpdateStream = function () {
+  var stream = through2.obj()
+  this._updateStreams.push(stream)
+  return stream
 }
 
 // Drafts
@@ -188,7 +242,8 @@ Project.prototype.listDraftBriefs = function (callback) {
 Project.prototype.putMark = function (envelope, callback) {
   var publicKey = envelope.publicKey
   var identifier = envelope.entry.payload.identifier
-  this._log(markKey(publicKey, identifier), envelope, callback)
+  var self = this
+  self._log(markKey(publicKey, identifier), envelope, callback)
 }
 
 Project.prototype.getMark = function (publicKey, identifier, callback) {
