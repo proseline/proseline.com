@@ -1,5 +1,6 @@
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
+var peer = require('./peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 var stringify = require('./utilities/stringify')
@@ -124,6 +125,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }
     ], function (error) {
       if (error) return callback(error)
+      peer.joinSwarm(project)
       callback(null, project)
     })
   }

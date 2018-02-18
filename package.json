@@ -17,7 +17,9 @@
     "nanoraf": "^3.0.1",
     "run-parallel": "^1.1.6",
     "run-series": "^1.1.4",
-    "sodium-javascript": "^0.5.4"
+    "signalhub": "^4.9.0",
+    "sodium-javascript": "^0.5.4",
+    "webrtc-swarm": "^2.9.0"
   },
   "devDependencies": {
     "ajv": "^5.3.0",

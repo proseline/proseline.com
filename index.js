@@ -1,10 +1,12 @@
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
+var peer = require('./peer')
 var runSeries = require('run-series')
 
 runSeries([
   detectFeatures,
   setupDatabase,
+  joinSwarms,
   launchApplication
 ], function (error) {
   if (error) throw error
@@ -184,6 +186,16 @@ function render () {
   } else {
     return renderNotFound(state, action)
   }
+}
+
+function joinSwarms (done) {
+  databases.proseline.listProjects(function (error, projects) {
+    if (error) return done(error)
+    projects.forEach(function (project) {
+      peer.joinSwarm(project)
+    })
+    done()
+  })
 }
 
 function launchApplication (done) {
