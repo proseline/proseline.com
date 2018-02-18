@@ -5,16 +5,17 @@ var hash = require('../crypto/hash')
 var stringify = require('../utilities/stringify')
 var validate = require('../schemas/validate')
 
+// TODO: Rename data to database.
+
 module.exports = function (options) {
   assert.equal(typeof options.secretKey, 'string')
   assert.equal(typeof options.discoveryKey, 'string')
-  assert(Buffer.isbuffer(options.nonce))
-  assert(Buffer.isbuffer(options.peerNonce))
   assert(options.data)
+  var secretKey = options.secretKey
   var discoveryKey = options.discoveryKey
   var data = options.data
 
-  var protocol = new Protocol(options)
+  var protocol = new Protocol(secretKey)
 
   // Store a list of envelopes that we've requested, so we can
   // check the list to avoid offering this peer envelopes we've
@@ -111,5 +112,5 @@ module.exports = function (options) {
   })
 
   // Extend our handshake.
-  protocol.handshake({version: 1})
+  protocol.handshake()
 }

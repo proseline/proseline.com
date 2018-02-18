@@ -1,4 +1,4 @@
-var AJV = require('AJV')
+var AJV = require('ajv')
 var ajv = new AJV()
 var stringify = require('../utilities/stringify')
 var verify = require('../crypto/verify')

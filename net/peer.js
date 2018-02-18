@@ -7,8 +7,6 @@ module.exports = {joinSwarm, leaveSwarm}
 
 var swarms = []
 
-// TODO: Communicate nonces.
-
 function joinSwarm (project, database) {
   var alreadyJoined = swarms.some(function (swarm) {
     return swarm.project.discoveryKey === project.discoveryKey
@@ -20,8 +18,6 @@ function joinSwarm (project, database) {
     var replicationStream = replicate({
       secretKey: project.secretKey,
       discoveryKey: project.discoveryKey,
-      nonce: null,
-      peerNonce: null,
       data: database
     })
     replicationStream.pipe(peer).pipe(replicationStream)
