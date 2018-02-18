@@ -102,24 +102,38 @@ Project.prototype.listIntros = function (callback) {
 Project.prototype.getLogHead = function (publicKey, callback) {
   this._countFromIndex(
     'logs', 'publicKey',
-    publicKey + ':' + formatIndex(MIN_INDEX),
-    publicKey + ':' + formatIndex(MAX_INDEX),
+    logEntryKey(publicKey, MIN_INDEX),
+    logEntryKey(publicKey, MAX_INDEX),
     callback
   )
 }
 
 var MIN_INDEX = 0
+var INDEX_DIGITS = 5
+var MAX_INDEX = Number('9'.repeat(INDEX_DIGITS))
 
-var MAX_INDEX = 99999
+function logEntryKey (publicKey, index) {
+  return publicKey + ':' + formatEntryIndex(index)
+}
 
-function formatIndex (index) {
-  return index.toString().padStart(5, '0')
+function formatEntryIndex (index) {
+  return index.toString().padStart(INDEX_DIGITS, '0')
+}
+
+Project.prototype._log = function (key, envelope, callback) {
+  var self = this
+  var entryKey = logEntryKey(envelope.publicKey, envelope.entry.index)
+  self._put('logs', entryKey, envelope, function (error) {
+    if (error) return callback(error)
+    var store = envelope.entry.payload.type + 's'
+    self._put(store, key, envelope, callback)
+  })
 }
 
 // Drafts
 
 Project.prototype.putDraft = function (digest, envelope, callback) {
-  this._put('drafts', digest, envelope, callback)
+  this._log(digest, envelope, callback)
 }
 
 Project.prototype.getDraft = function (digest, callback) {
@@ -164,7 +178,7 @@ Project.prototype.listDraftBriefs = function (callback) {
 // Marks
 
 Project.prototype.putMark = function (publicKey, identifier, envelope, callback) {
-  this._put('marks', markKey(publicKey, identifier), envelope, callback)
+  this._log(markKey(publicKey, identifier), envelope, callback)
 }
 
 Project.prototype.getMark = function (publicKey, identifier, callback) {
@@ -226,5 +240,5 @@ Project.prototype.getNotes = function (digest, callback) {
 }
 
 Project.prototype.putNote = function (digest, envelope, callback) {
-  this._put('notes', digest, envelope, callback)
+  this._log(digest, envelope, callback)
 }
