@@ -39,7 +39,7 @@ function shareSection (state) {
   section.appendChild(h2)
 
   var a = document.createElement('a')
-  var url = 'https://proseline.com/' + state.secretKey
+  var url = 'https://proseline.com/join/' + state.secretKey
   a.appendChild(document.createTextNode(url))
   a.setAttribute('href', url)
   section.appendChild(a)

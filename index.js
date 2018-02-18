@@ -147,7 +147,7 @@ function render () {
   if (path === '' || path === '/') {
     return renderOverview(state, action)
   // Join Link
-  } else if (/^\/[a-f0-9]{64}$/.test(path)) {
+  } else if (/^\/join\/[a-f0-9]{64}$/.test(path)) {
     return renderProjectJoin(state, action, path.substring(1))
   // New Project
   } else if (path.indexOf('/projects/new') === 0) {
