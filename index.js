@@ -1,6 +1,6 @@
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
-var peer = require('./peer')
+var peer = require('./net/peer')
 var runSeries = require('run-series')
 
 runSeries([

@@ -1,6 +1,6 @@
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
-var peer = require('./peer')
+var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 var stringify = require('./utilities/stringify')
@@ -473,7 +473,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return callback(error)
-      db.putMark(identity.publicKey, identifier, envelope, function (error) {
+      db.putMark(envelope, function (error) {
         if (error) return callback(error)
         callback(null, envelope)
       })

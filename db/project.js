@@ -97,6 +97,10 @@ Project.prototype.listIntros = function (callback) {
   this._listValues('intros', callback)
 }
 
+Project.prototype.putIntro = function (envelope, callback) {
+  this._put('intros', envelope.publicKey, envelope, callback)
+}
+
 // Logs
 
 Project.prototype.getLogHead = function (publicKey, callback) {
@@ -128,6 +132,10 @@ Project.prototype._log = function (key, envelope, callback) {
     var store = envelope.entry.payload.type + 's'
     self._put(store, key, envelope, callback)
   })
+}
+
+Prototype.project.getEntry = function (publicKey, index, callback) {
+  this._get(logEntryKey(publicKey, index), callback)
 }
 
 // Drafts
@@ -177,7 +185,9 @@ Project.prototype.listDraftBriefs = function (callback) {
 
 // Marks
 
-Project.prototype.putMark = function (publicKey, identifier, envelope, callback) {
+Project.prototype.putMark = function (envelope, callback) {
+  var publicKey = envelope.publicKey
+  var identifier = envelope.entry.payload.identifier
   this._log(markKey(publicKey, identifier), envelope, callback)
 }
 
