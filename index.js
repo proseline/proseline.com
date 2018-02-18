@@ -192,7 +192,7 @@ function joinSwarms (done) {
   databases.proseline.listProjects(function (error, projects) {
     if (error) return done(error)
     projects.forEach(function (project) {
-      peer.joinSwarm(project)
+      peer.joinSwarm(project, databases[project.discoveryKey])
     })
     done()
   })
