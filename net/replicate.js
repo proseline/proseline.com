@@ -25,7 +25,7 @@ module.exports = function (options) {
   var logsStream = database.createLogsStream()
   var updateStream = database.createUpdateStream()
 
-  protocol.once('handshake', function () {
+  protocol.once('handshake', function (callback) {
     // Offer currently known logs.
     logsStream
       .pipe(flushWriteStream.obj(function (chunk, _, done) {
@@ -51,11 +51,12 @@ module.exports = function (options) {
             }
           }))
       })
+    callback()
   })
 
   // When our peer requests an envelope...
   protocol.on('request', function (message, callback) {
-    debug('request: %o', message)
+    debug('requested: %o', message)
     var publicKey = message.publicKey
     var index = message.index
     database.getEnvelope(publicKey, index, function (error, envelope) {
@@ -70,7 +71,7 @@ module.exports = function (options) {
 
   // When our peer offers envelopes...
   protocol.on('offer', function (message, callback) {
-    debug('offer: %o', message)
+    debug('offered: %o', message)
     var publicKey = message.publicKey
     var offeredIndex = message.index
     database.getLogHead(publicKey, function (error, head) {
@@ -93,7 +94,7 @@ module.exports = function (options) {
 
   // When our peer sends an envelope...
   protocol.on('envelope', function (envelope, callback) {
-    debug('envelope: %o', envelope)
+    debug('sent envelope: %o', envelope)
     // Validate envelope schema and signature.
     if (!validate.envelope(envelope)) return callback()
     // Validate payload.

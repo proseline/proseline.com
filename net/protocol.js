@@ -1,11 +1,9 @@
 var Duplexify = require('duplexify')
 var assert = require('assert')
 var debug = require('debug')('proseline:protocol')
-var flushWriteStream = require('flush-write-stream')
 var inherits = require('util').inherits
 var lengthPrefixedStream = require('length-prefixed-stream')
 var parseJSON = require('json-parse-errback')
-var random = require('../crypto/random')
 var sodium = require('sodium-javascript')
 var through2 = require('through2')
 var validEnvelope = require('../schemas/validate').envelope
@@ -29,12 +27,15 @@ function Protocol (secretKey) {
   // Readable: messages to our peer
 
   // Cryptographic stream using our nonce and the secret key.
-  self._sendingNonce = random(NONCE_LENGTH)
+  self._sendingNonce = Buffer.alloc(NONCE_LENGTH)
+  sodium.randombytes_buf(self._sendingNonce)
+  debug('sending nonce: %o', self._sendingNonce.toString('hex'))
   self._sendingCipher = cipher(
     self._sendingNonce, self._secretKeyBuffer
   )
   self._encoder = lengthPrefixedStream.encode()
   self._readable = through2.obj(function (chunk, _, done) {
+    assert(Buffer.isBuffer(chunk))
     // Once we've sent our nonce, encrypt.
     if (self._sentNonce) {
       self._sendingCipher.update(chunk, chunk)
@@ -55,22 +56,25 @@ function Protocol (secretKey) {
   self._receivingNonce = null
   self._receivingCipher = null
   self._writable = through2(function (chunk, encoding, done) {
+    assert(Buffer.isBuffer(chunk))
     // Once given a nonce, decrypt.
     if (self._receivingCipher) {
       self._receivingCipher.update(chunk, chunk)
     }
-    debug(chunk.toString())
-    this.push(chunk)
-    done()
+    debug('received %o', chunk.toString())
+    done(null, chunk)
   })
-  self._decoder = lengthPrefixedStream.decode()
-  self._parser = flushWriteStream.obj(function (chunk, _, done) {
-    self._parse(chunk, done)
+  self._parser = through2.obj(function (chunk, _, done) {
+    self._parse(chunk, function (error) {
+      if (error) return done(error)
+      done()
+    })
   })
   self._writable
-    .pipe(self._decoder)
-    .pipe(self._parser)
+    .pipe(lengthPrefixedStream.decode())
+    .pipe(self._parser, {end: false})
     .once('error', function (error) {
+      console.error(error)
       self.destroy(error)
     })
 
@@ -159,7 +163,9 @@ Protocol.prototype._parse = function (message, callback) {
       this._receivingCipher = cipher(
         this._receivingNonce, this._secretKeyBuffer
       )
-      this.emit('handshake', payload, callback) || callback()
+      this.emit('handshake', callback) || callback()
+    } else {
+      callback()
     }
   } else if (prefix === OFFER && validLog(payload)) {
     this.emit('offer', payload, callback) || callback()
