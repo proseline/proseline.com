@@ -1,6 +1,8 @@
 var loading = require('../loading')
 var timestamp = require('../partials/timestamp')
 
+// TODO: rename project UI
+
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
   if (discoveryKey && state.discoveryKey !== discoveryKey) {

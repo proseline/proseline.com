@@ -1,6 +1,8 @@
 var Database = require('./database')
 var inherits = require('inherits')
 
+// TODO: paid peer data storage
+
 module.exports = Proseline
 
 function Proseline () {

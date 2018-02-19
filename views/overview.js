@@ -1,5 +1,11 @@
 var loading = require('./loading')
 
+// TODO: private key backup link
+
+// TODO: global introduction
+
+// TODO: paid peer UI
+
 module.exports = function (state, send) {
   var main = document.createElement('main')
   if (state.projects === null) {
@@ -46,6 +52,8 @@ function newProject (send) {
   a.href = '/projects/new'
   return a
 }
+
+// TODO: link to e-mail join invite
 
 function joinProject (send) {
   var form = document.createElement('form')

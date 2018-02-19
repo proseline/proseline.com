@@ -5,6 +5,10 @@ var replicate = require('./replicate')
 var signalhub = require('signalhub')
 var webRTCSwarm = require('webrtc-swarm')
 
+// TODO: pass send to peer for dirty marking
+
+// TODO: tune maxPeers by last access time
+
 module.exports = {joinSwarm, leaveSwarm}
 
 var swarms = []

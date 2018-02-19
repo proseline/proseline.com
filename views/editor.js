@@ -1,5 +1,7 @@
 var loading = require('./loading')
 
+// TODO: nice editor
+
 module.exports = function (state, send, discoveryKey, parentDigest) {
   var main = document.createElement('main')
   if (state.discoveryKey !== discoveryKey) {
