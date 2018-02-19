@@ -4638,7 +4638,8 @@
     "json-parse-errback": {
       "version": "2.0.1",
       "resolved": "https://registry.npmjs.org/json-parse-errback/-/json-parse-errback-2.0.1.tgz",
-      "integrity": "sha1-x6nCvjqFWzQvgqv8ibyFk1tYhPo="
+      "integrity": "sha1-x6nCvjqFWzQvgqv8ibyFk1tYhPo=",
+      "dev": true
     },
     "json-schema": {
       "version": "0.2.3",

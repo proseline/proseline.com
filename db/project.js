@@ -162,7 +162,7 @@ Project.prototype._log = function (key, envelope, callback) {
 }
 
 Project.prototype.getEnvelope = function (publicKey, index, callback) {
-  this._get(logEntryKey(publicKey, index), callback)
+  this._get('logs', logEntryKey(publicKey, index), callback)
 }
 
 Project.prototype.createLogsStream = function () {

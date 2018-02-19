@@ -55,14 +55,13 @@ module.exports = function (options) {
   })
 
   // When our peer requests an envelope...
-  protocol.on('request', function (message, callback) {
-    debug('requested: %o', message)
-    var publicKey = message.publicKey
-    var index = message.index
+  protocol.on('request', function (request, callback) {
+    debug('requested: %o', request)
+    var publicKey = request.publicKey
+    var index = request.index
     database.getEnvelope(publicKey, index, function (error, envelope) {
       if (error) return callback(error)
       if (envelope === undefined) return callback()
-      debug('sending: %o', envelope)
       protocol.envelope(envelope, callback)
     })
   })
@@ -70,10 +69,10 @@ module.exports = function (options) {
   // TODO: Prevent duplicate requests for the same envelope.
 
   // When our peer offers envelopes...
-  protocol.on('offer', function (message, callback) {
-    debug('offered: %o', message)
-    var publicKey = message.publicKey
-    var offeredIndex = message.index
+  protocol.on('offer', function (offer, callback) {
+    debug('offered: %o', offer)
+    var publicKey = offer.publicKey
+    var offeredIndex = offer.index
     database.getLogHead(publicKey, function (error, head) {
       if (error) return callback(error)
       if (head !== undefined && head >= offeredIndex) return callback()
@@ -81,7 +80,7 @@ module.exports = function (options) {
       requestNextEnvelope()
       function requestNextEnvelope () {
         if (index > offeredIndex) return callback()
-        debug('requesting: %o', message)
+        debug('requesting: %o', offer)
         protocol.request({publicKey, index}, function (error) {
           if (error) return callback(error)
           requestedFromPeer.push({publicKey, index})

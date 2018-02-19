@@ -1,7 +1,8 @@
 var AJV = require('ajv')
-var ajv = new AJV()
 var stringify = require('../utilities/stringify')
 var verify = require('../crypto/verify')
+
+var ajv = new AJV()
 
 exports.draft = ajv.compile(require('./draft'))
 exports.envelopeData = ajv.compile(require('./envelope'))

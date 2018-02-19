@@ -3,7 +3,6 @@ var assert = require('assert')
 var debug = require('debug')('proseline:protocol')
 var inherits = require('util').inherits
 var lengthPrefixedStream = require('length-prefixed-stream')
-var parseJSON = require('json-parse-errback')
 var sodium = require('sodium-javascript')
 var through2 = require('through2')
 var validEnvelope = require('../schemas/validate').envelope
@@ -61,7 +60,6 @@ function Protocol (secretKey) {
     if (self._receivingCipher) {
       self._receivingCipher.update(chunk, chunk)
     }
-    debug('received %o', chunk.toString())
     done(null, chunk)
   })
   self._parser = through2.obj(function (chunk, _, done) {
@@ -118,11 +116,7 @@ Protocol.prototype.request = function (request, callback) {
 Protocol.prototype.envelope = function (envelope, callback) {
   assert(validEnvelope(envelope))
   debug('sending envelope: %o', envelope)
-  this._encode(ENVELOPE, {
-    publicKey: envelope.publicKey,
-    signature: envelope.signature,
-    entry: JSON.stringify(envelope.entry)
-  }, callback)
+  this._encode(ENVELOPE, envelope, callback)
 }
 
 Protocol.prototype.finalize = function (callback) {
@@ -151,6 +145,7 @@ Protocol.prototype._parse = function (message, callback) {
   }
   debug('parsed: %o', parsed)
   if (!validMessage(parsed)) {
+    debug('invalid message')
     return callback(new Error('invalid message'))
   }
   var prefix = parsed[0]
@@ -172,12 +167,9 @@ Protocol.prototype._parse = function (message, callback) {
   } else if (prefix === REQUEST && validLog(payload)) {
     this.emit('request', payload, callback) || callback()
   } else if (prefix === ENVELOPE && validEnvelope(payload)) {
-    parseJSON(payload.entry, function (error, entry) {
-      if (error) return callback(error)
-      payload.entry = entry
-      this.emit('envelope', payload, callback) || callback()
-    })
+    this.emit('envelope', payload, callback) || callback()
   } else {
+    debug('invalid message')
     callback()
   }
 }
