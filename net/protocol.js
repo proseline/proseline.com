@@ -4,11 +4,13 @@ var flushWriteStream = require('flush-write-stream')
 var inherits = require('util').inherits
 var lengthPrefixedStream = require('length-prefixed-stream')
 var parseJSON = require('json-parse-errback')
-var protocolBuffers = require('protocol-buffers')
 var pumpify = require('pumpify')
 var random = require('../crypto/random')
 var sodium = require('sodium-javascript')
 var through2 = require('through2')
+var validEnvelope = require('../schemas/validate').envelope
+var validHandshake = require('./schemas/validate').handshake
+var validLog = require('./schemas/validate').log
 
 module.exports = Protocol
 
@@ -54,32 +56,6 @@ function Protocol (secretKey) {
 
 inherits(Protocol, Duplexify)
 
-var messages = protocolBuffers(`
-message Handshake {
-  required uint32 version = 1;
-  // Nonce for encryption of subsequent messages using
-  // the secret key.
-  required bytes nonce = 2;
-}
-
-// This message serves two purposes, depending on
-// message type prefix:
-// 1. to offer log entries to our peer
-// 2. to request log entries from our peer
-message Log {
-  required string publicKey = 1;
-  required uint32 index = 2;
-}
-
-// Log Entry Envelopes
-message Envelope {
-  required string publicKey = 1;
-  required string signature = 2;
-  // JSON-encoded entry Object
-  required string entry = 3;
-}
-`)
-
 // Message Type Prefixes
 var HANDSHAKE = 0
 var OFFER = 1
@@ -89,9 +65,9 @@ var ENVELOPE = 3
 Protocol.prototype.handshake = function (callback) {
   var self = this
   if (self._sentNonce) return callback()
-  self._encode(HANDSHAKE, messages.Handshake, {
+  self._encode(HANDSHAKE, {
     version: VERSION,
-    nonce: this._nonce
+    nonce: this._nonce.toString('hex')
   }, function (error) {
     if (error) return callback(error)
     self._sentNonce = true
@@ -100,15 +76,18 @@ Protocol.prototype.handshake = function (callback) {
 }
 
 Protocol.prototype.offer = function (offer, callback) {
-  this._encode(OFFER, messages.Log, offer, callback)
+  assert(validLog(offer))
+  this._encode(OFFER, offer, callback)
 }
 
 Protocol.prototype.request = function (request, callback) {
-  this._encode(REQUEST, messages.Log, request, callback)
+  assert(validLog(request))
+  this._encode(REQUEST, request, callback)
 }
 
 Protocol.prototype.envelope = function (envelope, callback) {
-  this._encode(ENVELOPE, messages.Envelope, {
+  assert(validEnvelope(envelope))
+  this._encode(ENVELOPE, {
     publicKey: envelope.publicKey,
     signature: envelope.signature,
     entry: JSON.stringify(envelope.entry)
@@ -116,6 +95,7 @@ Protocol.prototype.envelope = function (envelope, callback) {
 }
 
 Protocol.prototype.finalize = function (callback) {
+  assert(typeof callback === 'function')
   var self = this
   self._finalize(function (error) {
     if (error) return self.destroy(error)
@@ -127,11 +107,8 @@ Protocol.prototype.finalize = function (callback) {
   })
 }
 
-Protocol.prototype._encode = function (prefix, encoding, data, callback) {
-  // Create and write [prefix, bytes...].
-  var buffer = Buffer.alloc(encoding.encodingLength(data) + 1)
-  buffer[0] = prefix
-  encoding.encode(data, buffer, 1)
+Protocol.prototype._encode = function (prefix, data, callback) {
+  var buffer = Buffer.from(JSON.stringify([prefix, data]))
   this._encoder.write(buffer, callback)
 }
 
@@ -147,12 +124,13 @@ Protocol.prototype._decode = function (data, callback) {
   }
   var prefix = data[0]
   if (prefix === HANDSHAKE) {
+    var nonce = Buffer.from(message.nonce, 'hex')
     var acceptableHandshake = (
-      message.nonce.byteLength === NONCE_LENGTH &&
+      nonce.byteLength === NONCE_LENGTH &&
       message.version === VERSION
     )
     if (!this._peerNonce && acceptableHandshake) {
-      this._peerNonce = message.nonce
+      this._peerNonce = nonce
       this._inboundCryptoStream = sodium.crypto_stream_xor_instance(
         this._peerNonce, this._secretKeyBuffer
       )
@@ -175,12 +153,21 @@ Protocol.prototype._decode = function (data, callback) {
 
 function decodeMessage (data) {
   var type = data[0]
-  if (type === HANDSHAKE) {
-    return messages.Handshake.decode(data, 1)
-  } else if (type === OFFER || type === REQUEST) {
-    return messages.Log.decode(data, 1)
-  } else if (type === ENVELOPE) {
-    return messages.Envelope.decode(data, 1)
+  var json = data.slice(1).toString()
+  try {
+    var parsed = JSON.parse(json)
+  } catch (error) {
+    return null
+  }
+  if (type === HANDSHAKE && validHandshake(parsed)) {
+    return parsed
+  } else if (
+    (type === OFFER || type === REQUEST) &&
+    validLog(parsed)
+  ) {
+    return parsed
+  } else if (type === ENVELOPE && validEnvelope(parsed)) {
+    return parsed
   } else {
     return null
   }

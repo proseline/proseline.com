@@ -19,7 +19,6 @@
     "length-prefixed-stream": "^1.5.1",
     "nanomorph": "^5.1.3",
     "nanoraf": "^3.0.1",
-    "protocol-buffers": "^4.0.4",
     "pump": "^3.0.0",
     "pumpify": "^1.4.0",
     "run-parallel": "^1.1.6",
