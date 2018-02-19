@@ -12,6 +12,7 @@ module.exports = function (state, send) {
     main.appendChild(projectsList(state.projects))
   }
   main.appendChild(newProject(send))
+  main.appendChild(joinProject(send))
   return main
 }
 
@@ -44,4 +45,21 @@ function newProject (send) {
   a.appendChild(document.createTextNode('New Project'))
   a.href = '/projects/new'
   return a
+}
+
+function joinProject (send) {
+  var form = document.createElement('form')
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    send('join project', input.value)
+  })
+  var input = document.createElement('input')
+  form.appendChild(input)
+  input.placeholder = 'Invite Code'
+  var button = document.createElement('button')
+  form.appendChild(button)
+  button.appendChild(document.createTextNode('Join'))
+  button.type = 'submit'
+  return form
 }

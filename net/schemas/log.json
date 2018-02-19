@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "publicKey": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "index": {
+      "type": "number",
+      "multipleOf": 1,
+      "minimum": 0
+    }
+  },
+  "required": [
+    "publicKey",
+    "index"
+  ],
+  "additionalProperties": false
+}

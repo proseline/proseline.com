@@ -1,0 +1,18 @@
+{
+  "type": "array",
+  "items": [
+    {
+      "type": "number",
+      "enum": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "type": "object"
+    }
+  ],
+  "additionalItems": false
+}

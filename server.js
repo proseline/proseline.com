@@ -7,6 +7,6 @@ var ecstatic = require('ecstatic')({
 
 http
   .createServer(function (request, response) {
-    ecstatic(request, response)
+    ecstatic(request, response, {handleError: false})
   })
   .listen(process.env.PORT || 8000)

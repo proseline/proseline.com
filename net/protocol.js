@@ -1,10 +1,10 @@
 var Duplexify = require('duplexify')
 var assert = require('assert')
+var debug = require('debug')('proseline:protocol')
 var flushWriteStream = require('flush-write-stream')
 var inherits = require('util').inherits
 var lengthPrefixedStream = require('length-prefixed-stream')
 var parseJSON = require('json-parse-errback')
-var pumpify = require('pumpify')
 var random = require('../crypto/random')
 var sodium = require('sodium-javascript')
 var through2 = require('through2')
@@ -26,33 +26,55 @@ function Protocol (secretKey) {
   var self = this
   self._secretKeyBuffer = Buffer.from(secretKey, 'hex')
 
+  // Readable: messages to our peer
+
   // Cryptographic stream using our nonce and the secret key.
-  self._nonce = random(NONCE_LENGTH)
-  self._outboundCryptoStream = sodium.crypto_stream_xor_instance(
-    self._nonce, self._secretKeyBuffer
+  self._sendingNonce = random(NONCE_LENGTH)
+  self._sendingCipher = cipher(
+    self._sendingNonce, self._secretKeyBuffer
   )
-  self._encoder = pumpify(
-    lengthPrefixedStream.encode(),
-    through2(function (chunk, encoding, done) {
-      if (self._sentNonce) {
-        self._outboundCryptoStream.update(chunk, chunk)
-      }
-      done(null, chunk)
-    })
-  )
-  // Cryptographic stream using our peer's nonce, which we've yet
-  // to receive, and the secret key.
-  self._peerNonce = null
-  self._inboundCryptoStream = null
-  self._decoder = lengthPrefixedStream.decode()
-  self._decoder
-    .pipe(flushWriteStream(function (chunk, _, done) {
-      self._decode(chunk, done)
-    }))
+  self._encoder = lengthPrefixedStream.encode()
+  self._readable = through2.obj(function (chunk, _, done) {
+    // Once we've sent our nonce, encrypt.
+    if (self._sentNonce) {
+      self._sendingCipher.update(chunk, chunk)
+    }
+    this.push(chunk)
+    done()
+  })
+  self._encoder
+    .pipe(self._readable)
     .once('error', function (error) {
       self.destroy(error)
     })
-  Duplexify.call(self, self._decoder, self._encoder)
+
+  // Writable: messages from our peer
+
+  // Cryptographic stream using our peer's nonce, which we've yet
+  // to receive, and the secret key.
+  self._receivingNonce = null
+  self._receivingCipher = null
+  self._writable = through2(function (chunk, encoding, done) {
+    // Once given a nonce, decrypt.
+    if (self._receivingCipher) {
+      self._receivingCipher.update(chunk, chunk)
+    }
+    debug(chunk.toString())
+    this.push(chunk)
+    done()
+  })
+  self._decoder = lengthPrefixedStream.decode()
+  self._parser = flushWriteStream.obj(function (chunk, _, done) {
+    self._parse(chunk, done)
+  })
+  self._writable
+    .pipe(self._decoder)
+    .pipe(self._parser)
+    .once('error', function (error) {
+      self.destroy(error)
+    })
+
+  Duplexify.call(self, self._writable, self._readable)
 }
 
 inherits(Protocol, Duplexify)
@@ -66,9 +88,10 @@ var ENVELOPE = 3
 Protocol.prototype.handshake = function (callback) {
   var self = this
   if (self._sentNonce) return callback()
+  debug('sending handshake')
   self._encode(HANDSHAKE, {
     version: VERSION,
-    nonce: this._nonce.toString('hex')
+    nonce: this._sendingNonce.toString('hex')
   }, function (error) {
     if (error) return callback(error)
     self._sentNonce = true
@@ -78,16 +101,19 @@ Protocol.prototype.handshake = function (callback) {
 
 Protocol.prototype.offer = function (offer, callback) {
   assert(validLog(offer))
+  debug('offering: %o', offer)
   this._encode(OFFER, offer, callback)
 }
 
 Protocol.prototype.request = function (request, callback) {
   assert(validLog(request))
+  debug('requesting: %o', request)
   this._encode(REQUEST, request, callback)
 }
 
 Protocol.prototype.envelope = function (envelope, callback) {
   assert(validEnvelope(envelope))
+  debug('sending envelope: %o', envelope)
   this._encode(ENVELOPE, {
     publicKey: envelope.publicKey,
     signature: envelope.signature,
@@ -101,38 +127,37 @@ Protocol.prototype.finalize = function (callback) {
   self._finalize(function (error) {
     if (error) return self.destroy(error)
     self._encoder.end(callback)
-    self._outboundCryptoStream.final()
-    self._outboundCryptoStream = null
-    self._inboundCryptoStream.final()
-    self._inboundCryptoStream = null
+    self._sendingCipher.final()
+    self._sendingCipher = null
+    self._receivingCipher.final()
+    self._receivingCipher = null
   })
 }
 
 Protocol.prototype._encode = function (prefix, data, callback) {
-  var buffer = Buffer.from(JSON.stringify([prefix, data]))
+  var buffer = Buffer.from(JSON.stringify([prefix, data]), 'utf8')
   this._encoder.write(buffer, callback)
 }
 
-Protocol.prototype._decode = function (message, callback) {
-  // Once given a nonce, decrypt messages.
-  if (this._inboundCryptoStream) {
-    this._inboundCryptoStream.update(message, message)
-  }
+Protocol.prototype._parse = function (message, callback) {
   try {
     var parsed = JSON.parse(message)
   } catch (error) {
     return callback(error)
   }
+  debug('parsed: %o', parsed)
   if (!validMessage(parsed)) {
     return callback(new Error('invalid message'))
   }
   var prefix = parsed[0]
   var payload = parsed[1]
   if (prefix === HANDSHAKE && validHandshake(payload)) {
-    if (!this._peerNonce) {
-      this._peerNonce = Buffer.from(payload.nonce, 'hex')
-      this._inboundCryptoStream = sodium.crypto_stream_xor_instance(
-        this._peerNonce, this._secretKeyBuffer
+    if (!this._receivingCipher) {
+      debug('peer nonce: %o', payload.nonce)
+      this._receivingNonce = Buffer.from(payload.nonce, 'hex')
+      assert.equal(this._receivingNonce.byteLength, NONCE_LENGTH)
+      this._receivingCipher = cipher(
+        this._receivingNonce, this._secretKeyBuffer
       )
       this.emit('handshake', payload, callback) || callback()
     }
@@ -149,4 +174,13 @@ Protocol.prototype._decode = function (message, callback) {
   } else {
     callback()
   }
+}
+
+function cipher (nonce, secretKeyBuffer) {
+  assert(Buffer.isBuffer(nonce))
+  assert(nonce.byteLength, NONCE_LENGTH)
+  assert(Buffer.isBuffer(secretKeyBuffer))
+  return sodium.crypto_stream_xor_instance(
+    nonce, secretKeyBuffer
+  )
 }

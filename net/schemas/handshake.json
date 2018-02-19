@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "multipleOf": 1,
+      "minimum": 1
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{48}$"
+    }
+  },
+  "required": [
+    "version",
+    "nonce"
+  ],
+  "additionalProperties": false
+}

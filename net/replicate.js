@@ -1,5 +1,6 @@
 var Protocol = require('./protocol')
 var assert = require('assert')
+var debug = require('debug')('proseline:replicate')
 var flushWriteStream = require('flush-write-stream')
 var hash = require('../crypto/hash')
 var stringify = require('../utilities/stringify')
@@ -24,38 +25,43 @@ module.exports = function (options) {
   var logsStream = database.createLogsStream()
   var updateStream = database.createUpdateStream()
 
-  // Offer currently known logs.
-  logsStream
-    .pipe(flushWriteStream.obj(function (chunk, _, done) {
-      protocol.offer(chunk, done)
-    }))
-    .once('finish', function () {
-      // Offer updates that come later.
-      updateStream
-        .pipe(flushWriteStream.obj(function (chunk, _, done) {
-          var requestIndex = requestedFromPeer
-            .findIndex(function (request) {
-              return (
-                request.publicKey === chunk.publicKey &&
-                request.index === chunk.index
-              )
-            })
-          if (requestIndex === -1) {
-            protocol.offer(chunk, done)
-          } else {
-            requestedFromPeer.split(requestIndex, 1)
-            done()
-          }
-        }))
-    })
+  protocol.once('handshake', function () {
+    // Offer currently known logs.
+    logsStream
+      .pipe(flushWriteStream.obj(function (chunk, _, done) {
+        protocol.offer(chunk, done)
+      }))
+      .once('finish', function () {
+        debug('finished offering preexisting')
+        // Offer updates that come later.
+        updateStream
+          .pipe(flushWriteStream.obj(function (chunk, _, done) {
+            var requestIndex = requestedFromPeer
+              .findIndex(function (request) {
+                return (
+                  request.publicKey === chunk.publicKey &&
+                  request.index === chunk.index
+                )
+              })
+            if (requestIndex === -1) {
+              protocol.offer(chunk, done)
+            } else {
+              requestedFromPeer.split(requestIndex, 1)
+              done()
+            }
+          }))
+      })
+  })
 
   // When our peer requests an envelope...
   protocol.on('request', function (message, callback) {
+    debug('request: %o', message)
     var publicKey = message.publicKey
     var index = message.index
     database.getEnvelope(publicKey, index, function (error, envelope) {
       if (error) return callback(error)
       if (envelope === undefined) return callback()
+      debug('sending: %o', envelope)
       protocol.envelope(envelope, callback)
     })
   })
@@ -64,6 +70,7 @@ module.exports = function (options) {
 
   // When our peer offers envelopes...
   protocol.on('offer', function (message, callback) {
+    debug('offer: %o', message)
     var publicKey = message.publicKey
     var offeredIndex = message.index
     database.getLogHead(publicKey, function (error, head) {
@@ -73,6 +80,7 @@ module.exports = function (options) {
       requestNextEnvelope()
       function requestNextEnvelope () {
         if (index > offeredIndex) return callback()
+        debug('requesting: %o', message)
         protocol.request({publicKey, index}, function (error) {
           if (error) return callback(error)
           requestedFromPeer.push({publicKey, index})
@@ -85,6 +93,7 @@ module.exports = function (options) {
 
   // When our peer sends an envelope...
   protocol.on('envelope', function (envelope, callback) {
+    debug('envelope: %o', envelope)
     // Validate envelope schema and signature.
     if (!validate.envelope(envelope)) return callback()
     // Validate payload.
@@ -96,13 +105,17 @@ module.exports = function (options) {
     var digest
     if (type === 'draft') {
       digest = hash(stringify(envelope.entry))
+      debug('received draft')
       database.putDraft(digest, envelope, callback)
     } else if (type === 'note') {
       digest = hash(stringify(envelope.entry))
+      debug('received note')
       database.putNote(digest, envelope, callback)
     } else if (type === 'mark') {
+      debug('received mark')
       database.putMark(envelope, callback)
     } else if (type === 'intro') {
+      debug('received intro')
       database.putIntro(envelope, callback)
     } else {
       callback()
@@ -110,5 +123,7 @@ module.exports = function (options) {
   })
 
   // Extend our handshake.
-  protocol.handshake()
+  protocol.handshake(function () { /* noop */ })
+
+  return protocol
 }

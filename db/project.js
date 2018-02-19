@@ -4,9 +4,6 @@ var inherits = require('inherits')
 var runParallel = require('run-parallel')
 var through2 = require('through2')
 
-// TODO: Stream existing logs.
-// TODO: Stream envelopes.
-
 module.exports = Project
 
 function Project (secretKey) {
@@ -110,11 +107,15 @@ Project.prototype.putIntro = function (envelope, callback) {
 // Logs
 
 Project.prototype.getLogHead = function (publicKey, callback) {
-  this._countFromIndex(
-    'logs', 'publicKey',
+  this._count(
+    'logs',
     logEntryKey(publicKey, MIN_INDEX),
     logEntryKey(publicKey, MAX_INDEX),
-    callback
+    function (error, count) {
+      if (error) return callback(error)
+      if (count === 0) return callback(null, undefined)
+      return callback(null, count - 1)
+    }
   )
 }
 

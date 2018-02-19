@@ -90,7 +90,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       db.getProject(discoveryKey, function (error, project) {
         if (error) return done(error)
         if (project) return redirect()
-        createProject(secretKey, discoveryKey, function (error) {
+        createProject(secretKey, discoveryKey, null, function (error) {
           if (error) return done(error)
           redirect()
         })
@@ -125,8 +125,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }
     ], function (error) {
       if (error) return callback(error)
-      peer.joinSwarm(project)
-      callback(null, project)
+      withIndexedDB(discoveryKey, function (error, db) {
+        if (error) return callback(error)
+        peer.joinSwarm(project, db)
+        callback(null, project)
+      })
     })
   }
 

@@ -1,6 +1,7 @@
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var peer = require('./net/peer')
+var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 
 runSeries([
@@ -104,23 +105,25 @@ require('./model')(
       }
     }))
   },
-  function withDatabase (id, callback) {
-    if (databases.hasOwnProperty(id)) {
-      callback(null, databases[id])
-    } else {
-      var db = new ProjectDatabase(id)
-      databases[id] = db
-      db.init(function (error) {
-        if (error) {
-          delete databases[id]
-          callback(error)
-        } else {
-          callback(null, db)
-        }
-      })
-    }
-  }
+  withDatabase
 )
+
+function withDatabase (id, callback) {
+  if (databases.hasOwnProperty(id)) {
+    callback(null, databases[id])
+  } else {
+    var db = new ProjectDatabase(id)
+    databases[id] = db
+    db.init(function (error) {
+      if (error) {
+        delete databases[id]
+        callback(error)
+      } else {
+        callback(null, db)
+      }
+    })
+  }
+}
 
 function update () {
   nanomorph(rendered, render())
@@ -191,10 +194,18 @@ function render () {
 function joinSwarms (done) {
   databases.proseline.listProjects(function (error, projects) {
     if (error) return done(error)
-    projects.forEach(function (project) {
-      peer.joinSwarm(project, databases[project.discoveryKey])
-    })
-    done()
+    runParallel(
+      projects.map(function (project) {
+        return function (done) {
+          withDatabase(project.discoveryKey, function (error, database) {
+            if (error) return done(error)
+            peer.joinSwarm(project, database)
+            done()
+          })
+        }
+      }),
+      done
+    )
   })
 }
 
@@ -221,3 +232,5 @@ window.addEventListener('click', function (event) {
 })
 
 window.addEventListener('popstate', update)
+
+window.databases = databases

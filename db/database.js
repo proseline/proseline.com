@@ -93,7 +93,8 @@ prototype._listIndexedValues = function (store, indexName, callback) {
   request.onsuccess = function () {
     var cursor = request.result
     if (cursor) {
-      results.push(cursor.key)
+      var key = cursor.key
+      if (results.indexOf(key) === -1) results.push(key)
       cursor.continue()
     } else {
       callback(null, results)
@@ -120,6 +121,18 @@ prototype._listValues = function (store, callback) {
   this._list(store, function (cursor) {
     return cursor.value
   }, callback)
+}
+
+prototype._count = function (storeName, lower, upper, callback) {
+  var transaction = this._db.transaction([storeName], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore(storeName)
+  var request = objectStore.count(IDBKeyRange.bound(lower, upper))
+  request.onsuccess = function () {
+    callback(null, request.result)
+  }
 }
 
 prototype._countFromIndex = function (storeName, indexName, lower, upper, callback) {

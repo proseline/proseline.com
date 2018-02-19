@@ -8,6 +8,7 @@
     ]
   },
   "dependencies": {
+    "debug": "^3.1.0",
     "diff": "^3.4.0",
     "duplexify": "^3.5.3",
     "fast-json-stable-stringify": "^2.0.0",
