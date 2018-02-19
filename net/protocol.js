@@ -16,7 +16,7 @@ var VERSION = 1
 var NONCE_LENGTH = 24
 
 function Protocol (secretKey) {
-  if (!(this instanceof Protocol)) return new Protocol()
+  if (!(this instanceof Protocol)) return new Protocol(secretKey)
 
   assert.equal(typeof secretKey, 'string')
 
@@ -70,9 +70,8 @@ function Protocol (secretKey) {
   })
   self._writable
     .pipe(lengthPrefixedStream.decode())
-    .pipe(self._parser, {end: false})
+    .pipe(self._parser)
     .once('error', function (error) {
-      console.error(error)
       self.destroy(error)
     })
 
