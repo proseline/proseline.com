@@ -21,7 +21,7 @@ exports.intro = ajv.compile(require('./intro'))
 exports.mark = ajv.compile(require('./mark'))
 exports.note = ajv.compile(require('./note'))
 
-exports.payload = function (argument) {
+exports.body = function (argument) {
   return (
     exports.draft(argument) ||
     exports.intro(argument) ||

@@ -148,11 +148,11 @@ Protocol.prototype._parse = function (message, callback) {
     return callback(new Error('invalid message'))
   }
   var prefix = parsed[0]
-  var payload = parsed[1]
-  if (prefix === HANDSHAKE && validHandshake(payload)) {
+  var body = parsed[1]
+  if (prefix === HANDSHAKE && validHandshake(body)) {
     if (!this._receivingCipher) {
-      debug('peer nonce: %o', payload.nonce)
-      this._receivingNonce = Buffer.from(payload.nonce, 'hex')
+      debug('peer nonce: %o', body.nonce)
+      this._receivingNonce = Buffer.from(body.nonce, 'hex')
       assert.equal(this._receivingNonce.byteLength, NONCE_LENGTH)
       this._receivingCipher = cipher(
         this._receivingNonce, this._secretKeyBuffer
@@ -161,12 +161,12 @@ Protocol.prototype._parse = function (message, callback) {
     } else {
       callback()
     }
-  } else if (prefix === OFFER && validLog(payload)) {
-    this.emit('offer', payload, callback) || callback()
-  } else if (prefix === REQUEST && validLog(payload)) {
-    this.emit('request', payload, callback) || callback()
-  } else if (prefix === ENVELOPE && validEnvelope(payload)) {
-    this.emit('envelope', payload, callback) || callback()
+  } else if (prefix === OFFER && validLog(body)) {
+    this.emit('offer', body, callback) || callback()
+  } else if (prefix === REQUEST && validLog(body)) {
+    this.emit('request', body, callback) || callback()
+  } else if (prefix === ENVELOPE && validEnvelope(body)) {
+    this.emit('envelope', body, callback) || callback()
   } else {
     debug('invalid message')
     callback()

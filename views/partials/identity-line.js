@@ -9,10 +9,10 @@ module.exports = function (state, send) {
     section.appendChild(introForm(send))
   } else {
     var p = document.createElement('p')
-    var payload = state.intro.message.payload
+    var body = state.intro.message.body
     p.appendChild(
       document.createTextNode(
-        payload.name + ' on ' + payload.device
+        body.name + ' on ' + body.device
       )
     )
     section.appendChild(p)

@@ -45,7 +45,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var message = {
       project: state.discoveryKey,
       index: state.head,
-      payload: intro
+      body: intro
     }
     var stringified = stringify(message)
     var envelope = {
@@ -225,7 +225,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }, function (error, results) {
         if (error) return done(error)
         results.draft.digest = digest
-        var parents = results.draft.message.payload.parents
+        var parents = results.draft.message.body.parents
         runParallel(parents.map(function (digest) {
           return function (done) {
             db.getDraft(digest, function (error, parent) {
@@ -292,12 +292,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       changes: splitChanges(
         data.source === 'children'
           ? diff(
-            state.draft.message.payload.text,
-            state.children[data.index].message.payload.text
+            state.draft.message.body.text,
+            state.children[data.index].message.body.text
           )
           : diff(
-            state.parents[data.index].message.payload.text,
-            state.draft.message.payload.text
+            state.parents[data.index].message.body.text,
+            state.draft.message.body.text
           )
       )
     })
@@ -356,7 +356,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         window.history.replaceState(
           {}, null,
           '/projects/' + data.discoveryKey +
-          '/drafts/' + mark.message.payload.draft
+          '/drafts/' + mark.message.body.draft
         )
         done()
       })
@@ -376,7 +376,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var message = {
       project: state.discoveryKey,
       index: state.head,
-      payload: draft
+      body: draft
     }
     var stringified = stringify(message)
     var envelope = {
@@ -407,7 +407,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
               window.history.pushState(
                 {}, null,
                 '/projects/' + state.discoveryKey +
-                '/marks/' + identity.publicKey + ':' + mark.message.payload.identifier
+                '/marks/' + identity.publicKey + ':' + mark.message.body.identifier
               )
               done()
             }
@@ -466,7 +466,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var message = {
       project: state.discoveryKey,
       index: state.head,
-      payload: mark
+      body: mark
     }
     var stringified = stringify(message)
     var envelope = {
@@ -497,7 +497,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var message = {
       project: state.discoveryKey,
       index: state.head,
-      payload: note
+      body: note
     }
     var stringified = stringify(message)
     var envelope = {

@@ -96,12 +96,12 @@ module.exports = function (options) {
     debug('sent envelope: %o', envelope)
     // Validate envelope schema and signature.
     if (!validate.envelope(envelope)) return callback()
-    // Validate payload.
-    if (!validate.payload(envelope.message.payload)) return callback()
-    // Ensure payload is for this project.
+    // Validate body.
+    if (!validate.body(envelope.message.body)) return callback()
+    // Ensure body is for this project.
     if (envelope.message.project !== discoveryKey) return callback()
     // Discover type and write to our database.
-    var type = envelope.message.payload.type
+    var type = envelope.message.body.type
     var digest
     if (type === 'draft') {
       digest = hash(stringify(envelope.message))

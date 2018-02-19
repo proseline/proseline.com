@@ -28,15 +28,15 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
 
     // Drafts
     var drafts = db.createObjectStore('drafts')
-    drafts.createIndex('parents', 'message.payload.parents', {
+    drafts.createIndex('parents', 'message.body.parents', {
       unique: false,
       multiEntry: true
     })
 
     // Notes
     var notes = db.createObjectStore('notes')
-    notes.createIndex('draft', 'message.payload.draft', {unique: false})
-    notes.createIndex('parent', 'message.payload.parent', {
+    notes.createIndex('draft', 'message.body.draft', {unique: false})
+    notes.createIndex('parent', 'message.body.parent', {
       unique: false,
       multiEntry: true
     })
@@ -45,8 +45,8 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Marks
     var marks = db.createObjectStore('marks')
     marks.createIndex('publicKey', 'publicKey', {unique: false})
-    marks.createIndex('draft', 'message.payload.draft', {unique: false})
-    marks.createIndex('identifier', 'message.payload.identifier', {unique: false})
+    marks.createIndex('draft', 'message.body.draft', {unique: false})
+    marks.createIndex('identifier', 'message.body.identifier', {unique: false})
 
     // Logs
     var logs = db.createObjectStore('logs')
@@ -141,8 +141,8 @@ Project.prototype._log = function (key, envelope, callback) {
   // Put raw envelope.
   self._put('logs', messageKey, envelope, function (error) {
     if (error) return callback(error)
-    // Put payload by type.
-    var store = envelope.message.payload.type + 's'
+    // Put body by type.
+    var store = envelope.message.body.type + 's'
     self._put(store, key, envelope, function (error) {
       if (error) return callback(error)
       // Write update to update streams.
@@ -228,12 +228,12 @@ Project.prototype.getChildren = function (digest, callback) {
 Project.prototype.listDraftBriefs = function (callback) {
   this._list('drafts', function (cursor) {
     var value = cursor.value
-    var payload = value.message.payload
+    var body = value.message.body
     return {
       digest: cursor.key,
       publicKey: value.publicKey,
-      parents: payload.parents,
-      timestamp: payload.timestamp
+      parents: body.parents,
+      timestamp: body.timestamp
     }
   }, callback)
 }
@@ -242,7 +242,7 @@ Project.prototype.listDraftBriefs = function (callback) {
 
 Project.prototype.putMark = function (envelope, callback) {
   var publicKey = envelope.publicKey
-  var identifier = envelope.message.payload.identifier
+  var identifier = envelope.message.body.identifier
   var self = this
   self._log(markKey(publicKey, identifier), envelope, callback)
 }

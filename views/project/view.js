@@ -89,8 +89,8 @@ function graph (state) {
 
   var digestToMarks = {}
   state.projectMarks.forEach(function (mark) {
-    var payload = mark.message.payload
-    var digest = payload.draft
+    var body = mark.message.body
+    var digest = body.draft
     if (digestToMarks.hasOwnProperty(digest)) {
       digestToMarks[digest].push(mark)
     } else {
@@ -122,7 +122,7 @@ function graph (state) {
         var p = document.createElement('p')
         td.appendChild(p)
         p.className = 'mark'
-        p.appendChild(document.createTextNode(mark.message.payload.name))
+        p.appendChild(document.createTextNode(mark.message.body.name))
       })
     }
 
