@@ -42,14 +42,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       device: data.device,
       timestamp: new Date().toISOString()
     }
-    var entry = {
+    var message = {
       project: state.discoveryKey,
       index: state.head,
       payload: intro
     }
-    var stringified = stringify(entry)
+    var stringified = stringify(message)
     var envelope = {
-      entry: entry,
+      message: message,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
@@ -225,7 +225,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }, function (error, results) {
         if (error) return done(error)
         results.draft.digest = digest
-        var parents = results.draft.entry.payload.parents
+        var parents = results.draft.message.payload.parents
         runParallel(parents.map(function (digest) {
           return function (done) {
             db.getDraft(digest, function (error, parent) {
@@ -292,12 +292,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       changes: splitChanges(
         data.source === 'children'
           ? diff(
-            state.draft.entry.payload.text,
-            state.children[data.index].entry.payload.text
+            state.draft.message.payload.text,
+            state.children[data.index].message.payload.text
           )
           : diff(
-            state.parents[data.index].entry.payload.text,
-            state.draft.entry.payload.text
+            state.parents[data.index].message.payload.text,
+            state.draft.message.payload.text
           )
       )
     })
@@ -356,7 +356,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         window.history.replaceState(
           {}, null,
           '/projects/' + data.discoveryKey +
-          '/drafts/' + mark.entry.payload.draft
+          '/drafts/' + mark.message.payload.draft
         )
         done()
       })
@@ -373,14 +373,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    var entry = {
+    var message = {
       project: state.discoveryKey,
       index: state.head,
       payload: draft
     }
-    var stringified = stringify(entry)
+    var stringified = stringify(message)
     var envelope = {
-      entry: entry,
+      message: message,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
@@ -407,7 +407,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
               window.history.pushState(
                 {}, null,
                 '/projects/' + state.discoveryKey +
-                '/marks/' + identity.publicKey + ':' + mark.entry.payload.identifier
+                '/marks/' + identity.publicKey + ':' + mark.message.payload.identifier
               )
               done()
             }
@@ -463,14 +463,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       timestamp: new Date().toISOString(),
       draft: draft
     }
-    var entry = {
+    var message = {
       project: state.discoveryKey,
       index: state.head,
       payload: mark
     }
-    var stringified = stringify(entry)
+    var stringified = stringify(message)
     var envelope = {
-      entry: entry,
+      message: message,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
@@ -494,14 +494,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    var entry = {
+    var message = {
       project: state.discoveryKey,
       index: state.head,
       payload: note
     }
-    var stringified = stringify(entry)
+    var stringified = stringify(message)
     var envelope = {
-      entry: entry,
+      message: message,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }

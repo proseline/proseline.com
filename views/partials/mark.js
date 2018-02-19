@@ -6,7 +6,7 @@ module.exports = function (mark, state, send) {
   var div = document.createElement('div')
   var name = document.createElement('span')
   name.className = 'markName'
-  name.appendChild(document.createTextNode(mark.entry.payload.name))
+  name.appendChild(document.createTextNode(mark.message.payload.name))
   div.appendChild(name)
   div.appendChild(document.createTextNode(' — '))
   var user = document.createElement('span')
@@ -17,12 +17,12 @@ module.exports = function (mark, state, send) {
   } else if (intro) {
     user.appendChild(
       document.createTextNode(
-        intro.entry.payload.name + ' on ' + intro.entry.payload.device
+        intro.message.payload.name + ' on ' + intro.message.payload.device
       )
     )
   }
   div.appendChild(user)
   div.appendChild(document.createTextNode(' — '))
-  div.appendChild(renderTimestamp(mark.entry.payload.timestamp))
+  div.appendChild(renderTimestamp(mark.message.payload.timestamp))
   return div
 }

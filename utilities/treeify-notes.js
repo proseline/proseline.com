@@ -6,10 +6,10 @@ module.exports = function (notes) {
   var map = {}
   notes.forEach(function (note) {
     note.children = []
-    map[hash(stringify(note.entry))] = note
+    map[hash(stringify(note.message))] = note
   })
   notes.forEach(function (note) {
-    var parentDigest = note.entry.payload.parent
+    var parentDigest = note.message.payload.parent
     if (parentDigest && map[parentDigest]) {
       map[parentDigest].children.push(note)
     }
@@ -23,7 +23,7 @@ module.exports = function (notes) {
       return map[digest]
     })
     .filter(function (note) {
-      return note.entry.payload.parent === null
+      return note.message.payload.parent === null
     })
   returned.sort(byTimestamp)
   returned.reverse()

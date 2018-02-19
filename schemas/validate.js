@@ -10,7 +10,7 @@ exports.envelope = function (envelope) {
   return (
     exports.envelopeData(envelope) &&
     verify(
-      stringify(envelope.entry),
+      stringify(envelope.message),
       envelope.signature,
       envelope.publicKey
     )

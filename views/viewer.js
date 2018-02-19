@@ -14,7 +14,7 @@ module.exports = function (state, send, discoveryKey, digest) {
     main.appendChild(project(state))
     main.appendChild(author(state))
     main.appendChild(marks(state, send))
-    if (state.draft.entry.payload.parents.length !== 0) {
+    if (state.draft.message.payload.parents.length !== 0) {
       main.appendChild(parents(state, send))
     }
     if (state.children.length !== 0) {
@@ -70,7 +70,7 @@ function byline (state, publicKey, intro) {
     returned = document.createElement('span')
     returned.appendChild(
       document.createTextNode(
-        intro.entry.payload.name + ' on ' + intro.entry.payload.device
+        intro.message.payload.name + ' on ' + intro.message.payload.device
       )
     )
   } else {
@@ -82,7 +82,7 @@ function byline (state, publicKey, intro) {
 
 function dateline (draft) {
   var p = document.createElement('p')
-  p.appendChild(renderTimestamp(draft.entry.payload.timestamp))
+  p.appendChild(renderTimestamp(draft.message.payload.timestamp))
   return p
 }
 
@@ -121,7 +121,7 @@ function parents (state, send) {
     a.href = '/drafts/' + parent.digest
     a.appendChild(byline(state, parent.publicKey, state.intros[parent.publicKey]))
     a.appendChild(document.createTextNode(' — '))
-    a.appendChild(renderTimestamp(parent.entry.payload.timestamp))
+    a.appendChild(renderTimestamp(parent.message.payload.timestamp))
     li.appendChild(a)
     // Comparison Button
     var button = document.createElement('button')
@@ -167,7 +167,7 @@ function children (state, send) {
     a.href = '/drafts/' + child.digest
     a.appendChild(byline(state, child.publicKey, state.intros[child.publicKey]))
     a.appendChild(document.createTextNode(' — '))
-    a.appendChild(renderTimestamp(child.entry.payload.timestamp))
+    a.appendChild(renderTimestamp(child.message.payload.timestamp))
     li.appendChild(a)
     // Comparison Button
     var button = document.createElement('button')
@@ -220,7 +220,7 @@ function renderText (state) {
       article.appendChild(p)
     })
   } else {
-    draft.entry.payload.text
+    draft.message.payload.text
       .split('\n')
       .forEach(function (line, index) {
         var p = document.createElement('p')
@@ -301,7 +301,7 @@ function noteLI (state, note, send) {
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   blockquote.appendChild(
-    document.createTextNode(note.entry.payload.text)
+    document.createTextNode(note.message.payload.text)
   )
   li.appendChild(blockquote)
   // <p>
@@ -310,7 +310,7 @@ function noteLI (state, note, send) {
   var intro = state.intros[note.publicKey]
   p.appendChild(byline(state, note.publicKey, intro))
   p.appendChild(document.createTextNode(' — '))
-  p.appendChild(renderTimestamp(note.entry.payload.timestamp))
+  p.appendChild(renderTimestamp(note.message.payload.timestamp))
   li.appendChild(p)
   if (replyTo === note.digest) {
     li.appendChild(noteForm(note.digest, send))

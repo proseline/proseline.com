@@ -97,18 +97,18 @@ module.exports = function (options) {
     // Validate envelope schema and signature.
     if (!validate.envelope(envelope)) return callback()
     // Validate payload.
-    if (!validate.payload(envelope.entry.payload)) return callback()
+    if (!validate.payload(envelope.message.payload)) return callback()
     // Ensure payload is for this project.
-    if (envelope.entry.project !== discoveryKey) return callback()
+    if (envelope.message.project !== discoveryKey) return callback()
     // Discover type and write to our database.
-    var type = envelope.entry.payload.type
+    var type = envelope.message.payload.type
     var digest
     if (type === 'draft') {
-      digest = hash(stringify(envelope.entry))
+      digest = hash(stringify(envelope.message))
       debug('received draft')
       database.putDraft(digest, envelope, callback)
     } else if (type === 'note') {
-      digest = hash(stringify(envelope.entry))
+      digest = hash(stringify(envelope.message))
       debug('received note')
       database.putNote(digest, envelope, callback)
     } else if (type === 'mark') {

@@ -55,7 +55,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     var textarea = document.createElement('textarea')
     textarea.className = 'editor'
     if (parent) {
-      textarea.value = state.parent.entry.payload.text
+      textarea.value = state.parent.message.payload.text
     }
     form.appendChild(textarea)
   }

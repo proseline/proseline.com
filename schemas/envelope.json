@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "entry": {
+    "message": {
       "type": "object",
       "properties": {
         "project": {
@@ -48,7 +48,7 @@
     }
   },
   "required": [
-    "entry",
+    "message",
     "publicKey",
     "signature"
   ],

@@ -28,15 +28,15 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
 
     // Drafts
     var drafts = db.createObjectStore('drafts')
-    drafts.createIndex('parents', 'entry.payload.parents', {
+    drafts.createIndex('parents', 'message.payload.parents', {
       unique: false,
       multiEntry: true
     })
 
     // Notes
     var notes = db.createObjectStore('notes')
-    notes.createIndex('draft', 'entry.payload.draft', {unique: false})
-    notes.createIndex('parent', 'entry.payload.parent', {
+    notes.createIndex('draft', 'message.payload.draft', {unique: false})
+    notes.createIndex('parent', 'message.payload.parent', {
       unique: false,
       multiEntry: true
     })
@@ -45,8 +45,8 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Marks
     var marks = db.createObjectStore('marks')
     marks.createIndex('publicKey', 'publicKey', {unique: false})
-    marks.createIndex('draft', 'entry.payload.draft', {unique: false})
-    marks.createIndex('identifier', 'entry.payload.identifier', {unique: false})
+    marks.createIndex('draft', 'message.payload.draft', {unique: false})
+    marks.createIndex('identifier', 'message.payload.identifier', {unique: false})
 
     // Logs
     var logs = db.createObjectStore('logs')
@@ -137,12 +137,12 @@ function formatEntryIndex (index) {
 
 Project.prototype._log = function (key, envelope, callback) {
   var self = this
-  var entryKey = logEntryKey(envelope.publicKey, envelope.entry.index)
+  var messageKey = logEntryKey(envelope.publicKey, envelope.message.index)
   // Put raw envelope.
-  self._put('logs', entryKey, envelope, function (error) {
+  self._put('logs', messageKey, envelope, function (error) {
     if (error) return callback(error)
     // Put payload by type.
-    var store = envelope.entry.payload.type + 's'
+    var store = envelope.message.payload.type + 's'
     self._put(store, key, envelope, function (error) {
       if (error) return callback(error)
       // Write update to update streams.
@@ -151,7 +151,7 @@ Project.prototype._log = function (key, envelope, callback) {
           return function (done) {
             stream.write({
               publicKey: envelope.publicKey,
-              index: envelope.entry.index
+              index: envelope.message.index
             }, done)
           }
         }),
@@ -228,7 +228,7 @@ Project.prototype.getChildren = function (digest, callback) {
 Project.prototype.listDraftBriefs = function (callback) {
   this._list('drafts', function (cursor) {
     var value = cursor.value
-    var payload = value.entry.payload
+    var payload = value.message.payload
     return {
       digest: cursor.key,
       publicKey: value.publicKey,
@@ -242,7 +242,7 @@ Project.prototype.listDraftBriefs = function (callback) {
 
 Project.prototype.putMark = function (envelope, callback) {
   var publicKey = envelope.publicKey
-  var identifier = envelope.entry.payload.identifier
+  var identifier = envelope.message.payload.identifier
   var self = this
   self._log(markKey(publicKey, identifier), envelope, callback)
 }
