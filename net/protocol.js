@@ -11,6 +11,7 @@ var through2 = require('through2')
 var validEnvelope = require('../schemas/validate').envelope
 var validHandshake = require('./schemas/validate').handshake
 var validLog = require('./schemas/validate').log
+var validMessage = require('./schemas/validate').message
 
 module.exports = Protocol
 
@@ -112,63 +113,40 @@ Protocol.prototype._encode = function (prefix, data, callback) {
   this._encoder.write(buffer, callback)
 }
 
-Protocol.prototype._decode = function (data, callback) {
+Protocol.prototype._decode = function (message, callback) {
   // Once given a nonce, decrypt messages.
   if (this._inboundCryptoStream) {
-    this._inboundCryptoStream.update(data, data)
+    this._inboundCryptoStream.update(message, message)
   }
   try {
-    var message = decodeMessage(data)
+    var parsed = JSON.parse(message)
   } catch (error) {
     return callback(error)
   }
-  var prefix = data[0]
-  if (prefix === HANDSHAKE) {
-    var nonce = Buffer.from(message.nonce, 'hex')
-    var acceptableHandshake = (
-      nonce.byteLength === NONCE_LENGTH &&
-      message.version === VERSION
-    )
-    if (!this._peerNonce && acceptableHandshake) {
-      this._peerNonce = nonce
+  if (!validMessage(parsed)) {
+    return callback(new Error('invalid message'))
+  }
+  var prefix = parsed[0]
+  var payload = parsed[1]
+  if (prefix === HANDSHAKE && validHandshake(payload)) {
+    if (!this._peerNonce) {
+      this._peerNonce = Buffer.from(payload.nonce, 'hex')
       this._inboundCryptoStream = sodium.crypto_stream_xor_instance(
         this._peerNonce, this._secretKeyBuffer
       )
-      this.emit('handshake', message, callback) || callback()
+      this.emit('handshake', payload, callback) || callback()
     }
-  } else if (prefix === OFFER) {
-    this.emit('offer', message, callback) || callback()
-  } else if (prefix === REQUEST) {
-    this.emit('request', message, callback) || callback()
-  } else if (prefix === ENVELOPE) {
-    parseJSON(message.entry, function (error, entry) {
+  } else if (prefix === OFFER && validLog(payload)) {
+    this.emit('offer', payload, callback) || callback()
+  } else if (prefix === REQUEST && validLog(payload)) {
+    this.emit('request', payload, callback) || callback()
+  } else if (prefix === ENVELOPE && validEnvelope(payload)) {
+    parseJSON(payload.entry, function (error, entry) {
       if (error) return callback(error)
-      message.entry = entry
-      this.emit('envelope', message, callback) || callback()
+      payload.entry = entry
+      this.emit('envelope', payload, callback) || callback()
     })
   } else {
     callback()
-  }
-}
-
-function decodeMessage (data) {
-  var type = data[0]
-  var json = data.slice(1).toString()
-  try {
-    var parsed = JSON.parse(json)
-  } catch (error) {
-    return null
-  }
-  if (type === HANDSHAKE && validHandshake(parsed)) {
-    return parsed
-  } else if (
-    (type === OFFER || type === REQUEST) &&
-    validLog(parsed)
-  ) {
-    return parsed
-  } else if (type === ENVELOPE && validEnvelope(parsed)) {
-    return parsed
-  } else {
-    return null
   }
 }
