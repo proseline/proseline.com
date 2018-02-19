@@ -8,7 +8,7 @@ var through2 = require('through2')
 var validEnvelope = require('../schemas/validate').envelope
 var validHandshake = require('./schemas/validate').handshake
 var validLog = require('./schemas/validate').log
-var validMessage = require('./schemas/validate').message
+var validTuple = require('./schemas/validate').tuple
 
 module.exports = Protocol
 
@@ -143,7 +143,7 @@ Protocol.prototype._parse = function (message, callback) {
     return callback(error)
   }
   debug('parsed: %o', parsed)
-  if (!validMessage(parsed)) {
+  if (!validTuple(parsed)) {
     debug('invalid message')
     return callback(new Error('invalid message'))
   }
