@@ -5,15 +5,13 @@ var hash = require('../crypto/hash')
 var stringify = require('../utilities/stringify')
 var validate = require('../schemas/validate')
 
-// TODO: Rename data to database.
-
 module.exports = function (options) {
   assert.equal(typeof options.secretKey, 'string')
   assert.equal(typeof options.discoveryKey, 'string')
-  assert(options.data)
+  assert(options.database)
   var secretKey = options.secretKey
   var discoveryKey = options.discoveryKey
-  var data = options.data
+  var database = options.database
 
   var protocol = new Protocol(secretKey)
 
@@ -23,8 +21,8 @@ module.exports = function (options) {
   var requestedFromPeer = []
 
   // Stream log information from our database.
-  var logsStream = data.createLogsStream()
-  var updateStream = data.createUpdateStream()
+  var logsStream = database.createLogsStream()
+  var updateStream = database.createUpdateStream()
 
   // Offer currently known logs.
   logsStream
@@ -55,7 +53,7 @@ module.exports = function (options) {
   protocol.on('request', function (message, callback) {
     var publicKey = message.publicKey
     var index = message.index
-    data.getEnvelope(publicKey, index, function (error, envelope) {
+    database.getEnvelope(publicKey, index, function (error, envelope) {
       if (error) return callback(error)
       if (envelope === undefined) return callback()
       protocol.envelope(envelope, callback)
@@ -68,7 +66,7 @@ module.exports = function (options) {
   protocol.on('offer', function (message, callback) {
     var publicKey = message.publicKey
     var offeredIndex = message.index
-    data.getLogHead(publicKey, function (error, head) {
+    database.getLogHead(publicKey, function (error, head) {
       if (error) return callback(error)
       if (head !== undefined && head >= offeredIndex) return callback()
       var index = head ? (head + 1) : 0
@@ -98,14 +96,14 @@ module.exports = function (options) {
     var digest
     if (type === 'draft') {
       digest = hash(stringify(envelope.entry))
-      data.putDraft(digest, envelope, callback)
+      database.putDraft(digest, envelope, callback)
     } else if (type === 'note') {
       digest = hash(stringify(envelope.entry))
-      data.putNote(digest, envelope, callback)
+      database.putNote(digest, envelope, callback)
     } else if (type === 'mark') {
-      data.putMark(envelope, callback)
+      database.putMark(envelope, callback)
     } else if (type === 'intro') {
-      data.putIntro(envelope, callback)
+      database.putIntro(envelope, callback)
     } else {
       callback()
     }

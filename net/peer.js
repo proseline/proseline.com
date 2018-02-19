@@ -18,7 +18,7 @@ function joinSwarm (project, database) {
     var replicationStream = replicate({
       secretKey: project.secretKey,
       discoveryKey: project.discoveryKey,
-      data: database
+      database
     })
     replicationStream.pipe(peer).pipe(replicationStream)
   })
