@@ -23,7 +23,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       secretKey: null,
       discoveryKey: null,
       title: null,
-      head: null,
       // Overview
       projects: null
     }
@@ -168,9 +167,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         }
       }, function (error, results) {
         if (error) return done(error)
-        db.getLogHead(results.identity.publicKey, function (error, head) {
+        var publicKey = results.identity.publicKey
+        db.getIntro(publicKey, function (error, intro) {
           if (error) return done(error)
-          results.head = head
+          results.intro = intro
           reduce('project', results)
           done()
         })
@@ -185,7 +185,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       secretKey: data.project.secretKey,
       identity: data.identity,
       intros: data.intros,
-      head: data.head,
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || []
     }
