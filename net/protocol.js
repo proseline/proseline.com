@@ -142,7 +142,6 @@ Protocol.prototype._parse = function (message, callback) {
   } catch (error) {
     return callback(error)
   }
-  debug('parsed: %o', parsed)
   if (!validTuple(parsed)) {
     debug('invalid message')
     return callback(new Error('invalid message'))

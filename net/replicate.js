@@ -2,8 +2,6 @@ var Protocol = require('./protocol')
 var assert = require('assert')
 var debug = require('debug')('proseline:replicate')
 var flushWriteStream = require('flush-write-stream')
-var hash = require('../crypto/hash')
-var stringify = require('../utilities/stringify')
 var validate = require('../schemas/validate')
 
 module.exports = function (options) {
