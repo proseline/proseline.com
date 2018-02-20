@@ -14,7 +14,7 @@ module.exports = {joinSwarm, leaveSwarm}
 var swarms = []
 
 function joinSwarm (project, database) {
-  assert.equal(typeof project, 'string')
+  assert.equal(typeof project, 'object')
   assert(database)
   var alreadyJoined = swarms.some(function (swarm) {
     return swarm.project.discoveryKey === project.discoveryKey
