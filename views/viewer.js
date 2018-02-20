@@ -56,26 +56,29 @@ function author (state) {
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Author'))
   section.appendChild(h2)
-  section.appendChild(byline(state, state.draft.publicKey, state.intro))
+  section.appendChild(byline(state, state.draft.publicKey))
   section.appendChild(dateline(state.draft))
   return section
 }
 
-function byline (state, publicKey, intro) {
+function byline (state, publicKey) {
   var returned
   if (state.identity.publicKey === publicKey) {
     returned = document.createElement('span')
     returned.appendChild(document.createTextNode('You'))
-  } else if (intro) {
-    returned = document.createElement('span')
-    returned.appendChild(
-      document.createTextNode(
-        intro.message.body.name + ' on ' + intro.message.body.device
-      )
-    )
   } else {
-    returned = document.createElement('code')
-    returned.appendChild(document.createTextNode(publicKey))
+    var match = state.intros[publicKey]
+    if (match) {
+      returned = document.createElement('span')
+      returned.appendChild(
+        document.createTextNode(
+          match.message.body.name + ' on ' + match.message.body.device
+        )
+      )
+    } else {
+      returned = document.createElement('code')
+      returned.appendChild(document.createTextNode(publicKey))
+    }
   }
   return returned
 }

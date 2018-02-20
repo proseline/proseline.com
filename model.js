@@ -176,7 +176,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           db.listDraftBriefs(done)
         },
         intros: function (done) {
-          db.listIntros(done)
+          db.listIntros(function (error, intros) {
+            if (error) return done(error)
+            var result = {}
+            intros.forEach(function (intro) {
+              result[intro.publicKey] = intro
+            })
+            done(null, result)
+          })
         }
       }, function (error, results) {
         if (error) return done(error)
