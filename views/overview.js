@@ -61,6 +61,7 @@ function createProject (send) {
   // <input>
   var input = document.createElement('input')
   input.type = 'text'
+  input.placeholder = 'Project Title'
   form.appendChild(input)
 
   // <button>
