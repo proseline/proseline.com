@@ -75,12 +75,11 @@ module.exports = function (options) {
     var offeredIndex = offer.index
     database.getLogHead(publicKey, function (error, head) {
       if (error) return callback(error)
-      if (head !== undefined && head >= offeredIndex) return callback()
-      var index = head ? (head + 1) : 0
+      if (head === undefined) head = -1
+      var index = head + 1
       requestNextEnvelope()
       function requestNextEnvelope () {
         if (index > offeredIndex) return callback()
-        debug('requesting: %o', offer)
         protocol.request({publicKey, index}, function (error) {
           if (error) return callback(error)
           requestedFromPeer.push({publicKey, index})
@@ -95,31 +94,22 @@ module.exports = function (options) {
   protocol.on('envelope', function (envelope, callback) {
     debug('sent envelope: %o', envelope)
     // Validate envelope schema and signature.
-    if (!validate.envelope(envelope)) return callback()
-    // Validate body.
-    if (!validate.body(envelope.message.body)) return callback()
-    // Ensure body is for this project.
-    if (envelope.message.project !== discoveryKey) return callback()
-    // Discover type and write to our database.
-    var type = envelope.message.body.type
-    var digest
-    if (type === 'draft') {
-      digest = hash(stringify(envelope.message))
-      debug('received draft')
-      database.putDraft(digest, envelope, callback)
-    } else if (type === 'note') {
-      digest = hash(stringify(envelope.message))
-      debug('received note')
-      database.putNote(digest, envelope, callback)
-    } else if (type === 'mark') {
-      debug('received mark')
-      database.putMark(envelope, callback)
-    } else if (type === 'intro') {
-      debug('received intro')
-      database.putIntro(envelope, callback)
-    } else {
-      callback()
+    if (!validate.envelope(envelope)) {
+      debug('invalid envelope')
+      return callback()
     }
+    // Validate body.
+    if (!validate.body(envelope.message.body)) {
+      debug('invalid body')
+      return callback()
+    }
+    // Ensure body is for this project.
+    if (envelope.message.project !== discoveryKey) {
+      debug('project mismatch')
+      return callback()
+    }
+    // Write to our database.
+    database.putEnvelope(envelope, callback)
   })
 
   // Extend our handshake.

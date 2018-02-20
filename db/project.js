@@ -209,6 +209,60 @@ Project.prototype.getEnvelope = function (publicKey, index, callback) {
   this._get('logs', logEntryKey(publicKey, index), callback)
 }
 
+// TODO: Deduplicate _log and putEnvelope
+
+Project.prototype.putEnvelope = function (envelope, callback) {
+  assert.equal(typeof envelope, 'object')
+  assert(envelope.hasOwnProperty('message'))
+  assert(envelope.hasOwnProperty('publicKey'))
+  assert(envelope.hasOwnProperty('signature'))
+  assert.equal(typeof callback, 'function')
+  var self = this
+  var type = envelope.message.body.type
+  var typeStore = type + 's'
+  var transaction = self._db.transaction(['logs', typeStore], 'readwrite')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  transaction.oncomplete = function () {
+    // Write to update streams for replication.
+    runParallel(
+      self._updateStreams.map(function (stream) {
+        return function (done) {
+          stream.write({
+            publicKey: envelope.publicKey,
+            index: envelope.message.index
+          }, done)
+        }
+      }),
+      function (error) {
+        if (error) return callback(error)
+        callback(null, envelope, key)
+      }
+    )
+  }
+  var logKey = logEntryKey(
+    envelope.publicKey, envelope.message.index
+  )
+  transaction
+    .objectStore('logs')
+    .add(envelope, logKey)
+  var key
+  if (type === 'intro') {
+    key = envelope.publicKey
+  } else if (type === 'draft' || type === 'note') {
+    key = hash(stringify(envelope.message))
+  } else if (type === 'mark') {
+    key = markKey(
+      envelope.publicKey,
+      envelope.message.body.identifier
+    )
+  }
+  transaction
+    .objectStore(typeStore)
+    .put(envelope, key)
+}
+
 Project.prototype.createLogsStream = function () {
   var stream = through2.obj()
   var self = this
