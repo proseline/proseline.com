@@ -230,6 +230,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: data.project.discoveryKey,
       secretKey: data.project.secretKey,
       identity: data.identity,
+      intro: data.intro,
       intros: data.intros,
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || []
