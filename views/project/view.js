@@ -1,3 +1,4 @@
+var identityLine = require('../partials/identity-line')
 var loading = require('../loading')
 var timestamp = require('../partials/timestamp')
 
@@ -15,6 +16,7 @@ module.exports = function (state, send, discoveryKey) {
     var h1 = document.createElement('h1')
     h1.appendChild(document.createTextNode(state.title))
     main.appendChild(h1)
+    main.appendChild(identityLine(state, send))
     main.appendChild(graph(state))
     main.appendChild(newDraftSection(state))
     main.appendChild(shareSection(state))

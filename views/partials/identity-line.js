@@ -1,9 +1,9 @@
 module.exports = function (state, send) {
   var section = document.createElement('section')
 
-  var h1 = document.createElement('h1')
-  h1.appendChild(document.createTextNode('Your Identity'))
-  section.appendChild(h1)
+  var h2 = document.createElement('h2')
+  h2.appendChild(document.createTextNode('Your Identity'))
+  section.appendChild(h2)
 
   if (state.intro === null) {
     section.appendChild(introForm(send))

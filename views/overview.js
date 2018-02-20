@@ -2,8 +2,6 @@ var loading = require('./loading')
 
 // TODO: private key backup link
 
-// TODO: global introduction
-
 // TODO: paid peer UI
 
 module.exports = function (state, send) {
@@ -65,6 +63,7 @@ function joinProject (send) {
   var input = document.createElement('input')
   form.appendChild(input)
   input.placeholder = 'Invite Code'
+  input.required = true
   var button = document.createElement('button')
   form.appendChild(button)
   button.appendChild(document.createTextNode('Join'))
