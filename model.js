@@ -3,12 +3,9 @@ var diff = require('diff/lib/diff/line').diffLines
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
-var stringify = require('./utilities/stringify')
 
-var hash = require('./crypto/hash')
 var hashHex = require('./crypto/hash-hex')
 var random = require('./crypto/random')
-var sign = require('./crypto/sign')
 var treeifyNotes = require('./utilities/treeify-notes')
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
@@ -44,28 +41,16 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     var message = {
       project: state.discoveryKey,
-      index: state.head,
       body: intro
     }
-    var stringified = stringify(message)
-    var envelope = {
-      message: message,
-      publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey)
-    }
-    withIndexedDB(data.discoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putIntro(identity.publicKey, envelope, function (error) {
+      db.putIntro(message, identity, function (error) {
         if (error) return done(error)
-        reduce('increment head', 1)
-        reduce('intro', envelope)
+        reduce('intro', message)
         done()
       })
     })
-  })
-
-  reduction('increment head', function (count, state) {
-    return {head: state.head + count}
   })
 
   reduction('intro', function (newIntro, state) {
@@ -84,6 +69,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('join project', function (secretKey, state, reduce, done) {
+    assert.equal(typeof secretKey, 'string')
     var discoveryKey = hashHex(secretKey)
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
@@ -375,24 +361,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     var message = {
       project: state.discoveryKey,
-      index: state.head,
       body: draft
     }
-    var stringified = stringify(message)
-    var envelope = {
-      message: message,
-      publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey)
-    }
-    var digest = hash(stringified)
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putDraft(digest, envelope, function (error) {
+      db.putDraft(message, identity, function (error, envelope, digest) {
         if (error) return done(error)
-        reduce('increment head', 1)
         reduce('push brief', {
           digest: digest,
-          publicKey: envelope.publicKey,
+          publicKey: identity.publicKey,
           parents: draft.parents,
           timestamp: draft.timestamp
         })
@@ -402,7 +379,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             null, mark, digest, state,
             function (error, mark) {
               if (error) return done(error)
-              reduce('increment head', 1)
               reduce('push mark', mark)
               window.history.pushState(
                 {}, null,
@@ -435,7 +411,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       null, name, state.draft.digest, state,
       function (error, mark) {
         if (error) return done(error)
-        reduce('increment head', 1)
         reduce('push mark', mark)
         done()
       }
@@ -465,18 +440,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     var message = {
       project: state.discoveryKey,
-      index: state.head,
       body: mark
-    }
-    var stringified = stringify(message)
-    var envelope = {
-      message: message,
-      publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey)
     }
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return callback(error)
-      db.putMark(envelope, function (error) {
+      db.putMark(message, identity, function (error, envelope) {
         if (error) return callback(error)
         callback(null, envelope)
       })
@@ -496,21 +464,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     var message = {
       project: state.discoveryKey,
-      index: state.head,
       body: note
     }
-    var stringified = stringify(message)
-    var envelope = {
-      message: message,
-      publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey)
-    }
-    var digest = hash(stringified)
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putNote(digest, envelope, function (error) {
+      db.putNote(message, identity, function (error, envelope) {
         if (error) return done(error)
-        reduce('increment head', 1)
         reduce('push note', envelope)
         done()
       })
