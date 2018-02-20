@@ -62,6 +62,18 @@ prototype._put = function (store, key, value, callback) {
   objectStore.put(value, key)
 }
 
+prototype._delete = function (store, key, callback) {
+  var transaction = this._db.transaction([store], 'readwrite')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore(store)
+  var request = objectStore.delete(key)
+  request.onsuccess = function () {
+    callback()
+  }
+}
+
 prototype._list = function (store, iterator, callback) {
   var transaction = this._db.transaction([store], 'readonly')
   transaction.onerror = function () {

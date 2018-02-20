@@ -1,3 +1,4 @@
+var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
 var peer = require('./net/peer')
@@ -65,6 +66,27 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       reduce('new project', project)
       redirectToProject(project.discoveryKey)
+      done()
+    })
+  })
+
+  handler('delete project', function (discoveryKey, state, reduce, done) {
+    assert.equal(typeof discoveryKey, 'string')
+    runParallel([
+      function deleteProject (done) {
+        withIndexedDB('proseline', function (error, db) {
+          if (error) return done(error)
+          db.deleteProject(discoveryKey, done)
+        })
+      },
+      function deleteDatabase (done) {
+        IndexedDB.deleteDatabase(discoveryKey)
+        done()
+      }
+    ], function (error) {
+      if (error) return done(error)
+      reduce('clear project', null)
+      window.history.pushState({}, null, '/')
       done()
     })
   })
@@ -234,6 +256,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       intros: data.intros,
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || []
+    }
+  })
+
+  reduction('clear project', function (_, state) {
+    return {
+      discoveryKey: null,
+      projects: null
     }
   })
 

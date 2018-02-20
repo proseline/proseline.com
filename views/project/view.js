@@ -17,6 +17,7 @@ module.exports = function (state, send, discoveryKey) {
     h1.appendChild(document.createTextNode(state.title))
     main.appendChild(h1)
     main.appendChild(renameSection(send))
+    main.appendChild(deleteSection(state, send))
     main.appendChild(identityLine(state, send))
     main.appendChild(graph(state))
     main.appendChild(newDraftSection(state))
@@ -46,6 +47,21 @@ function renameSection (send) {
   button.appendChild(document.createTextNode('Rename'))
   form.appendChild(button)
 
+  return section
+}
+
+var CONFIRM_DELETE = 'Do you really want to delete this project?'
+
+function deleteSection (state, send) {
+  var section = document.createElement('section')
+  var button = document.createElement('button')
+  button.appendChild(document.createTextNode('Delete Project'))
+  button.addEventListener('click', function () {
+    if (window.confirm(CONFIRM_DELETE)) {
+      send('delete project', state.discoveryKey)
+    }
+  })
+  section.appendChild(button)
   return section
 }
 

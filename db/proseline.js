@@ -32,6 +32,10 @@ prototype.getProject = function (discoveryKey, callback) {
   this._get('projects', discoveryKey, callback)
 }
 
+prototype.deleteProject = function (discoveryKey, callback) {
+  this._delete('projects', discoveryKey, callback)
+}
+
 prototype.listProjects = function (callback) {
   this._listValues('projects', callback)
 }
