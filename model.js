@@ -90,13 +90,24 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   function createProject (secretKey, discoveryKey, title, callback) {
-    secretKey = secretKey || random(32)
-    discoveryKey = discoveryKey || hashHex(secretKey)
+    assert.equal(typeof title, 'string')
+    assert.equal(typeof callback, 'function')
+    if (secretKey) {
+      assert.equal(typeof secretKey, 'string')
+      assert.equal(typeof discoveryKey, 'string')
+    } else {
+      secretKey = random(32)
+      discoveryKey = hashHex(secretKey)
+    }
     var project = {
       secretKey: secretKey,
       discoveryKey: discoveryKey,
       title: title
     }
+    assert.equal(typeof secretKey, 'string')
+    assert.equal(typeof discoveryKey, 'string')
+    assert.equal(typeof project.secretKey, 'string')
+    assert.equal(typeof project.discoveryKey, 'string')
     runSeries([
       function (done) {
         withIndexedDB('proseline', function (error, db) {
