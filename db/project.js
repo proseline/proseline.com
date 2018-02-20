@@ -196,7 +196,7 @@ Project.prototype._log = function (key, message, identity, callback) {
     // Put the envelope.
     transaction
       .objectStore('logs')
-      .put(envelope, logEntryKey(envelope.publicKey, index))
+      .add(envelope, logEntryKey(envelope.publicKey, index))
     // Put to the type-specific store.
     if (key === COMPUTE_DIGEST) key = hash(stringified)
     transaction

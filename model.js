@@ -46,9 +46,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putIntro(message, identity, function (error) {
+      db.putIntro(message, identity, function (error, envelope) {
         if (error) return done(error)
-        reduce('intro', message)
+        reduce('intro', envelope)
         done()
       })
     })
