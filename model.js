@@ -8,6 +8,8 @@ var hashHex = require('./crypto/hash-hex')
 var random = require('./crypto/random')
 var treeifyNotes = require('./utilities/treeify-notes')
 
+var DEFAULT_TITLE = 'Untitled Project'
+
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
     return {
@@ -75,7 +77,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       db.getProject(discoveryKey, function (error, project) {
         if (error) return done(error)
         if (project) return redirect()
-        createProject(secretKey, discoveryKey, null, function (error) {
+        createProject(secretKey, discoveryKey, DEFAULT_TITLE, function (error) {
           if (error) return done(error)
           redirect()
         })
@@ -93,7 +95,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var project = {
       secretKey: secretKey,
       discoveryKey: discoveryKey,
-      title: title || 'Untitled Project'
+      title: title
     }
     runSeries([
       function (done) {
