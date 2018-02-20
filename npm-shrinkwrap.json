@@ -5443,6 +5443,15 @@
         }
       }
     },
+    "multistream": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/multistream/-/multistream-2.1.0.tgz",
+      "integrity": "sha1-YlwmfVxEQkrWKUeItbtNo9yzLx0=",
+      "requires": {
+        "inherits": "2.0.3",
+        "readable-stream": "2.3.3"
+      }
+    },
     "mute-stream": {
       "version": "0.0.5",
       "resolved": "https://registry.npmjs.org/mute-stream/-/mute-stream-0.0.5.tgz",

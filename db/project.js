@@ -4,6 +4,7 @@ var assert = require('assert')
 var createIdentity = require('../crypto/create-identity')
 var hash = require('../crypto/hash')
 var inherits = require('inherits')
+var multistream = require('multistream')
 var runParallel = require('run-parallel')
 var sign = require('../crypto/sign')
 var stringify = require('../utilities/stringify')
@@ -263,32 +264,36 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     .put(envelope, key)
 }
 
-Project.prototype.createLogsStream = function () {
-  var stream = through2.obj()
+Project.prototype.createOfferStream = function () {
   var self = this
-  self.listLogs(function (error, publicKeys) {
-    if (error) return stream.destroy(error)
-    runParallel(
-      publicKeys.map(function (publicKey) {
-        return function (done) {
-          self.getLogHead(publicKey, function (error, index) {
-            if (error) return done(error)
-            stream.write({publicKey, index}, done)
-          })
-        }
-      }),
-      function (error) {
-        stream.destroy(error)
-      }
-    )
-  })
-  return stream
-}
-
-Project.prototype.createUpdateStream = function () {
-  var stream = through2.obj()
-  this._updateStreams.push(stream)
-  return stream
+  return multistream.obj([
+    function currentHeads () {
+      var stream = through2.obj()
+      self.listLogs(function (error, publicKeys) {
+        if (error) return stream.destroy(error)
+        runParallel(
+          publicKeys.map(function (publicKey) {
+            return function (done) {
+              self.getLogHead(publicKey, function (error, index) {
+                if (error) return done(error)
+                stream.write({publicKey, index}, done)
+              })
+            }
+          }),
+          function (error) {
+            if (error) stream.destroy(error)
+            stream.end()
+          }
+        )
+      })
+      return stream
+    },
+    function updatedHeads () {
+      var stream = through2.obj()
+      self._updateStreams.push(stream)
+      return stream
+    }
+  ])
 }
 
 // Drafts

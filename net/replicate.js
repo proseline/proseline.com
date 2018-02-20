@@ -19,36 +19,23 @@ module.exports = function (options) {
   // just received from it.
   var requestedFromPeer = []
 
-  // Stream log information from our database.
-  var logsStream = database.createLogsStream()
-  var updateStream = database.createUpdateStream()
-
   protocol.once('handshake', function (callback) {
-    // Offer currently known logs.
-    logsStream
+    database.createOfferStream()
       .pipe(flushWriteStream.obj(function (chunk, _, done) {
-        protocol.offer(chunk, done)
+        var requestIndex = requestedFromPeer
+          .findIndex(function (request) {
+            return (
+              request.publicKey === chunk.publicKey &&
+              request.index === chunk.index
+            )
+          })
+        if (requestIndex === -1) {
+          protocol.offer(chunk, done)
+        } else {
+          requestedFromPeer.splice(requestIndex, 1)
+          done()
+        }
       }))
-      .once('finish', function () {
-        debug('finished offering preexisting')
-        // Offer updates that come later.
-        updateStream
-          .pipe(flushWriteStream.obj(function (chunk, _, done) {
-            var requestIndex = requestedFromPeer
-              .findIndex(function (request) {
-                return (
-                  request.publicKey === chunk.publicKey &&
-                  request.index === chunk.index
-                )
-              })
-            if (requestIndex === -1) {
-              protocol.offer(chunk, done)
-            } else {
-              requestedFromPeer.split(requestIndex, 1)
-              done()
-            }
-          }))
-      })
     callback()
   })
 
