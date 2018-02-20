@@ -16,9 +16,9 @@ module.exports = function (state, send) {
     )
   } else {
     main.appendChild(projectsList(state.projects))
+    main.appendChild(newProject(send))
+    main.appendChild(joinProject(send))
   }
-  main.appendChild(newProject(send))
-  main.appendChild(joinProject(send))
   return main
 }
 
