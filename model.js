@@ -139,6 +139,32 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {projects: state.projects.concat(newProject)}
   })
 
+  handler('rename', function (newTitle, state, reduce, done) {
+    var project = {
+      secretKey: state.secretKey,
+      discoveryKey: state.discoveryKey,
+      title: newTitle
+    }
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.putProject(project, done)
+      reduce('rename', project)
+    })
+  })
+
+  reduction('rename', function (newProject, state) {
+    return {
+      title: newProject.title,
+      projects: state.projects.map(function (oldProject) {
+        if (oldProject.discoveryKey === newProject.discoveryKey) {
+          return newProject
+        } else {
+          return oldProject
+        }
+      })
+    }
+  })
+
   // Loading
 
   handler('load projects', function (_, state, reduce, done) {

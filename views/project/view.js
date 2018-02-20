@@ -16,12 +16,37 @@ module.exports = function (state, send, discoveryKey) {
     var h1 = document.createElement('h1')
     h1.appendChild(document.createTextNode(state.title))
     main.appendChild(h1)
+    main.appendChild(renameSection(send))
     main.appendChild(identityLine(state, send))
     main.appendChild(graph(state))
     main.appendChild(newDraftSection(state))
     main.appendChild(shareSection(state))
   }
   return main
+}
+
+function renameSection (send) {
+  var section = document.createElement('section')
+
+  var form = document.createElement('form')
+  section.appendChild(form)
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    send('rename', input.value)
+  })
+
+  var input = document.createElement('input')
+  input.type = 'text'
+  input.required = true
+  form.appendChild(input)
+
+  var button = document.createElement('button')
+  button.type = 'submit'
+  button.appendChild(document.createTextNode('Rename'))
+  form.appendChild(button)
+
+  return section
 }
 
 function newDraftSection (state) {
