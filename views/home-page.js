@@ -70,19 +70,12 @@ function createProject (send) {
 // TODO: link to e-mail join invite
 
 function joinProject (send) {
-  var form = document.createElement('form')
-  form.addEventListener('submit', function (event) {
-    event.preventDefault()
-    event.stopPropagation()
-    send('join project', input.value)
-  })
-  var input = document.createElement('input')
-  form.appendChild(input)
-  input.placeholder = 'Invite Code'
-  input.required = true
   var button = document.createElement('button')
-  form.appendChild(button)
-  button.appendChild(document.createTextNode('Join'))
-  button.type = 'submit'
-  return form
+  button.addEventListener('click', function () {
+    var secretKey = window.prompt('Enter invite code:')
+    if (secretKey === null) return
+    send('join project', secretKey)
+  })
+  button.appendChild(document.createTextNode('Join Project'))
+  return button
 }
