@@ -17,11 +17,7 @@ module.exports = function (state, send, discoveryKey) {
         send('load project', discoveryKey)
       }))
     }
-    var h1 = document.createElement('h1')
-    h1.appendChild(document.createTextNode(state.title))
-    main.appendChild(h1)
-    main.appendChild(renameSection(send))
-    main.appendChild(deleteSection(state, send))
+    main.appendChild(header(state, send))
     main.appendChild(identityLine(state, send))
     main.appendChild(graph(state))
     main.appendChild(newDraftSection(state))
@@ -30,43 +26,51 @@ module.exports = function (state, send, discoveryKey) {
   return main
 }
 
-function renameSection (send) {
-  var section = document.createElement('section')
+function header (state, send) {
+  var header = document.createElement('header')
 
-  var form = document.createElement('form')
-  section.appendChild(form)
-  form.addEventListener('submit', function (event) {
-    event.preventDefault()
-    event.stopPropagation()
-    send('rename', input.value)
-  })
+  var proseline = document.createElement('a')
+  proseline.appendChild(document.createTextNode('proseline'))
+  proseline.href = '/'
+  header.appendChild(proseline)
 
-  var input = document.createElement('input')
-  input.type = 'text'
-  input.required = true
-  form.appendChild(input)
+  var title = document.createElement('a')
+  title.appendChild(document.createTextNode(state.title))
+  header.appendChild(title)
 
+  header.appendChild(renameButton(state, send))
+  header.appendChild(deleteButton(state, send))
+
+  return header
+}
+
+var RENAME = 'Enter a new project title:'
+
+function renameButton (state, send) {
   var button = document.createElement('button')
-  button.type = 'submit'
-  button.appendChild(document.createTextNode('Rename'))
-  form.appendChild(button)
-
-  return section
+  button.id = 'renameProject'
+  button.addEventListener('click', function (event) {
+    var newTitle = window.prompt(RENAME, state.title)
+    if (newTitle === null) return
+    if (newTitle.length === 0) return
+    send('rename', newTitle)
+  })
+  button.appendChild(document.createTextNode('Change Project Title'))
+  return button
 }
 
 var CONFIRM_DELETE = 'Do you really want to delete this project?'
 
-function deleteSection (state, send) {
-  var section = document.createElement('section')
+function deleteButton (state, send) {
   var button = document.createElement('button')
+  button.id = 'deleteProject'
   button.appendChild(document.createTextNode('Delete Project'))
   button.addEventListener('click', function () {
     if (window.confirm(CONFIRM_DELETE)) {
       send('delete project', state.discoveryKey)
     }
   })
-  section.appendChild(button)
-  return section
+  return button
 }
 
 function newDraftSection (state) {

@@ -13,11 +13,20 @@ module.exports = function (state, send) {
       })
     )
   } else {
+    main.appendChild(header())
     main.appendChild(projectsList(state.projects))
     main.appendChild(createProject(send))
     main.appendChild(joinProject(send))
   }
   return main
+}
+
+function header () {
+  var header = document.createElement('header')
+  var proseline = document.createElement('a')
+  proseline.appendChild(document.createTextNode('proseline'))
+  header.appendChild(proseline)
+  return header
 }
 
 function projectsList (projects) {

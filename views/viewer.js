@@ -1,4 +1,5 @@
 var loading = require('./loading')
+var renderDraftHeader = require('./partials/draft-header')
 var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
@@ -17,7 +18,7 @@ module.exports = function (state, send, discoveryKey, digest) {
         send('load project', discoveryKey)
       }))
     }
-    main.appendChild(project(state))
+    main.appendChild(renderDraftHeader(state))
     main.appendChild(author(state))
     main.appendChild(marks(state, send))
     if (state.draft.message.body.parents.length !== 0) {
@@ -40,21 +41,6 @@ module.exports = function (state, send, discoveryKey, digest) {
     )
   }
   return main
-}
-
-function project (state) {
-  var section = document.createElement('section')
-
-  var h1 = document.createElement('h1')
-  section.appendChild(h1)
-  h1.appendChild(document.createTextNode(state.title))
-
-  var a = document.createElement('a')
-  section.appendChild(a)
-  a.href = '/projects/' + state.discoveryKey
-  a.appendChild(document.createTextNode('back to project'))
-
-  return section
 }
 
 function author (state) {

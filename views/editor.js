@@ -1,4 +1,5 @@
 var loading = require('./loading')
+var renderDraftHeader = require('./partials/draft-header')
 var renderRefreshNotice = require('./partials/refresh-notice')
 
 // TODO: nice editor
@@ -35,32 +36,25 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
         })
       }))
     }
-    var form = document.createElement('form')
     var parent = state.parent
-    form.addEventListener('submit', function (event) {
-      event.preventDefault()
-      event.stopPropagation()
+
+    // Header with Save Button
+    var save = document.createElement('button')
+    save.id = 'save'
+    save.addEventListener('click', function () {
+      var markName = window.prompt('Name this draft:')
+      console.log(JSON.stringify(markName))
+      if (markName === null) return
+      if (markName.length === 0) return
       send('save', {
         discoveryKey: discoveryKey,
         text: textarea.value,
         parents: parent ? [parent.digest] : [],
-        mark: mark.value
+        mark: markName
       })
     })
-    main.appendChild(form)
-
-    // Buttons
-    var save = document.createElement('button')
-    save.type = 'submit'
     save.appendChild(document.createTextNode('Save'))
-    form.appendChild(save)
-
-    // Mark
-    var mark = document.createElement('input')
-    mark.type = 'text'
-    mark.required = true
-    mark.placeholder = 'Enter a mark name.'
-    form.appendChild(mark)
+    main.appendChild(renderDraftHeader(state, save))
 
     // <textarea>
     var textarea = document.createElement('textarea')
@@ -68,7 +62,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     if (parent) {
       textarea.value = state.parent.message.body.text
     }
-    form.appendChild(textarea)
+    main.appendChild(textarea)
   }
   return main
 }
