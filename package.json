@@ -8,6 +8,7 @@
     ]
   },
   "dependencies": {
+    "clipboard": "^1.7.1",
     "debug": "^3.1.0",
     "diff": "^3.4.0",
     "duplexify": "^3.5.3",

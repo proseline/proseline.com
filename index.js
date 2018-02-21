@@ -1,3 +1,4 @@
+var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var peer = require('./net/peer')
@@ -235,5 +236,13 @@ window.addEventListener('click', function (event) {
 })
 
 window.addEventListener('popstate', update)
+
+// Configure Copy-to-Clipboard Links
+
+new Clipboard('.clipboard')
+  .on('success', function (event) {
+    window.alert('Copied to clipboard.')
+    event.clearSelection()
+  })
 
 window.databases = databases

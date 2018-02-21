@@ -3,12 +3,8 @@ var renderTimestamp = require('./timestamp')
 module.exports = function (mark, state, send) {
   var own = mark.publicKey === state.identity.publicKey
   var intro = state.intros[mark.publicKey]
-  var div = document.createElement('div')
-  var name = document.createElement('span')
-  name.className = 'markName'
-  name.appendChild(document.createTextNode(mark.message.body.name))
-  div.appendChild(name)
-  div.appendChild(document.createTextNode(' — '))
+  var p = document.createElement('p')
+
   var user = document.createElement('span')
   user.className = 'intro'
   if (own) {
@@ -21,8 +17,19 @@ module.exports = function (mark, state, send) {
       )
     )
   }
-  div.appendChild(user)
-  div.appendChild(document.createTextNode(' — '))
-  div.appendChild(renderTimestamp(mark.message.body.timestamp))
-  return div
+  p.appendChild(user)
+
+  p.appendChild(document.createTextNode(' put the marker '))
+
+  var name = document.createElement('span')
+  name.className = 'markName'
+  name.appendChild(document.createTextNode(mark.message.body.name))
+  p.appendChild(name)
+
+  p.appendChild(document.createTextNode(' on this draft on '))
+
+  p.appendChild(renderTimestamp(mark.message.body.timestamp))
+  p.appendChild(document.createTextNode('.'))
+
+  return p
 }

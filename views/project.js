@@ -21,7 +21,8 @@ module.exports = function (state, send, discoveryKey) {
     main.appendChild(identityLine(state, send))
     main.appendChild(graph(state))
     main.appendChild(newDraftSection(state))
-    main.appendChild(shareSection(state))
+    main.appendChild(inviteViaEMail(state))
+    main.appendChild(copyInvitation(state))
   }
   return main
 }
@@ -55,7 +56,7 @@ function renameButton (state, send) {
     if (newTitle.length === 0) return
     send('rename', newTitle)
   })
-  button.appendChild(document.createTextNode('Change Project Title'))
+  button.appendChild(document.createTextNode('Change this project’s title.'))
   return button
 }
 
@@ -64,7 +65,7 @@ var CONFIRM_DELETE = 'Do you really want to delete this project?'
 function deleteButton (state, send) {
   var button = document.createElement('button')
   button.id = 'deleteProject'
-  button.appendChild(document.createTextNode('Delete Project'))
+  button.appendChild(document.createTextNode('Delete this project.'))
   button.addEventListener('click', function () {
     if (window.confirm(CONFIRM_DELETE)) {
       send('delete project', state.discoveryKey)
@@ -77,27 +78,36 @@ function newDraftSection (state) {
   var section = document.createElement('section')
 
   var a = document.createElement('a')
+  a.className = 'button'
   a.href = '/projects/' + state.discoveryKey + '/drafts/new'
-  a.appendChild(document.createTextNode('New Draft'))
+  a.appendChild(document.createTextNode('Start a new draft.'))
   section.appendChild(a)
 
   return section
 }
 
-function shareSection (state) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  h2.appendChild(document.createTextNode('Share'))
-  section.appendChild(h2)
-
+function inviteViaEMail (state) {
   var a = document.createElement('a')
+  a.className = 'button'
   var url = 'https://proseline.com/join/' + state.secretKey
-  a.appendChild(document.createTextNode(url))
-  a.setAttribute('href', url)
-  section.appendChild(a)
+  a.href = (
+    'mailto:' +
+    '?subject=' + encodeURIComponent('Proseline Project') +
+    '&body=' + encodeURIComponent(url)
+  )
+  a.appendChild(document.createTextNode(
+    'Invite someone to this project via e-mail.'
+  ))
+  return a
+}
 
-  return section
+function copyInvitation (state) {
+  var a = document.createElement('a')
+  a.className = 'clipboard button'
+  var url = 'https://proseline.com/join/' + state.secretKey
+  a.setAttribute('data-clipboard-text', url)
+  a.appendChild(document.createTextNode('Copy an invitation link.'))
+  return a
 }
 
 // TODO: Graph merging drafts.

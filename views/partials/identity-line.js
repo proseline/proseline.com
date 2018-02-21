@@ -51,7 +51,7 @@ function introForm (send) {
   // Button
   var button = document.createElement('button')
   button.type = 'submit'
-  button.appendChild(document.createTextNode('Introduce Yourself'))
+  button.appendChild(document.createTextNode('Introduce yourself.'))
   form.appendChild(button)
 
   form.addEventListener('submit', function (event) {

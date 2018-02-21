@@ -18,6 +18,20 @@ header
   button
     margin-left: 1rem
 
+button, a.button
+  display: inline-block
+  background: white
+  border-radius: 0.5rem
+  border: 1px solid black
+  color: black
+  cursor: pointer
+  margin-top: 1rem
+  padding: 0.5rem
+  text-decoration: none
+
+button + button, a.button + a.button, button + a.button, a.button + button
+  margin-left: 1rem
+
 section
   padding: 1rem 0
 
@@ -79,3 +93,14 @@ table
   text-align: center
   top: 0
   width: 100%
+
+.markName
+  &:before
+    content: '“'
+  &:after
+    content: '”'
+
+.marks
+  list-style-type: none
+  padding: 0
+  margin: 0

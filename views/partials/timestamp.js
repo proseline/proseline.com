@@ -9,5 +9,7 @@ module.exports = function (timestamp) {
 }
 
 function formatTimestamp (timestamp) {
-  return new Date(timestamp).toLocaleString()
+  return new Date(timestamp)
+    .toLocaleString()
+    .replace(', ', ' at ')
 }
