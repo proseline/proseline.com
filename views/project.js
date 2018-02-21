@@ -67,7 +67,7 @@ var CONFIRM_DELETE = 'Do you really want to delete this project?'
 function deleteButton (state, send) {
   var button = document.createElement('button')
   button.id = 'deleteProject'
-  button.appendChild(document.createTextNode('Delete this project.'))
+  button.appendChild(document.createTextNode('Leave this project.'))
   button.addEventListener('click', function () {
     if (window.confirm(CONFIRM_DELETE)) {
       send('delete project', state.discoveryKey)
