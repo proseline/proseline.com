@@ -1,5 +1,5 @@
 var loading = require('./loading')
-var renderHomeButton = require('./partials/home-button')
+var renderHomeLink = require('./partials/home-link')
 
 // TODO: private key backup link
 
@@ -24,7 +24,7 @@ module.exports = function (state, send) {
 
 function header () {
   var header = document.createElement('header')
-  header.appendChild(renderHomeButton())
+  header.appendChild(renderHomeLink())
   return header
 }
 

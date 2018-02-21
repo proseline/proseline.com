@@ -1,6 +1,6 @@
 var identityLine = require('./partials/identity-line')
 var loading = require('./loading')
-var renderHomeButton = require('./partials/home-button')
+var renderHomeLink = require('./partials/home-link')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var timestamp = require('./partials/timestamp')
 
@@ -35,7 +35,7 @@ module.exports = function (state, send, discoveryKey) {
 function header (state, send) {
   var header = document.createElement('header')
 
-  header.appendChild(renderHomeButton())
+  header.appendChild(renderHomeLink())
 
   var title = document.createElement('a')
   title.appendChild(document.createTextNode(state.title))
