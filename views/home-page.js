@@ -70,6 +70,7 @@ function joinProject (send) {
   button.addEventListener('click', function () {
     var secretKey = window.prompt('Enter invite code:')
     if (secretKey === null) return
+    secretKey = /[a-f0-9]{64}$/.exec(secretKey)[0]
     send('join project', secretKey)
   })
   button.appendChild(document.createTextNode('Join Project'))

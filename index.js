@@ -158,8 +158,9 @@ function render () {
     return renderHomePage(state, action)
   // Join Link
   } else if (/^\/join\/[a-f0-9]{64}$/.test(path)) {
+    var secretKey = path.substr(6, 64)
     return renderLoading(function () {
-      action('join project', /[a-f0-9]{64}$/.exec(path)[0])
+      action('join project', secretKey)
     })
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
