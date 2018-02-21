@@ -1,21 +1,4 @@
-module.exports = function (state, send) {
-  var section = document.createElement('section')
-  if (!state.intro) {
-    section.appendChild(introForm(send))
-  } else {
-    var p = document.createElement('p')
-    var body = state.intro.message.body
-    p.appendChild(
-      document.createTextNode(
-        body.name + ' on ' + body.device
-      )
-    )
-    section.appendChild(p)
-  }
-  return section
-}
-
-function introForm (send) {
+module.exports = function (send) {
   var form = document.createElement('form')
   form.className = 'intro'
 

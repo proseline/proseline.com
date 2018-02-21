@@ -19,8 +19,12 @@ module.exports = function (state, send, discoveryKey) {
       }))
     }
     main.appendChild(header(state, send))
-    main.appendChild(identityLine(state, send))
-    main.appendChild(graph(state))
+    if (!state.intro) {
+      main.appendChild(identityLine(send))
+    }
+    if (state.draftBriefs.length !== 0) {
+      main.appendChild(graph(state))
+    }
     main.appendChild(newDraftSection(state))
     main.appendChild(inviteViaEMail(state))
     main.appendChild(copyInvitation(state))
