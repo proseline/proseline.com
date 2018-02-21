@@ -6,7 +6,6 @@ module.exports = function (state, addition) {
   header.appendChild(renderHomeButton())
 
   var project = document.createElement('a')
-  project.className = 'button'
   project.appendChild(document.createTextNode(state.title))
   project.href = '/projects/' + state.discoveryKey
   header.appendChild(project)
