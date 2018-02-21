@@ -42,7 +42,7 @@ function setupDatabase (done) {
 }
 
 var EventEmitter = require('events').EventEmitter
-var morphdom = require('morphdom')
+var nanomorph = require('nanomorph')
 var nanoraf = require('nanoraf')
 
 // State Management
@@ -133,7 +133,7 @@ function update () {
   // diff algorithm will fail.
   assert(rerendered instanceof Element)
   assert.equal(rerendered.tagName, 'MAIN')
-  morphdom(rendered, rerendered)
+  nanomorph(rendered, rerendered)
 }
 
 function resetState () {
