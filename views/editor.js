@@ -62,6 +62,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
 
     // <textarea>
     var textarea = document.createElement('textarea')
+    textarea.rows = 10
     textarea.className = 'editor'
     if (parent) {
       textarea.value = state.parent.message.body.text
