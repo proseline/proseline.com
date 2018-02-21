@@ -63,8 +63,6 @@ function createProject (send) {
   return button
 }
 
-// TODO: link to e-mail join invite
-
 function joinProject (send) {
   var button = document.createElement('button')
   button.addEventListener('click', function () {
