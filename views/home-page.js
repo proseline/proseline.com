@@ -30,9 +30,6 @@ function header () {
 
 function projectsList (projects) {
   var section = document.createElement('section')
-  var h1 = document.createElement('h1')
-  h1.appendChild(document.createTextNode('Your projects'))
-  section.appendChild(h1)
   if (projects.length === 0) {
     var p = document.createElement('p')
     p.appendChild(document.createTextNode('You do not have any projects.'))
