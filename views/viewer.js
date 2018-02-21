@@ -1,5 +1,6 @@
 var loading = require('./loading')
 var renderMark = require('./partials/mark')
+var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
 
 module.exports = function (state, send, discoveryKey, digest) {
@@ -11,6 +12,11 @@ module.exports = function (state, send, discoveryKey, digest) {
       })
     )
   } else if (state.draft && state.draft.digest === digest) {
+    if (state.changed) {
+      main.appendChild(renderRefreshNotice(function () {
+        send('load project', discoveryKey)
+      }))
+    }
     main.appendChild(project(state))
     main.appendChild(author(state))
     main.appendChild(marks(state, send))

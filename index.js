@@ -89,13 +89,6 @@ require('./model')(
     )
     actions.on(event, nanoraf(function (data) {
       handler(data, state, send, callback)
-      function send (event, data) {
-        assert(
-          reductions.listenerCount(event) > 0,
-          'no listeners for ' + event
-        )
-        reductions.emit(event, data)
-      }
       function callback (error) {
         if (error) {
           console.error(error)
@@ -108,11 +101,24 @@ require('./model')(
   withDatabase
 )
 
+function send (event, data) {
+  assert(
+    reductions.listenerCount(event) > 0,
+    'no listeners for ' + event
+  )
+  reductions.emit(event, data)
+}
+
 function withDatabase (id, callback) {
   if (databases.hasOwnProperty(id)) {
     callback(null, databases[id])
   } else {
     var db = new ProjectDatabase(id)
+    db.on('change', function () {
+      if (state.discoveryKey === id) {
+        send('changed')
+      }
+    })
     databases[id] = db
     db.init(function (error) {
       if (error) {

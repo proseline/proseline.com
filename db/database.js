@@ -1,5 +1,7 @@
-var IndexedDB = require('./indexeddb')
+var EventEmitter = require('events').EventEmitter
 var IDBKeyRange = require('./idbkeyrange')
+var IndexedDB = require('./indexeddb')
+var inherits = require('inherits')
 
 module.exports = Database
 
@@ -7,6 +9,8 @@ function Database (options) {
   this._name = options.name
   this._version = options.version
 }
+
+inherits(Database, EventEmitter)
 
 var prototype = Database.prototype
 
@@ -51,8 +55,10 @@ prototype._getFromIndex = function (store, indexName, key, callback) {
 }
 
 prototype._put = function (store, key, value, callback) {
+  var self = this
   var transaction = this._db.transaction([store], 'readwrite')
   transaction.oncomplete = function () {
+    self.emit('change')
     callback()
   }
   transaction.onerror = function () {
@@ -63,6 +69,7 @@ prototype._put = function (store, key, value, callback) {
 }
 
 prototype._delete = function (store, key, callback) {
+  var self = this
   var transaction = this._db.transaction([store], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
@@ -70,6 +77,7 @@ prototype._delete = function (store, key, callback) {
   var objectStore = transaction.objectStore(store)
   var request = objectStore.delete(key)
   request.onsuccess = function () {
+    self.emit('change')
     callback()
   }
 }

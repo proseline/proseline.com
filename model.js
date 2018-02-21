@@ -14,6 +14,7 @@ var DEFAULT_TITLE = 'Untitled Project'
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
     return {
+      changed: false,
       intro: null,
       marks: null,
       notes: null,
@@ -248,6 +249,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('project', function (data, state) {
     return {
+      changed: false,
       title: data.project.title,
       discoveryKey: data.project.discoveryKey,
       secretKey: data.project.secretKey,
@@ -261,6 +263,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('clear project', function (_, state) {
     return {
+      changed: false,
       discoveryKey: null,
       projects: null
     }
@@ -567,5 +570,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('reply to', function (parent, state) {
     return {replyTo: parent}
+  })
+
+  // Change
+
+  reduction('changed', function () {
+    return {changed: true}
   })
 }

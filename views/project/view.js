@@ -1,5 +1,6 @@
 var identityLine = require('../partials/identity-line')
 var loading = require('../loading')
+var renderRefreshNotice = require('../partials/refresh-notice')
 var timestamp = require('../partials/timestamp')
 
 module.exports = function (state, send, discoveryKey) {
@@ -11,6 +12,11 @@ module.exports = function (state, send, discoveryKey) {
       })
     )
   } else {
+    if (state.changed) {
+      main.appendChild(renderRefreshNotice(function () {
+        send('load project', discoveryKey)
+      }))
+    }
     var h1 = document.createElement('h1')
     h1.appendChild(document.createTextNode(state.title))
     main.appendChild(h1)

@@ -162,6 +162,7 @@ Project.prototype._log = function (key, message, identity, callback) {
     callback(transaction.error)
   }
   transaction.oncomplete = function () {
+    self.emit('change')
     // Write to update streams for replication.
     runParallel(
       self._updateStreams.map(function (stream) {
@@ -226,6 +227,7 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     callback(transaction.error)
   }
   transaction.oncomplete = function () {
+    self.emit('change')
     // Write to update streams for replication.
     runParallel(
       self._updateStreams.map(function (stream) {

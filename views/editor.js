@@ -1,4 +1,5 @@
 var loading = require('./loading')
+var renderRefreshNotice = require('./partials/refresh-notice')
 
 // TODO: nice editor
 
@@ -26,6 +27,14 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
       })
     )
   } else {
+    if (state.changed) {
+      main.appendChild(renderRefreshNotice(function () {
+        send('load parent', {
+          discoveryKey: discoveryKey,
+          digest: parentDigest
+        })
+      }))
+    }
     var form = document.createElement('form')
     var parent = state.parent
     form.addEventListener('submit', function (event) {
