@@ -1,6 +1,8 @@
+/* globals Blob */
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
+var saveAs = require('file-saver').saveAs
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
@@ -578,5 +580,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('changed', function () {
     return {changed: true}
+  })
+
+  // Downloads
+
+  handler('download', function (_, state, reduce, done) {
+    saveAs(
+      new Blob(
+        [state.draft.message.body.text],
+        {type: 'text/plain;charset=utf-8'}
+      ),
+      'proseline.md'
+    )
   })
 }

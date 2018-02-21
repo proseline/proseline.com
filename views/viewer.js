@@ -31,6 +31,7 @@ module.exports = function (state, send, discoveryKey, digest) {
     }
     main.appendChild(markDraft(send))
     main.appendChild(newDraft(state, send))
+    main.appendChild(download(send))
     main.appendChild(renderText(state))
     main.appendChild(notes(state, send))
   } else {
@@ -248,6 +249,16 @@ function newDraft (state, send) {
     '/drafts/new/' + state.draft.digest
   )
   a.appendChild(document.createTextNode('Start a new draft based on this one.'))
+  return a
+}
+
+function download (send) {
+  var a = document.createElement('a')
+  a.addEventListener('click', function () {
+    send('download')
+  })
+  a.className = 'button'
+  a.appendChild(document.createTextNode('Download this draft.'))
   return a
 }
 
