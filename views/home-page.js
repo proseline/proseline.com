@@ -54,32 +54,17 @@ function projectsList (projects) {
 }
 
 function createProject (send) {
-  var main = document.createElement('main')
-
-  // <form>
-  var form = document.createElement('form')
-  form.addEventListener('submit', function (event) {
-    event.preventDefault()
-    event.stopPropagation()
+  var button = document.createElement('button')
+  button.addEventListener('click', function () {
+    var title = window.prompt('Enter a title:')
+    if (title === null) return
+    if (title.length === 0) return
     send('create project', {
-      title: input.value
+      title: title
     })
   })
-  main.appendChild(form)
-
-  // <input>
-  var input = document.createElement('input')
-  input.type = 'text'
-  input.placeholder = 'Project Title'
-  form.appendChild(input)
-
-  // <button>
-  var button = document.createElement('button')
-  button.type = 'submit'
   button.appendChild(document.createTextNode('Create Project'))
-  form.appendChild(button)
-
-  return main
+  return button
 }
 
 // TODO: link to e-mail join invite
