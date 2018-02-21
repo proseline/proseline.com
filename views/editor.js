@@ -44,7 +44,6 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     save.id = 'save'
     save.addEventListener('click', function () {
       var markName = window.prompt('Name this draft:')
-      console.log(JSON.stringify(markName))
       if (markName === null) return
       if (markName.length === 0) return
       send('save', {
