@@ -22,12 +22,12 @@ module.exports = function (state, send, discoveryKey) {
     if (!state.intro) {
       main.appendChild(identityLine(send))
     }
-    if (state.draftBriefs.length !== 0) {
-      main.appendChild(graph(state))
-    }
     main.appendChild(newDraft(state))
     main.appendChild(inviteViaEMail(state))
     main.appendChild(copyInvitation(state))
+    if (state.draftBriefs.length !== 0) {
+      main.appendChild(graph(state))
+    }
   }
   return main
 }
