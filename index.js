@@ -41,7 +41,7 @@ function setupDatabase (done) {
 }
 
 var EventEmitter = require('events').EventEmitter
-var nanomorph = require('nanomorph')
+var morphdom = require('morphdom')
 var nanoraf = require('nanoraf')
 
 // State Management
@@ -133,7 +133,7 @@ function withDatabase (id, callback) {
 }
 
 function update () {
-  nanomorph(rendered, render())
+  morphdom(rendered, render())
 }
 
 function resetState () {
