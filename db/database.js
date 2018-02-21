@@ -55,10 +55,8 @@ prototype._getFromIndex = function (store, indexName, key, callback) {
 }
 
 prototype._put = function (store, key, value, callback) {
-  var self = this
   var transaction = this._db.transaction([store], 'readwrite')
   transaction.oncomplete = function () {
-    self.emit('change')
     callback()
   }
   transaction.onerror = function () {
@@ -69,7 +67,6 @@ prototype._put = function (store, key, value, callback) {
 }
 
 prototype._delete = function (store, key, callback) {
-  var self = this
   var transaction = this._db.transaction([store], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
@@ -77,7 +74,6 @@ prototype._delete = function (store, key, callback) {
   var objectStore = transaction.objectStore(store)
   var request = objectStore.delete(key)
   request.onsuccess = function () {
-    self.emit('change')
     callback()
   }
 }

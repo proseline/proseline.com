@@ -52,7 +52,7 @@ function project (state) {
   var a = document.createElement('a')
   section.appendChild(a)
   a.href = '/projects/' + state.discoveryKey
-  a.appendChild(document.createTextNode('back to overview'))
+  a.appendChild(document.createTextNode('back to project'))
 
   return section
 }
