@@ -10,7 +10,7 @@ module.exports = function (state, send, discoveryKey) {
     main.appendChild(
       loading(function () {
         send('load project', discoveryKey)
-      })
+      }, 'Loading project…')
     )
   } else {
     if (state.changed) {

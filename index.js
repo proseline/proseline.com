@@ -161,7 +161,7 @@ function render () {
     var secretKey = path.substr(6, 64)
     return renderLoading(function () {
       action('join project', secretKey)
-    })
+    }, 'Joining…')
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
     var discoveryKey = path.substr(10, 64)
