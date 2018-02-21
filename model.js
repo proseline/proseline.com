@@ -11,6 +11,8 @@ var treeifyNotes = require('./utilities/treeify-notes')
 
 var DEFAULT_TITLE = 'Untitled Project'
 
+// TODO: Keep all intros in memory.
+
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
     return {
