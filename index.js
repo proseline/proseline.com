@@ -142,7 +142,7 @@ function resetState () {
 var renderEditor = require('./views/editor')
 var renderLoading = require('./views/loading')
 var renderNotFound = require('./views/not-found')
-var renderOverview = require('./views/overview')
+var renderHomePage = require('./views/home-page')
 var renderProject = require('./views/project')
 var renderViewer = require('./views/viewer')
 
@@ -154,7 +154,7 @@ function render () {
   var path = pathOf(window.location.href)
   // Home
   if (path === '' || path === '/') {
-    return renderOverview(state, action)
+    return renderHomePage(state, action)
   // Join Link
   } else if (/^\/join\/[a-f0-9]{64}$/.test(path)) {
     return renderLoading(function () {
