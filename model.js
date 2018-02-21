@@ -65,7 +65,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('create project', function (data, state, reduce, done) {
     createProject(null, null, data.title, function (error, project) {
       if (error) return done(error)
-      reduce('new project', project)
       redirectToProject(project.discoveryKey)
       done()
     })
@@ -108,8 +107,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       })
     })
     function redirect () {
-      redirectToProject(discoveryKey)
-      done()
+      loadProjectData(discoveryKey, function (error, data) {
+        if (error) return done(error)
+        reduce('project', data)
+        redirectToProject(discoveryKey)
+        done()
+      })
     }
   })
 
@@ -159,10 +162,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     window.history.pushState({}, null, '/projects/' + discoveryKey)
   }
 
-  reduction('new project', function (newProject, state) {
-    return {projects: state.projects.concat(newProject)}
-  })
-
   handler('rename', function (newTitle, state, reduce, done) {
     var project = {
       secretKey: state.secretKey,
@@ -172,21 +171,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
       db.putProject(project, done)
-      reduce('rename', project)
+      reduce('rename', newTitle)
     })
   })
 
-  reduction('rename', function (newProject, state) {
-    return {
-      title: newProject.title,
-      projects: state.projects.map(function (oldProject) {
-        if (oldProject.discoveryKey === newProject.discoveryKey) {
-          return newProject
-        } else {
-          return oldProject
-        }
-      })
-    }
+  reduction('rename', function (newTitle, state) {
+    return {title: newTitle}
   })
 
   // Loading
@@ -207,8 +197,16 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load project', function (discoveryKey, state, reduce, done) {
-    withIndexedDB(discoveryKey, function (error, db) {
+    loadProjectData(discoveryKey, function (error, data) {
       if (error) return done(error)
+      reduce('project', data)
+      done()
+    })
+  })
+
+  function loadProjectData (discoveryKey, callback) {
+    withIndexedDB(discoveryKey, function (error, db) {
+      if (error) return callback(error)
       runParallel({
         project: function (done) {
           withIndexedDB('proseline', function (error, db) {
@@ -236,20 +234,20 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           })
         }
       }, function (error, results) {
-        if (error) return done(error)
+        if (error) return callback(error)
         var publicKey = results.identity.publicKey
         db.getIntro(publicKey, function (error, intro) {
-          if (error) return done(error)
+          if (error) return callback(error)
           results.intro = intro
-          reduce('project', results)
-          done()
+          callback(null, results)
         })
       })
     })
-  })
+  }
 
   reduction('project', function (data, state) {
     return {
+      projects: null,
       changed: false,
       title: data.project.title,
       discoveryKey: data.project.discoveryKey,
@@ -335,6 +333,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var children = data.children || []
     var notes = data.notes || []
     return {
+      projects: null,
       draft: data.draft,
       intro: data.intro || null,
       marks: data.marks || [],

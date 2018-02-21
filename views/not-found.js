@@ -1,3 +1,5 @@
 module.exports = function (state) {
-  return document.createElement('div')
+  var main = document.createElement('main')
+  main.appendChild(document.createTextNode('Not Found'))
+  return main
 }

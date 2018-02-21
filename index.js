@@ -1,3 +1,4 @@
+/* globals Element */
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
@@ -46,7 +47,7 @@ var nanoraf = require('nanoraf')
 
 // State Management
 
-var state = {}
+var globalState = {}
 
 var actions = new EventEmitter()
   .on('error', function (error) {
@@ -57,7 +58,7 @@ var actions = new EventEmitter()
 function action (/* variadic */) {
   assert(
     actions.listenerCount(arguments[0]) > 0,
-    'not listeners for action ' + arguments[0]
+    'no listeners for action ' + arguments[0]
   )
   actions.emit.apply(actions, arguments)
 }
@@ -66,43 +67,39 @@ var reductions = new EventEmitter()
 var initializer
 
 require('./model')(
-  function initialize (_initializer) {
+  function makeInitializer (_initializer) {
     initializer = _initializer
     resetState()
   },
-  function reduce (event, handler) {
-    assert.equal(typeof event, 'string', 'event is a string')
-    assert(event.length !== 0, 'event is not empty')
+  function makeReduction (name, listener) {
+    assert.equal(typeof name, 'string', 'name is a string')
+    assert(name.length !== 0, 'name is not empty')
     assert.equal(
-      reductions.listenerCount(event), 0,
-      'just one listener for ' + event
+      reductions.listenerCount(name), 0,
+      'just one listener for ' + name
     )
-    reductions.on(event, function (data) {
-      Object.assign(state, handler(data, state))
+    reductions.on(name, function (data) {
+      Object.assign(globalState, listener(data, globalState))
     })
   },
-  function handle (event, handler) {
-    assert.equal(typeof event, 'string', 'event is a string')
-    assert(event.length !== 0, 'event is not empty')
+  function makeHandler (name, listener) {
+    assert.equal(typeof name, 'string', 'name is a string')
+    assert(name.length !== 0, 'name is not empty')
     assert.equal(
-      actions.listenerCount(event), 0,
-      'just one listener for ' + event
+      actions.listenerCount(name), 0,
+      'just one listener for ' + name
     )
-    actions.on(event, nanoraf(function (data) {
-      handler(data, state, send, callback)
-      function callback (error) {
-        if (error) {
-          console.error(error)
-          action('error', error)
-        }
+    actions.on(name, nanoraf(function (data) {
+      listener(data, globalState, reduce, function (error) {
+        if (error) return action('error', error)
         update()
-      }
+      })
     }))
   },
   withDatabase
 )
 
-function send (event, data) {
+function reduce (event, data) {
   assert(
     reductions.listenerCount(event) > 0,
     'no listeners for ' + event
@@ -116,9 +113,7 @@ function withDatabase (id, callback) {
   } else {
     var db = new ProjectDatabase(id)
     db.on('change', function () {
-      if (state.discoveryKey === id) {
-        send('changed')
-      }
+      if (globalState.discoveryKey === id) reduce('changed')
     })
     databases[id] = db
     db.init(function (error) {
@@ -133,11 +128,16 @@ function withDatabase (id, callback) {
 }
 
 function update () {
-  morphdom(rendered, render())
+  var rerendered = render(globalState)
+  // All renderers must return a <main> or the
+  // diff algorithm will fail.
+  assert(rerendered instanceof Element)
+  assert.equal(rerendered.tagName, 'MAIN')
+  morphdom(rendered, rerendered)
 }
 
 function resetState () {
-  Object.assign(state, initializer())
+  Object.assign(globalState, initializer())
 }
 
 var renderEditor = require('./views/editor')
@@ -151,17 +151,22 @@ var pathOf = require('./utilities/path-of')
 
 var rendered
 
-function render () {
+function render (state) {
   var path = pathOf(window.location.href)
+  var main
   // Home
   if (path === '' || path === '/') {
     return renderHomePage(state, action)
   // Join Link
   } else if (/^\/join\/[a-f0-9]{64}$/.test(path)) {
     var secretKey = path.substr(6, 64)
-    return renderLoading(function () {
-      action('join project', secretKey)
-    }, 'Joining…')
+    main = document.createElement('main')
+    main.appendChild(
+      renderLoading(function () {
+        action('join project', secretKey)
+      }, 'Joining…')
+    )
+    return main
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
     var discoveryKey = path.substr(10, 64)
@@ -181,13 +186,17 @@ function render () {
       return renderViewer(state, action, discoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
-      return renderLoading(function () {
-        action('load mark', {
-          discoveryKey: discoveryKey,
-          publicKey: remainder.substr(7, 64),
-          identifier: remainder.substr(7 + 64 + 1, 8)
+      main = document.createElement('main')
+      main.appendChild(
+        renderLoading(function () {
+          action('load mark', {
+            discoveryKey: discoveryKey,
+            publicKey: remainder.substr(7, 64),
+            identifier: remainder.substr(7 + 64 + 1, 8)
+          })
         })
-      })
+      )
+      return main
     } else {
       return renderNotFound(state, action)
     }
@@ -215,7 +224,7 @@ function joinSwarms (done) {
 }
 
 function launchApplication (done) {
-  rendered = render()
+  rendered = render(globalState)
   document.body.appendChild(rendered)
   done()
 }

@@ -7,7 +7,7 @@ var renderHomeLink = require('./partials/home-link')
 
 module.exports = function (state, send) {
   var main = document.createElement('main')
-  if (state.projects === null) {
+  if (!state.projects) {
     main.appendChild(
       loading(function () {
         send('load projects')

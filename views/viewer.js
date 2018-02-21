@@ -28,7 +28,7 @@ module.exports = function (state, send, discoveryKey, digest) {
     if (state.children.length !== 0) {
       main.appendChild(children(state, send))
     }
-    main.appendChild(markDraft(state, send))
+    main.appendChild(markDraft(send))
     main.appendChild(newDraft(state, send))
     main.appendChild(renderText(state))
     main.appendChild(notes(state, send))
