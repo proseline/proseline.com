@@ -36,9 +36,9 @@
     "browserify-licenses": "^1.4.5",
     "chromedriver": "^2.33.2",
     "common-shakeify": "^0.4.5",
-    "ecstatic": "^3.0.0",
     "envify": "^4.1.0",
     "es2020": "^1.1.9",
+    "exorcist": "^1.0.1",
     "husky": "^0.14.3",
     "licensee": "^4.5.0",
     "lint-staged": "^5.0.0",
@@ -67,6 +67,6 @@
     "precommit": "lint-staged",
     "test": "tape test/*.test.js",
     "watch:css": "node-sass --watch --source-map true --output build styles/styles.sass",
-    "watch:js": "watchify -p common-shakeify --ignore-transform uglifyify --ignore-transform unassertify index.js -o build/browser.js -dv"
+    "watch:js": "watchify -p common-shakeify --ignore-transform uglifyify --ignore-transform unassertify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
   }
 }
