@@ -3,6 +3,7 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
+var expandingTextArea = require('./partials/expanding-textarea')
 
 module.exports = function (state, send, discoveryKey, digest) {
   var main = document.createElement('main')
@@ -325,7 +326,7 @@ function noteForm (parent, send) {
     })
   })
   // <textarea>
-  var textarea = document.createElement('textarea')
+  var textarea = expandingTextArea()
   textarea.required = true
   form.appendChild(textarea)
   // <button>

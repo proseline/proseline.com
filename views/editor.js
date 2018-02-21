@@ -1,8 +1,8 @@
+var autosize = require('autosize')
 var loading = require('./loading')
 var renderDraftHeader = require('./partials/draft-header')
 var renderRefreshNotice = require('./partials/refresh-notice')
-
-// TODO: nice editor
+var expandingTextArea = require('./partials/expanding-textarea')
 
 module.exports = function (state, send, discoveryKey, parentDigest) {
   var main = document.createElement('main')
@@ -61,12 +61,14 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     main.appendChild(renderDraftHeader(state, save))
 
     // <textarea>
-    var textarea = document.createElement('textarea')
-    textarea.rows = 10
+    var textarea = expandingTextArea()
+    textarea.autofocus = true
+    textarea.spellcheck = true
     textarea.className = 'editor'
     if (parent) {
       textarea.value = state.parent.message.body.text
     }
+    autosize(textarea)
     main.appendChild(textarea)
   }
   return main
