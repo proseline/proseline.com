@@ -1,4 +1,5 @@
 var loading = require('./loading')
+var renderHomeButton = require('./partials/home-button')
 
 // TODO: private key backup link
 
@@ -23,9 +24,7 @@ module.exports = function (state, send) {
 
 function header () {
   var header = document.createElement('header')
-  var proseline = document.createElement('a')
-  proseline.appendChild(document.createTextNode('proseline'))
-  header.appendChild(proseline)
+  header.appendChild(renderHomeButton())
   return header
 }
 

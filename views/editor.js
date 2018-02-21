@@ -40,6 +40,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
 
     // Header with Save Button
     var save = document.createElement('button')
+    save.className = 'button'
     save.id = 'save'
     save.addEventListener('click', function () {
       var markName = window.prompt('Name this draft:')
