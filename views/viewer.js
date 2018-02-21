@@ -1,9 +1,10 @@
+var commonmark = require('commonmark')
+var expandingTextArea = require('./partials/expanding-textarea')
 var loading = require('./loading')
 var renderDraftHeader = require('./partials/draft-header')
 var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
-var expandingTextArea = require('./partials/expanding-textarea')
 
 module.exports = function (state, send, discoveryKey, digest) {
   var main = document.createElement('main')
@@ -209,15 +210,22 @@ function renderText (state) {
       article.appendChild(p)
     })
   } else {
-    draft.message.body.text
-      .split('\n')
-      .forEach(function (line, index) {
-        var p = document.createElement('p')
-        p.appendChild(document.createTextNode(line))
-        article.appendChild(p)
-      })
+    article.appendChild(renderMarkdown(draft.message.body.text))
   }
   return article
+}
+
+function renderMarkdown (markdown) {
+  var reader = new commonmark.Parser()
+  var writer = new commonmark.HtmlRenderer({
+    smart: true,
+    safe: true
+  })
+  var parsed = reader.parse(markdown)
+  var rendered = writer.render(parsed)
+  var template = document.createElement('template')
+  template.innerHTML = rendered
+  return template.content.firstChild
 }
 
 function markDraft (send) {
@@ -281,9 +289,8 @@ function noteLI (state, note, send) {
   var replyTo = state.replyTo
   // <blockquote>
   var blockquote = document.createElement('blockquote')
-  blockquote.appendChild(
-    document.createTextNode(note.message.body.text)
-  )
+  blockquote.className = 'note'
+  blockquote.appendChild(renderMarkdown(note.message.body.text))
   li.appendChild(blockquote)
   // <p>
   var p = document.createElement('p')
