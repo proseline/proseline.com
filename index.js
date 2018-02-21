@@ -107,6 +107,8 @@ function reduce (event, data) {
   reductions.emit(event, data)
 }
 
+// TODO: Fix display of refresh requests.
+
 function withDatabase (id, callback) {
   if (databases.hasOwnProperty(id)) {
     callback(null, databases[id])
