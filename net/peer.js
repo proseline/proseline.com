@@ -37,12 +37,14 @@ function joinSwarm (project, database) {
   return swarm
 }
 
-function leaveSwarm (project) {
+function leaveSwarm (discoveryKey) {
+  assert.equal(typeof discoveryKey, 'string')
   var index = swarms.findIndex(function (swarm) {
-    return swarm.project.discoveryKey === project.discoveryKey
+    return swarm.project.discoveryKey === discoveryKey
   })
   if (index !== -1) {
-    swarms[index].close()
+    swarms[index].swarm.close()
     swarms.splice(index, 1)
+    debug('left: %s', discoveryKey)
   }
 }

@@ -87,6 +87,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     ], function (error) {
       if (error) return done(error)
       reduce('clear project', null)
+      peer.leaveSwarm(discoveryKey)
       window.history.pushState({}, null, '/')
       done()
     })
