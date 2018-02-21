@@ -25,7 +25,7 @@ module.exports = function (state, send, discoveryKey) {
     if (state.draftBriefs.length !== 0) {
       main.appendChild(graph(state))
     }
-    main.appendChild(newDraftSection(state))
+    main.appendChild(newDraft(state))
     main.appendChild(inviteViaEMail(state))
     main.appendChild(copyInvitation(state))
   }
@@ -76,16 +76,12 @@ function deleteButton (state, send) {
   return button
 }
 
-function newDraftSection (state) {
-  var section = document.createElement('section')
-
+function newDraft (state) {
   var a = document.createElement('a')
   a.className = 'button'
   a.href = '/projects/' + state.discoveryKey + '/drafts/new'
   a.appendChild(document.createTextNode('Start a new draft.'))
-  section.appendChild(a)
-
-  return section
+  return a
 }
 
 function inviteViaEMail (state) {
