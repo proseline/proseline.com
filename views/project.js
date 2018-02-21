@@ -1,7 +1,7 @@
-var identityLine = require('../partials/identity-line')
-var loading = require('../loading')
-var renderRefreshNotice = require('../partials/refresh-notice')
-var timestamp = require('../partials/timestamp')
+var identityLine = require('./partials/identity-line')
+var loading = require('./loading')
+var renderRefreshNotice = require('./partials/refresh-notice')
+var timestamp = require('./partials/timestamp')
 
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')

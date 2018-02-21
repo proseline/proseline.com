@@ -143,7 +143,7 @@ var renderEditor = require('./views/editor')
 var renderLoading = require('./views/loading')
 var renderNotFound = require('./views/not-found')
 var renderOverview = require('./views/overview')
-var renderProject = require('./views/project/view')
+var renderProject = require('./views/project')
 var renderViewer = require('./views/viewer')
 
 var pathOf = require('./utilities/path-of')
