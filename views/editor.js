@@ -43,6 +43,10 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     save.className = 'button'
     save.id = 'save'
     save.addEventListener('click', function () {
+      if (textarea.value.length === 0) {
+        window.alert('Draft is empty.')
+        return
+      }
       var markName = window.prompt('Name this draft:')
       if (markName === null) return
       if (markName.length === 0) return
