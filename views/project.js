@@ -4,6 +4,8 @@ var renderHomeLink = require('./partials/home-link')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var timestamp = require('./partials/timestamp')
 
+// TODO: List most recent activity.
+
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
   if (discoveryKey && state.discoveryKey !== discoveryKey) {
