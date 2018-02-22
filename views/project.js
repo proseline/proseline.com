@@ -39,32 +39,20 @@ module.exports = function (state, send, discoveryKey) {
 
 function header (state, send) {
   var header = document.createElement('header')
-
   header.appendChild(renderHomeLink())
-
-  var title = document.createElement('a')
-  title.appendChild(document.createTextNode(state.title))
-  header.appendChild(title)
-
-  header.appendChild(renameButton(state, send))
+  header.appendChild(title(state, send))
   header.appendChild(deleteButton(state, send))
-
   return header
 }
 
-var RENAME = 'Enter a new project title:'
-
-function renameButton (state, send) {
-  var button = document.createElement('button')
-  button.id = 'renameProject'
-  button.addEventListener('click', function (event) {
-    var newTitle = window.prompt(RENAME, state.title)
-    if (newTitle === null) return
-    if (newTitle.length === 0) return
-    send('rename', newTitle)
+function title (state, send) {
+  var input = document.createElement('input')
+  input.value = state.title
+  input.required = true
+  input.addEventListener('input', function () {
+    send('rename', input.value)
   })
-  button.appendChild(document.createTextNode('Rename this project.'))
-  return button
+  return input
 }
 
 var CONFIRM_DELETE = 'Do you really want to delete this project?'
