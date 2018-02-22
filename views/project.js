@@ -59,7 +59,7 @@ function renameButton (state, send) {
     if (newTitle.length === 0) return
     send('rename', newTitle)
   })
-  button.appendChild(document.createTextNode('Change this project’s title.'))
+  button.appendChild(document.createTextNode('Rename this project.'))
   return button
 }
 
