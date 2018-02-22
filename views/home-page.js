@@ -50,12 +50,7 @@ function projectsList (projects) {
 function createProject (send) {
   var button = document.createElement('button')
   button.addEventListener('click', function () {
-    var title = window.prompt('Enter a title:')
-    if (title === null) return
-    if (title.length === 0) return
-    send('create project', {
-      title: title
-    })
+    send('create project')
   })
   button.appendChild(document.createTextNode('Create a project.'))
   return button

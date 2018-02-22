@@ -11,7 +11,7 @@ var hashHex = require('./crypto/hash-hex')
 var random = require('./crypto/random')
 var treeifyNotes = require('./utilities/treeify-notes')
 
-var DEFAULT_TITLE = 'Untitled Project'
+var DEFAULT_TITLE = 'Nameless Project'
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
@@ -65,7 +65,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Projects
 
   handler('create project', function (data, state, reduce, done) {
-    createProject(null, null, data.title, function (error, project) {
+    createProject(null, null, function (error, project) {
       if (error) return done(error)
       redirectToProject(project.discoveryKey)
       done()
@@ -102,7 +102,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       db.getProject(discoveryKey, function (error, project) {
         if (error) return done(error)
         if (project) return redirect()
-        createProject(secretKey, discoveryKey, DEFAULT_TITLE, function (error) {
+        createProject(secretKey, discoveryKey, function (error) {
           if (error) return done(error)
           redirect()
         })
@@ -118,8 +118,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  function createProject (secretKey, discoveryKey, title, callback) {
-    assert.equal(typeof title, 'string')
+  function createProject (secretKey, discoveryKey, callback) {
     assert.equal(typeof callback, 'function')
     if (secretKey) {
       assert.equal(typeof secretKey, 'string')
@@ -131,7 +130,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var project = {
       secretKey: secretKey,
       discoveryKey: discoveryKey,
-      title: title
+      title: DEFAULT_TITLE
     }
     assert.equal(typeof secretKey, 'string')
     assert.equal(typeof discoveryKey, 'string')
