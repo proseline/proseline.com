@@ -41,19 +41,6 @@ prototype._get = function (store, key, callback) {
   }
 }
 
-prototype._getFromIndex = function (store, indexName, key, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
-  transaction.onerror = function () {
-    callback(transaction.error)
-  }
-  var objectStore = transaction.objectStore(store)
-  var index = objectStore.index(indexName)
-  var request = index.get(key)
-  request.onsuccess = function () {
-    callback(null, request.result)
-  }
-}
-
 prototype._put = function (store, key, value, callback) {
   var transaction = this._db.transaction([store], 'readwrite')
   transaction.oncomplete = function () {
@@ -118,21 +105,6 @@ prototype._listIndexedValues = function (store, indexName, callback) {
   }
 }
 
-prototype._listKeysAndValues = function (store, callback) {
-  this._list(store, function (cursor) {
-    return {
-      key: cursor.key,
-      value: cursor.value
-    }
-  }, callback)
-}
-
-prototype._listKeys = function (store, callback) {
-  this._list(store, function (cursor) {
-    return cursor.key
-  }, callback)
-}
-
 prototype._listValues = function (store, callback) {
   this._list(store, function (cursor) {
     return cursor.value
@@ -146,19 +118,6 @@ prototype._count = function (storeName, lower, upper, callback) {
   }
   var objectStore = transaction.objectStore(storeName)
   var request = objectStore.count(IDBKeyRange.bound(lower, upper))
-  request.onsuccess = function () {
-    callback(null, request.result)
-  }
-}
-
-prototype._countFromIndex = function (storeName, indexName, lower, upper, callback) {
-  var transaction = this._db.transaction([storeName], 'readonly')
-  transaction.onerror = function () {
-    callback(transaction.error)
-  }
-  var objectStore = transaction.objectStore(storeName)
-  var index = objectStore.index(indexName)
-  var request = index.count(IDBKeyRange.bound(lower, upper))
   request.onsuccess = function () {
     callback(null, request.result)
   }
