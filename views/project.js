@@ -105,7 +105,7 @@ function copyInvitation (state) {
   a.className = 'clipboard button'
   var url = 'https://proseline.com/join/' + state.secretKey
   a.setAttribute('data-clipboard-text', url)
-  a.appendChild(document.createTextNode('Copy an invitation link.'))
+  a.appendChild(document.createTextNode('Copy a link to this project.'))
   return a
 }
 
