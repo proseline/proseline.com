@@ -66,11 +66,17 @@ function marks (state, send) {
   // <ul>
   var ul = document.createElement('ul')
   ul.className = 'marks'
-  state.marks.forEach(function (mark) {
-    var li = document.createElement('li')
-    li.appendChild(renderMark(mark, state, send))
-    ul.appendChild(li)
-  })
+  state.marks
+    .sort(function (a, b) {
+      return a.message.body.timestamp.localeCompare(
+        b.message.body.timestamp
+      )
+    })
+    .forEach(function (mark) {
+      var li = document.createElement('li')
+      li.appendChild(renderMark(mark, state, send))
+      ul.appendChild(li)
+    })
   var formLI = document.createElement('li')
   ul.appendChild(formLI)
   return ul
