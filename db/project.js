@@ -155,19 +155,11 @@ Project.prototype._log = function (key, message, identity, callback) {
     callback(transaction.error)
   }
   transaction.oncomplete = function () {
-    // Write to update streams for replication.
-    runParallel(
-      self._updateStreams.map(function (stream) {
-        return function (done) {
-          stream.write({
-            publicKey: envelope.publicKey,
-            index: envelope.message.index
-          }, done)
-        }
-      }),
+    self._streamUpdate(
+      envelope.publicKey, envelope.message.index,
       function (error) {
         if (error) return callback(error)
-        callback(null, envelope, key)
+        callback(null, envelope, envelope.digest)
       }
     )
   }
@@ -181,19 +173,15 @@ Project.prototype._log = function (key, message, identity, callback) {
     var index = headRequest.result
     message.index = index
     var stringified = stringify(message)
-    // Put the message in a signed envelope.
     envelope = {
       message: message,
       publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey),
-      // Add digest for indexing.
-      digest: hash(stringified)
+      signature: sign(stringified, identity.secretKey)
     }
-    // Put the envelope.
+    addDigestForIndexing(envelope)
     transaction
       .objectStore('logs')
       .add(envelope, logEntryKey(envelope.publicKey, index))
-    if (key === COMPUTE_DIGEST) key = hash(stringified)
   }
 }
 
@@ -210,8 +198,6 @@ Project.prototype.getEnvelope = function (publicKey, index, callback) {
   })
 }
 
-// TODO: Deduplicate _log and putEnvelope
-
 Project.prototype.putEnvelope = function (envelope, callback) {
   assert.equal(typeof envelope, 'object')
   assert(envelope.hasOwnProperty('message'))
@@ -219,52 +205,38 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   assert(envelope.hasOwnProperty('signature'))
   assert.equal(typeof callback, 'function')
   var self = this
-  // Add digest for indexing.
-  envelope.digest = hash(stringify(envelope.message))
-  var type = envelope.message.body.type
-  var typeStore = type + 's'
-  var transaction = self._db.transaction(['logs', typeStore], 'readwrite')
+  addDigestForIndexing(envelope)
+  var transaction = self._db.transaction(['logs'], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
   }
   transaction.oncomplete = function () {
     self.emit('change')
-    // Write to update streams for replication.
-    runParallel(
-      self._updateStreams.map(function (stream) {
-        return function (done) {
-          stream.write({
-            publicKey: envelope.publicKey,
-            index: envelope.message.index
-          }, done)
-        }
-      }),
-      function (error) {
-        if (error) return callback(error)
-        callback(null, envelope, key)
-      }
+    self._streamUpdate(
+      envelope.publicKey, envelope.message.index, callback
     )
   }
-  var logKey = logEntryKey(
+  var key = logEntryKey(
     envelope.publicKey, envelope.message.index
   )
   transaction
     .objectStore('logs')
-    .add(envelope, logKey)
-  var key
-  if (type === 'intro') {
-    key = envelope.publicKey
-  } else if (type === 'draft' || type === 'note') {
-    key = hash(stringify(envelope.message))
-  } else if (type === 'mark') {
-    key = markKey(
-      envelope.publicKey,
-      envelope.message.body.identifier
-    )
-  }
-  transaction
-    .objectStore(typeStore)
-    .put(envelope, key)
+    .add(envelope, key)
+}
+
+function addDigestForIndexing (envelope) {
+  envelope.digest = hash(stringify(envelope.message))
+}
+
+Project.prototype._streamUpdate = function (publicKey, index, callback) {
+  runParallel(
+    this._updateStreams.map(function (stream) {
+      return function (done) {
+        stream.write({publicKey, index}, done)
+      }
+    }),
+    callback
+  )
 }
 
 Project.prototype.createOfferStream = function () {
