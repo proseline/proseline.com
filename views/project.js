@@ -19,7 +19,8 @@ module.exports = function (state, send, discoveryKey) {
       }))
     }
     main.appendChild(header(state, send))
-    if (!state.intro) {
+    var intro = state.intros[state.identity.publicKey]
+    if (!intro) {
       main.appendChild(identityLine(send))
     }
     main.appendChild(newDraft(state))

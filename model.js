@@ -13,13 +13,10 @@ var treeifyNotes = require('./utilities/treeify-notes')
 
 var DEFAULT_TITLE = 'Untitled Project'
 
-// TODO: Keep all intros in memory.
-
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
     return {
       changed: false,
-      intro: null,
       marks: null,
       notes: null,
       intros: null,
@@ -61,7 +58,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('intro', function (newIntro, state) {
-    return {intro: newIntro}
+    state.intros[newIntro.publicKey] = newIntro
+    return {intros: state.intros}
   })
 
   // Projects
@@ -237,15 +235,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             done(null, result)
           })
         }
-      }, function (error, results) {
-        if (error) return callback(error)
-        var publicKey = results.identity.publicKey
-        db.getIntro(publicKey, function (error, intro) {
-          if (error) return callback(error)
-          results.intro = intro
-          callback(null, results)
-        })
-      })
+      }, callback)
     })
   }
 
@@ -257,7 +247,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: data.project.discoveryKey,
       secretKey: data.project.secretKey,
       identity: data.identity,
-      intro: data.intro,
       intros: data.intros,
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || []
@@ -304,30 +293,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         }), function (error, parents) {
           if (error) return done(error)
           results.parents = parents
-          // Get intros for all relevant public keys.
-          var publicKeys = [results.draft.publicKey]
-          results.marks.forEach(addPublicKey)
-          results.notes.forEach(addPublicKey)
-          results.parents.forEach(addPublicKey)
-          results.children.forEach(addPublicKey)
-          function addPublicKey (object) {
-            var publicKey = object.publicKey
-            if (!publicKeys.includes(publicKey)) {
-              publicKeys.push(publicKey)
-            }
-          }
-          var introsTasks = {}
-          publicKeys.forEach(function (publicKey) {
-            introsTasks[publicKey] = function (done) {
-              db.getIntro(publicKey, done)
-            }
-          })
-          runParallel(introsTasks, function (error, intros) {
-            if (error) return done(error)
-            results.intros = intros
-            reduce('draft', results)
-            done()
-          })
+          reduce('draft', results)
+          done()
         })
       })
     })
@@ -339,11 +306,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {
       projects: null,
       draft: data.draft,
-      intro: data.intro || null,
       marks: data.marks || [],
       notes: notes,
       notesTree: treeifyNotes(notes),
-      intros: data.intros || {},
       replyTo: null,
       parents: data.parents || [],
       children: children,

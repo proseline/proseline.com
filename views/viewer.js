@@ -2,6 +2,7 @@ var commonmark = require('commonmark')
 var expandingTextArea = require('./partials/expanding-textarea')
 var loading = require('./loading')
 var renderDraftHeader = require('./partials/draft-header')
+var renderIntro = require('./partials/intro')
 var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
@@ -50,33 +51,11 @@ module.exports = function (state, send, discoveryKey, digest) {
 function author (state) {
   var p = document.createElement('p')
   p.className = 'byline'
-  p.appendChild(byline(state, state.draft.publicKey))
+  p.appendChild(renderIntro(state, state.draft.publicKey))
   p.appendChild(document.createTextNode(' saved this draft on '))
   p.appendChild(dateline(state.draft))
   p.appendChild(document.createTextNode('.'))
   return p
-}
-
-function byline (state, publicKey) {
-  var returned
-  if (state.identity.publicKey === publicKey) {
-    returned = document.createElement('span')
-    returned.appendChild(document.createTextNode('You'))
-  } else {
-    var match = state.intros[publicKey]
-    if (match) {
-      returned = document.createElement('span')
-      returned.appendChild(
-        document.createTextNode(
-          match.message.body.name + ' on ' + match.message.body.device
-        )
-      )
-    } else {
-      returned = document.createElement('code')
-      returned.appendChild(document.createTextNode(publicKey))
-    }
-  }
-  return returned
 }
 
 function dateline (draft) {
@@ -110,8 +89,8 @@ function parents (state, send) {
     // <a>
     var a = document.createElement('a')
     a.href = '/drafts/' + parent.digest
-    a.appendChild(byline(state, parent.publicKey, state.intros[parent.publicKey]))
-    a.appendChild(document.createTextNode(' — '))
+    a.appendChild(renderIntro(state, parent.publicKey))
+    a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(parent.message.body.timestamp))
     li.appendChild(a)
     // Comparison Button
@@ -156,8 +135,8 @@ function children (state, send) {
     // <a>
     var a = document.createElement('a')
     a.href = '/drafts/' + child.digest
-    a.appendChild(byline(state, child.publicKey, state.intros[child.publicKey]))
-    a.appendChild(document.createTextNode(' — '))
+    a.appendChild(renderIntro(state, child.publicKey))
+    a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(child.message.body.timestamp))
     li.appendChild(a)
     // Comparison Button
@@ -306,9 +285,8 @@ function noteLI (state, note, send) {
   // <p>
   var p = document.createElement('p')
   p.className = 'byline'
-  var intro = state.intros[note.publicKey]
-  p.appendChild(byline(state, note.publicKey, intro))
-  p.appendChild(document.createTextNode(' — '))
+  p.appendChild(renderIntro(state, note.publicKey))
+  p.appendChild(document.createTextNode(' on '))
   p.appendChild(renderTimestamp(note.message.body.timestamp))
   li.appendChild(p)
   if (replyTo === note.digest) {
