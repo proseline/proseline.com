@@ -70,7 +70,7 @@ function joinProject (send) {
     secretKey = /[a-f0-9]{64}$/.exec(secretKey)[0]
     send('join project', secretKey)
   })
-  button.appendChild(document.createTextNode('Join a project'))
+  button.appendChild(document.createTextNode('Join a project.'))
   return button
 }
 
