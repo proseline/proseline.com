@@ -267,16 +267,7 @@ function graph (state) {
         p.appendChild(document.createTextNode(mark.message.body.name))
       })
     }
-
-    brief.parents.forEach(function (parent) {
-      td.appendChild(document.createElement('br'))
-      td.appendChild(document.createTextNode(truncate(parent)))
-    })
   })
 
   return section
-}
-
-function truncate (digest) {
-  return digest.slice(0, 4) + '…'
 }
