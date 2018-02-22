@@ -4,6 +4,9 @@ var verify = require('../crypto/verify')
 
 var ajv = new AJV()
 
+// TODO: Note resolutions.
+// TODO: Note edits.
+
 exports.draft = ajv.compile(require('./draft'))
 exports.envelopeData = ajv.compile(require('./envelope'))
 exports.envelope = function (envelope) {
