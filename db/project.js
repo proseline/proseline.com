@@ -28,10 +28,6 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     var identities = db.createObjectStore('identities')
     identities.createIndex('publicKey', 'publicKey', {unique: true})
 
-    // Intros
-    var intros = db.createObjectStore('intros')
-    intros.createIndex('publicKey', 'publicKey', {unique: true})
-
     // Drafts
     var drafts = db.createObjectStore('drafts')
     drafts.createIndex('parents', 'message.body.parents', {
@@ -57,6 +53,10 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Logs
     var logs = db.createObjectStore('logs')
     logs.createIndex('publicKey', 'publicKey', {unique: false})
+    logs.createIndex('type', 'message.body.type', {unique: false})
+    logs.createIndex(
+      'publicKey-type', ['publicKey', 'message.body.type'], {unique: false}
+    )
   }
 
   callback()
@@ -96,14 +96,10 @@ Project.prototype.getDefaultIdentity = function (callback) {
   })
 }
 
-Project.prototype.getIntro = function (publicKey, callback) {
-  this._get('intros', publicKey, callback)
-}
-
 // Intros
 
 Project.prototype.listIntros = function (callback) {
-  this._listValues('intros', callback)
+  this._indexQuery('logs', 'type', 'intro', callback)
 }
 
 Project.prototype.putIntro = function (message, identity, callback) {
@@ -157,7 +153,8 @@ Project.prototype._log = function (key, message, identity, callback) {
   // Determine the current log head, create an envelope, and append
   // it in a single transaction.
   var envelope
-  var transaction = self._db.transaction(['logs', typeStore], 'readwrite')
+  var affectedStores = typeStore === 'intros' ? ['logs'] : ['logs', typeStore]
+  var transaction = self._db.transaction(affectedStores, 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
   }
@@ -199,10 +196,12 @@ Project.prototype._log = function (key, message, identity, callback) {
       .objectStore('logs')
       .add(envelope, logEntryKey(envelope.publicKey, index))
     // Put to the type-specific store.
-    if (key === COMPUTE_DIGEST) key = hash(stringified)
-    transaction
-      .objectStore(typeStore)
-      .put(envelope, key)
+    if (typeStore !== 'intros') {
+      if (key === COMPUTE_DIGEST) key = hash(stringified)
+      transaction
+        .objectStore(typeStore)
+        .put(envelope, key)
+    }
   }
 }
 

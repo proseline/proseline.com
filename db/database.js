@@ -122,3 +122,23 @@ prototype._count = function (storeName, lower, upper, callback) {
     callback(null, request.result)
   }
 }
+
+prototype._indexQuery = function (storeName, indexName, key, callback) {
+  var transaction = this._db.transaction([storeName], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore(storeName)
+  var index = objectStore.index(indexName)
+  var request = index.openCursor(IDBKeyRange.only(key))
+  var results = []
+  request.onsuccess = function () {
+    var cursor = request.result
+    if (cursor) {
+      results.push(cursor.value)
+      cursor.continue()
+    } else {
+      callback(null, results)
+    }
+  }
+}
