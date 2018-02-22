@@ -221,15 +221,23 @@ function renderMarkdown (markdown) {
 }
 
 function markDraft (send) {
-  var button = document.createElement('button')
-  button.addEventListener('click', function (event) {
-    var marker = window.prompt('Name the marker:')
-    if (marker === null) return
-    if (marker.length === 0) return
-    send('mark', marker)
+  var form = document.createElement('form')
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    send('mark', input.value)
   })
+
+  var input = document.createElement('input')
+  input.required = true
+  form.appendChild(input)
+
+  var button = document.createElement('button')
+  button.type = 'submit'
   button.appendChild(document.createTextNode('Put a marker on this draft.'))
-  return button
+  form.appendChild(button)
+
+  return form
 }
 
 function newDraft (state, send) {
