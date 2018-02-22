@@ -9,6 +9,10 @@ module.exports = function (state, draft) {
   )
   a.appendChild(renderIntro(state, draft.publicKey))
   a.appendChild(document.createTextNode(' on '))
-  a.appendChild(renderTimestamp(draft.message.body.timestamp))
+  if (draft.message) {
+    a.appendChild(renderTimestamp(draft.message.body.timestamp))
+  } else {
+    a.appendChild(renderTimestamp(draft.timestamp))
+  }
   return a
 }

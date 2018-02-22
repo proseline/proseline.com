@@ -1,11 +1,10 @@
 var identityLine = require('./partials/identity-line')
 var loading = require('./loading')
+var moment = require('moment')
 var renderDraftLink = require('./partials/draft-link')
 var renderHomeLink = require('./partials/home-link')
 var renderIntro = require('./partials/intro')
 var renderRefreshNotice = require('./partials/refresh-notice')
-var renderTimestamp = require('./partials/timestamp')
-var timestamp = require('./partials/timestamp')
 
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
@@ -110,7 +109,20 @@ function activity (state, send) {
     var li = document.createElement('li')
     ol.appendChild(li)
     if (type === 'draft') {
-      li.appendChild(renderDraftLink(state, envelope))
+      li.appendChild(renderIntro(state, envelope.publicKey))
+      li.appendChild(document.createTextNode(' added '))
+      var a = document.createElement('a')
+      li.appendChild(a)
+      a.href = (
+        '/projects/' + envelope.message.project +
+        '/drafts/' + envelope.digest
+      )
+      a.appendChild(document.createTextNode('a draft'))
+      li.appendChild(document.createTextNode(' '))
+      li.appendChild(document.createTextNode(
+        moment(envelope.message.body.timestamp).fromNow()
+      ))
+      li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
       li.appendChild(renderIntro(state, envelope.publicKey))
     } else if (type === 'mark') {
@@ -119,8 +131,10 @@ function activity (state, send) {
       li.appendChild(document.createTextNode('“' + body.name + '”'))
       li.appendChild(document.createTextNode(' on '))
       li.appendChild(draftLink(state.discoveryKey, body.draft))
-      li.appendChild(document.createTextNode(' on '))
-      li.appendChild(renderTimestamp(body.timestamp))
+      li.appendChild(document.createTextNode(' '))
+      li.appendChild(document.createTextNode(
+        moment(body.timestamp).fromNow()
+      ))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
       li.appendChild(renderIntro(state, envelope.publicKey))
@@ -132,8 +146,10 @@ function activity (state, send) {
         )
       )
       li.appendChild(draftLink(state.discoveryKey, body.draft))
-      li.appendChild(document.createTextNode(' on '))
-      li.appendChild(renderTimestamp(body.timestamp))
+      li.appendChild(document.createTextNode(' '))
+      li.appendChild(document.createTextNode(
+        moment(body.timestamp).fromNow()
+      ))
       li.appendChild(document.createTextNode('.'))
     }
   })
@@ -219,27 +235,19 @@ function graph (state) {
     tr.appendChild(td)
     td.className = 'draft'
 
+    td.appendChild(renderDraftLink(state, brief))
+
     var marks = digestToMarks[brief.digest]
     if (marks) {
       marks.forEach(function (mark) {
         var p = document.createElement('p')
         td.appendChild(p)
         p.className = 'mark'
+        p.appendChild(renderIntro(state, mark.publicKey))
+        p.appendChild(document.createTextNode(': '))
         p.appendChild(document.createTextNode(mark.message.body.name))
       })
     }
-
-    var a = document.createElement('a')
-    a.href = (
-      '/projects/' + state.discoveryKey +
-      '/drafts/' + brief.digest
-    )
-    a.appendChild(document.createTextNode(truncate(brief.digest)))
-    td.appendChild(a)
-
-    td.appendChild(document.createElement('br'))
-
-    td.appendChild(timestamp(brief.timestamp))
 
     brief.parents.forEach(function (parent) {
       td.appendChild(document.createElement('br'))
