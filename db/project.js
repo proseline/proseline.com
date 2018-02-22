@@ -36,24 +36,26 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     logs.createIndex(
       'publicKey-type', ['publicKey', TYPE_KEY_PATH], {unique: false}
     )
-    // Draft Indexes
+    // Index by parents so we can query for drafts by parent digest.
     logs.createIndex('parents', 'message.body.parents', {
       unique: false,
       multiEntry: true
     })
-    // Mark and Note Index
+    // Index by type and draft so we can query for marks and notes by
+    // draft digest.
     logs.createIndex(
       'type-draft',
       [TYPE_KEY_PATH, 'message.body.draft'],
       {unique: false}
     )
-    // Mark Index
+    // Index by public key and identifier so we can query for marks.
     logs.createIndex(
       'publicKey-identifier',
       ['publicKey', 'message.body.identifier'],
       {unique: false}
     )
-    // General Indexes
+    // Index everything by digest, a property added just for indexing,
+    // so that we can get drafts and notes by digest.
     logs.createIndex('digest', 'digest', {unique: true})
   }
 
