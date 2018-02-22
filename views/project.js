@@ -3,8 +3,8 @@ var loading = require('./loading')
 var renderDraftLink = require('./partials/draft-link')
 var renderHomeLink = require('./partials/home-link')
 var renderIntro = require('./partials/intro')
-var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
+var renderTimestamp = require('./partials/timestamp')
 var timestamp = require('./partials/timestamp')
 
 module.exports = function (state, send, discoveryKey) {
@@ -117,7 +117,8 @@ function activity (state, send) {
   var ol = document.createElement('ol')
   ol.className = 'activity'
   state.activity.forEach(function (envelope) {
-    var type = envelope.message.body.type
+    var body = envelope.message.body
+    var type = body.type
     var li = document.createElement('li')
     ol.appendChild(li)
     if (type === 'draft') {
@@ -125,10 +126,16 @@ function activity (state, send) {
     } else if (type === 'intro') {
       li.appendChild(renderIntro(state, envelope.publicKey))
     } else if (type === 'mark') {
-      li.appendChild(renderMark(envelope, state))
+      li.appendChild(renderIntro(state, envelope.publicKey))
+      li.appendChild(document.createTextNode(' put the mark '))
+      li.appendChild(document.createTextNode('“' + body.name + '”'))
+      li.appendChild(document.createTextNode(' on '))
+      li.appendChild(draftLink(state.discoveryKey, body.draft))
+      li.appendChild(document.createTextNode(' on '))
+      li.appendChild(renderTimestamp(body.timestamp))
+      li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
       li.appendChild(renderIntro(state, envelope.publicKey))
-      var body = envelope.message.body
       li.appendChild(
         document.createTextNode(
           body.parent
@@ -136,17 +143,23 @@ function activity (state, send) {
             : ' added a note to '
         )
       )
-      var a = document.createElement('a')
-      a.href = (
-        '/projects/' + state.discoveryKey +
-        '/drafts/' + body.draft
-      )
-      a.appendChild(document.createTextNode('this draft'))
-      li.appendChild(a)
+      li.appendChild(draftLink(state.discoveryKey, body.draft))
+      li.appendChild(document.createTextNode(' on '))
+      li.appendChild(renderTimestamp(body.timestamp))
       li.appendChild(document.createTextNode('.'))
     }
   })
   return ol
+}
+
+function draftLink (discoveryKey, digest) {
+  var a = document.createElement('a')
+  a.href = (
+    '/projects/' + discoveryKey +
+    '/drafts/' + digest
+  )
+  a.appendChild(document.createTextNode('this draft'))
+  return a
 }
 
 // TODO: Graph merging drafts.
