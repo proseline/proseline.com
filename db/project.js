@@ -28,13 +28,6 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     var identities = db.createObjectStore('identities')
     identities.createIndex('publicKey', 'publicKey', {unique: true})
 
-    // Drafts
-    var drafts = db.createObjectStore('drafts')
-    drafts.createIndex('parents', 'message.body.parents', {
-      unique: false,
-      multiEntry: true
-    })
-
     // Notes
     var notes = db.createObjectStore('notes')
     notes.createIndex('draft', 'message.body.draft', {unique: false})
@@ -53,10 +46,16 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Logs
     var logs = db.createObjectStore('logs')
     logs.createIndex('publicKey', 'publicKey', {unique: false})
-    logs.createIndex('type', 'message.body.type', {unique: false})
+    var TYPE_KEY_PATH = 'message.body.type'
+    logs.createIndex('type', TYPE_KEY_PATH, {unique: false})
     logs.createIndex(
-      'publicKey-type', ['publicKey', 'message.body.type'], {unique: false}
+      'publicKey-type', ['publicKey', TYPE_KEY_PATH], {unique: false}
     )
+    logs.createIndex('parents', 'message.body.parents', {
+      unique: false,
+      multiEntry: true
+    })
+    logs.createIndex('digest', 'digest', {unique: true})
   }
 
   callback()
@@ -142,6 +141,8 @@ function formatEntryIndex (index) {
 
 var COMPUTE_DIGEST = {}
 
+var NO_TYPE_STORE = ['intros', 'drafts']
+
 Project.prototype._log = function (key, message, identity, callback) {
   assert.equal(typeof message, 'object')
   assert(message.hasOwnProperty('project'))
@@ -153,7 +154,7 @@ Project.prototype._log = function (key, message, identity, callback) {
   // Determine the current log head, create an envelope, and append
   // it in a single transaction.
   var envelope
-  var affectedStores = typeStore === 'intros' ? ['logs'] : ['logs', typeStore]
+  var affectedStores = NO_TYPE_STORE.includes(typeStore) ? ['logs'] : ['logs', typeStore]
   var transaction = self._db.transaction(affectedStores, 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
@@ -189,15 +190,17 @@ Project.prototype._log = function (key, message, identity, callback) {
     envelope = {
       message: message,
       publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey)
+      signature: sign(stringified, identity.secretKey),
+      // Add digest for indexing.
+      digest: hash(stringified)
     }
     // Put the envelope.
     transaction
       .objectStore('logs')
       .add(envelope, logEntryKey(envelope.publicKey, index))
     // Put to the type-specific store.
-    if (typeStore !== 'intros') {
-      if (key === COMPUTE_DIGEST) key = hash(stringified)
+    if (key === COMPUTE_DIGEST) key = hash(stringified)
+    if (!NO_TYPE_STORE.includes(typeStore)) {
       transaction
         .objectStore(typeStore)
         .put(envelope, key)
@@ -206,7 +209,16 @@ Project.prototype._log = function (key, message, identity, callback) {
 }
 
 Project.prototype.getEnvelope = function (publicKey, index, callback) {
-  this._get('logs', logEntryKey(publicKey, index), callback)
+  var key = logEntryKey(publicKey, index)
+  this._get('logs', key, function (error, envelope) {
+    if (error) return callback(error)
+    callback(null, {
+      message: envelope.message,
+      publicKey: envelope.publicKey,
+      signature: envelope.signature
+      // (Omit the digest stored for indexing.)
+    })
+  })
 }
 
 // TODO: Deduplicate _log and putEnvelope
@@ -218,6 +230,8 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   assert(envelope.hasOwnProperty('signature'))
   assert.equal(typeof callback, 'function')
   var self = this
+  // Add digest for indexing.
+  envelope.digest = hash(stringify(envelope.message))
   var type = envelope.message.body.type
   var typeStore = type + 's'
   var transaction = self._db.transaction(['logs', typeStore], 'readwrite')
@@ -303,42 +317,26 @@ Project.prototype.putDraft = function (message, identity, callback) {
 }
 
 Project.prototype.getDraft = function (digest, callback) {
-  this._get('drafts', digest, callback)
+  this._getFromIndex('logs', 'digest', digest, callback)
 }
 
 Project.prototype.getChildren = function (digest, callback) {
-  var transaction = this._db.transaction(['drafts'], 'readonly')
-  transaction.onerror = function () {
-    callback(transaction.error)
-  }
-  var objectStore = transaction.objectStore('drafts')
-  var index = objectStore.index('parents')
-  var request = index.openCursor(digest)
-  var children = []
-  request.onsuccess = function () {
-    var cursor = request.result
-    if (cursor) {
-      var value = cursor.value
-      value.digest = cursor.primaryKey
-      children.push(value)
-      cursor.continue()
-    } else {
-      callback(null, children)
-    }
-  }
+  this._indexQuery('logs', 'parents', digest, callback)
 }
 
 Project.prototype.listDraftBriefs = function (callback) {
-  this._list('drafts', function (cursor) {
-    var value = cursor.value
-    var body = value.message.body
-    return {
-      digest: cursor.key,
-      publicKey: value.publicKey,
-      parents: body.parents,
-      timestamp: body.timestamp
-    }
-  }, callback)
+  this._indexQuery('logs', 'type', 'draft', function (error, drafts) {
+    if (error) return callback(error)
+    callback(null, drafts.map(function (draft) {
+      var body = draft.message.body
+      return {
+        digest: draft.digest,
+        publicKey: draft.publicKey,
+        parents: body.parents,
+        timestamp: body.timestamp
+      }
+    }))
+  })
 }
 
 // Marks

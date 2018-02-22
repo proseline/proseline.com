@@ -41,6 +41,19 @@ prototype._get = function (store, key, callback) {
   }
 }
 
+prototype._getFromIndex = function (store, indexName, key, callback) {
+  var transaction = this._db.transaction([store], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore(store)
+  var index = objectStore.index(indexName)
+  var request = index.get(key)
+  request.onsuccess = function () {
+    callback(null, request.result)
+  }
+}
+
 prototype._put = function (store, key, value, callback) {
   var transaction = this._db.transaction([store], 'readwrite')
   transaction.oncomplete = function () {
