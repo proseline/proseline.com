@@ -131,11 +131,14 @@ function activity (state, send) {
         ' introduced ' +
         (
           envelope.publicKey === state.identity.publicKey
-            ? 'yourself'
-            : 'themself'
-        ) +
-        '.'
+            ? 'yourself '
+            : 'themself '
+        )
       ))
+      li.appendChild(document.createTextNode(
+        moment(envelope.message.body.timestamp).fromNow()
+      ))
+      li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
       li.appendChild(renderIntro(state, envelope.publicKey))
       li.appendChild(document.createTextNode(' put the mark '))

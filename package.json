@@ -71,6 +71,7 @@
     "lint": "standard",
     "precommit": "lint-staged",
     "test": "tape test/*.test.js",
+    "prewatch:css": "npm run build:css",
     "watch:css": "node-sass --watch --source-map true --output build styles/styles.sass",
     "watch:js": "watchify -p common-shakeify --ignore-transform uglifyify --ignore-transform unassertify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
   }
