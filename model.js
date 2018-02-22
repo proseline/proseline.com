@@ -60,7 +60,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('intro', function (newIntro, state) {
     state.intros[newIntro.publicKey] = newIntro
-    return {intros: state.intros}
+    return {
+      intros: state.intros,
+      activity: [newIntro].concat(state.activity)
+    }
   })
 
   // Projects
