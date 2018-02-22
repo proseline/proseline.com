@@ -24,13 +24,14 @@ module.exports = function (state, send, discoveryKey) {
     var intro = state.intros[state.identity.publicKey]
     if (!intro) {
       main.appendChild(identityLine(send))
-    }
-    main.appendChild(newDraft(state))
-    main.appendChild(inviteViaEMail(state))
-    main.appendChild(copyInvitation(state))
-    main.appendChild(activity(state, send))
-    if (state.draftBriefs.length !== 0) {
-      main.appendChild(graph(state))
+    } else {
+      main.appendChild(newDraft(state))
+      main.appendChild(inviteViaEMail(state))
+      main.appendChild(copyInvitation(state))
+      main.appendChild(activity(state, send))
+      if (state.draftBriefs.length !== 0) {
+        main.appendChild(graph(state))
+      }
     }
   }
   return main
