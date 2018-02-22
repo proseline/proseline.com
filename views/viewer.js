@@ -228,7 +228,7 @@ function renderMarkdown (markdown) {
   var rendered = writer.render(parsed)
   var template = document.createElement('template')
   template.innerHTML = rendered
-  return template.content.firstChild
+  return template.content
 }
 
 function markDraft (send) {
