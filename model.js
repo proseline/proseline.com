@@ -417,6 +417,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       db.putDraft(message, identity, function (error, envelope, digest) {
         if (error) return done(error)
+        reduce('push draft', envelope)
         reduce('push brief', {
           digest: digest,
           publicKey: identity.publicKey,
@@ -450,6 +451,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
+  reduction('push draft', function (envelope, state) {
+    return {activity: [envelope].concat(state.activity)}
+  })
+
   reduction('push brief', function (brief, state) {
     return {draftBriefs: (state.draftBriefs || []).concat(brief)}
   })
@@ -474,7 +479,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         : [mark],
       projectMarks: state.projectMarks
         ? state.projectMarks.concat(mark)
-        : [mark]
+        : [mark],
+      activity: [mark].concat(state.activity)
     }
   })
 
@@ -531,7 +537,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {
       notes: notes,
       notesTree: treeifyNotes(notes),
-      replyTo: null
+      replyTo: null,
+      activity: [newNote].concat(state.activity)
     }
   })
 
