@@ -1,8 +1,6 @@
 var loading = require('./loading')
 var renderHomeLink = require('./partials/home-link')
 
-// TODO: private key backup link
-
 // TODO: paid peer UI
 
 module.exports = function (state, send) {
@@ -18,6 +16,7 @@ module.exports = function (state, send) {
     main.appendChild(projectsList(state.projects))
     main.appendChild(createProject(send))
     main.appendChild(joinProject(send))
+    main.appendChild(backup(send))
   }
   return main
 }
@@ -72,5 +71,14 @@ function joinProject (send) {
     send('join project', secretKey)
   })
   button.appendChild(document.createTextNode('Join Project'))
+  return button
+}
+
+function backup (send) {
+  var button = document.createElement('button')
+  button.addEventListener('click', function () {
+    send('backup')
+  })
+  button.appendChild(document.createTextNode('Backup projects.'))
   return button
 }
