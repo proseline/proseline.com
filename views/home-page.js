@@ -58,7 +58,7 @@ function createProject (send) {
       title: title
     })
   })
-  button.appendChild(document.createTextNode('Create Project'))
+  button.appendChild(document.createTextNode('Create a project.'))
   return button
 }
 
@@ -70,7 +70,7 @@ function joinProject (send) {
     secretKey = /[a-f0-9]{64}$/.exec(secretKey)[0]
     send('join project', secretKey)
   })
-  button.appendChild(document.createTextNode('Join Project'))
+  button.appendChild(document.createTextNode('Join a project'))
   return button
 }
 
