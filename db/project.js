@@ -37,12 +37,6 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     })
     notes.createIndex('publicKey', 'publicKey', {unique: false})
 
-    // Marks
-    var marks = db.createObjectStore('marks')
-    marks.createIndex('publicKey', 'publicKey', {unique: false})
-    marks.createIndex('draft', 'message.body.draft', {unique: false})
-    marks.createIndex('identifier', 'message.body.identifier', {unique: false})
-
     // Logs
     var logs = db.createObjectStore('logs')
     logs.createIndex('publicKey', 'publicKey', {unique: false})
@@ -51,10 +45,19 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     logs.createIndex(
       'publicKey-type', ['publicKey', TYPE_KEY_PATH], {unique: false}
     )
+    // Draft Indexes
     logs.createIndex('parents', 'message.body.parents', {
       unique: false,
       multiEntry: true
     })
+    // Mark Indexes
+    logs.createIndex('draft', 'message.body.draft', {unique: false})
+    logs.createIndex(
+      'publicKey-identifier',
+      ['publicKey', 'message.body.identifier'],
+      {unique: false}
+    )
+    // General Indexes
     logs.createIndex('digest', 'digest', {unique: true})
   }
 
@@ -141,7 +144,7 @@ function formatEntryIndex (index) {
 
 var COMPUTE_DIGEST = {}
 
-var NO_TYPE_STORE = ['intros', 'drafts']
+var NO_TYPE_STORE = ['intros', 'drafts', 'marks']
 
 Project.prototype._log = function (key, message, identity, callback) {
   assert.equal(typeof message, 'object')
@@ -349,37 +352,29 @@ Project.prototype.putMark = function (message, identity, callback) {
 }
 
 Project.prototype.getMark = function (publicKey, identifier, callback) {
-  this._get('marks', markKey(publicKey, identifier), callback)
+  var transaction = this._db.transaction(['logs'], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore('logs')
+  var index = objectStore.index('publicKey-identifier')
+  var request = index.openCursor([publicKey, identifier], 'prev')
+  request.onsuccess = function () {
+    var cursor = request.result
+    callback(null, cursor ? cursor.value : undefined)
+  }
 }
 
 function markKey (publicKey, identifier) {
   return publicKey + ':' + identifier
 }
 
-// TODO: Use a method on Database
 Project.prototype.getMarks = function (digest, callback) {
-  var transaction = this._db.transaction(['marks'], 'readonly')
-  transaction.onerror = function () {
-    callback(transaction.error)
-  }
-  var objectStore = transaction.objectStore('marks')
-  var index = objectStore.index('draft')
-  var request = index.openCursor(digest)
-  var marks = []
-  request.onsuccess = function () {
-    var cursor = request.result
-    if (cursor) {
-      var value = cursor.value
-      marks.push(value)
-      cursor.continue()
-    } else {
-      callback(null, marks)
-    }
-  }
+  this._indexQuery('logs', 'draft', digest, callback)
 }
 
 Project.prototype.listMarks = function (callback) {
-  this._listValues('marks', callback)
+  this._indexQuery('logs', 'type', 'mark', callback)
 }
 
 // Notes
