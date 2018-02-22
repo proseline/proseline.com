@@ -38,27 +38,33 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     }
     var parent = state.parent
 
-    // Header with Save Button
-    var save = document.createElement('button')
-    save.className = 'button'
-    save.id = 'save'
-    save.addEventListener('click', function () {
-      if (textarea.value.length === 0) {
-        window.alert('Draft is empty.')
-        return
-      }
-      var markName = window.prompt('Name this draft:')
-      if (markName === null) return
-      if (markName.length === 0) return
+    main.appendChild(renderDraftHeader(state))
+
+    var form = document.createElement('form')
+    main.appendChild(form)
+    form.addEventListener('submit', function (event) {
+      event.preventDefault()
+      event.stopPropagation()
       send('save', {
         discoveryKey: discoveryKey,
         text: textarea.value,
         parents: parent ? [parent.digest] : [],
-        mark: markName
+        mark: input.value
       })
     })
+
+    // Marker Input
+    var input = document.createElement('input')
+    form.appendChild(input)
+    input.required = true
+    input.placeholder = 'Enter a name.'
+
+    // Header with Save Button
+    var save = document.createElement('button')
+    form.appendChild(save)
+    save.className = 'button'
+    save.id = 'save'
     save.appendChild(document.createTextNode('Save'))
-    main.appendChild(renderDraftHeader(state, save))
 
     // <textarea>
     var textarea = expandingTextArea()
