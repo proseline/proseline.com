@@ -126,6 +126,15 @@ function activity (state, send) {
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
       li.appendChild(renderIntro(state, envelope.publicKey))
+      li.appendChild(document.createTextNode(
+        ' introduced ' +
+        (
+          envelope.publicKey === state.identity.publicKey
+            ? 'yourself'
+            : 'themself'
+        ) +
+        '.'
+      ))
     } else if (type === 'mark') {
       li.appendChild(renderIntro(state, envelope.publicKey))
       li.appendChild(document.createTextNode(' put the mark '))

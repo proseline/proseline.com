@@ -50,17 +50,67 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
         discoveryKey: discoveryKey,
         text: textarea.value,
         parents: parent ? [parent.digest] : [],
-        mark: input.value
+        mark: {
+          name: (
+            input.value ||
+            select.options[select.selectedIndex].innerText
+          ),
+          identifier: input.value
+            ? null
+            : select.options[select.selectedIndex].value
+        }
       })
     })
 
+    var marksICanMove = state.projectMarks.filter(function (mark) {
+      return mark.publicKey === state.identity.publicKey
+    })
+    var haveMarks = marksICanMove.length !== 0
+
     // Marker Input
     var input = document.createElement('input')
-    form.appendChild(input)
-    input.required = true
     input.placeholder = 'Enter a name.'
+    input.required = true
 
-    // Header with Save Button
+    if (haveMarks) {
+      // Marker Select
+      var select = document.createElement('select')
+      form.appendChild(select)
+      var toggleInput = function () {
+        if (select.selectedIndex === 0) {
+          input.required = true
+          select.parentNode.insertBefore(input, select.nextSibling)
+        } else {
+          input.value = ''
+          input.remove()
+        }
+      }
+      select.addEventListener('change', function () {
+        toggleInput()
+      })
+      var newOption = document.createElement('option')
+      newOption.appendChild(document.createTextNode('(Create a new marker.)'))
+      select.appendChild(newOption)
+      var markedSelected = false
+      marksICanMove
+        .reverse()
+        .forEach(function (mark) {
+          var option = document.createElement('option')
+          select.appendChild(option)
+          var body = mark.message.body
+          option.value = body.identifier
+          option.appendChild(document.createTextNode(body.name))
+          if (parent && body.draft === parent.digest && !markedSelected) {
+            option.selected = true
+            markedSelected = true
+          }
+        })
+      toggleInput()
+    } else {
+      form.appendChild(input)
+    }
+
+    // Save Button
     var save = document.createElement('button')
     form.appendChild(save)
     save.className = 'button'

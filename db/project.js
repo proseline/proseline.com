@@ -297,6 +297,7 @@ Project.prototype.listDraftBriefs = function (callback) {
       var body = draft.message.body
       return {
         digest: draft.digest,
+        project: draft.message.project,
         publicKey: draft.publicKey,
         parents: body.parents,
         timestamp: body.timestamp
