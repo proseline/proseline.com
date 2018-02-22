@@ -15,7 +15,6 @@ module.exports = function (state, send) {
     main.appendChild(header())
     main.appendChild(projectsList(state.projects))
     main.appendChild(createProject(send))
-    main.appendChild(joinProject(send))
     main.appendChild(backup(send))
   }
   return main
@@ -59,18 +58,6 @@ function createProject (send) {
     })
   })
   button.appendChild(document.createTextNode('Create a project.'))
-  return button
-}
-
-function joinProject (send) {
-  var button = document.createElement('button')
-  button.addEventListener('click', function () {
-    var secretKey = window.prompt('Enter invite code:')
-    if (secretKey === null) return
-    secretKey = /[a-f0-9]{64}$/.exec(secretKey)[0]
-    send('join project', secretKey)
-  })
-  button.appendChild(document.createTextNode('Join a project.'))
   return button
 }
 
