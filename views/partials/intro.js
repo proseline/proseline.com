@@ -1,4 +1,8 @@
+var assert = require('assert')
+
 module.exports = function (state, publicKey) {
+  assert.equal(typeof state, 'object')
+  assert.equal(typeof publicKey, 'string')
   var span = document.createElement('span')
   span.className = 'intro'
   var intro = state.intros[publicKey]
