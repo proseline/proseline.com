@@ -94,7 +94,10 @@ function parents (state, send) {
     li.id = 'parent-' + parent.digest
     // <a>
     var a = document.createElement('a')
-    a.href = '/drafts/' + parent.digest
+    a.href = (
+      '/projects/' + state.discoveryKey +
+      '/drafts/' + parent.digest
+    )
     a.appendChild(renderIntro(state, parent.publicKey))
     a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(parent.message.body.timestamp))
@@ -140,7 +143,10 @@ function children (state, send) {
     li.id = 'child-' + child.digest
     // <a>
     var a = document.createElement('a')
-    a.href = '/drafts/' + child.digest
+    a.href = (
+      '/projects/' + state.discoveryKey +
+      '/drafts/' + child.digest
+    )
     a.appendChild(renderIntro(state, child.publicKey))
     a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(child.message.body.timestamp))
