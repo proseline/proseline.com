@@ -431,6 +431,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         reduce('push draft', envelope)
         reduce('push brief', {
           digest: digest,
+          project: envelope.message.project,
           publicKey: identity.publicKey,
           parents: draft.parents,
           timestamp: draft.timestamp
