@@ -233,6 +233,7 @@ function renderMarkdown (markdown) {
 
 function markDraft (send) {
   var form = document.createElement('form')
+  form.id = 'markDraft'
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()

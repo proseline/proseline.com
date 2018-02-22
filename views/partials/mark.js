@@ -3,6 +3,7 @@ var renderTimestamp = require('./timestamp')
 
 module.exports = function (mark, state, send) {
   var p = document.createElement('p')
+  p.className = 'mark'
 
   p.appendChild(renderIntro(state, mark.publicKey))
   p.appendChild(document.createTextNode(' put the marker '))

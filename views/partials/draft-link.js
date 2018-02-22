@@ -3,6 +3,7 @@ var renderTimestamp = require('./timestamp')
 
 module.exports = function (state, draft) {
   var a = document.createElement('a')
+  a.className = 'draft'
   a.href = (
     '/projects/' + draft.project +
     '/drafts/' + draft.digest

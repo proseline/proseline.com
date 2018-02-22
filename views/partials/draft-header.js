@@ -3,6 +3,7 @@ var renderProjectLink = require('./project-link')
 
 module.exports = function (state, addition) {
   var header = document.createElement('header')
+  header.className = 'draftHeader'
   header.appendChild(renderHomeLink())
   header.appendChild(renderProjectLink(state))
   if (addition) header.appendChild(addition)

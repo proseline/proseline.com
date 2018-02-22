@@ -243,7 +243,7 @@ function graph (state) {
     // Data <td>
     var td = document.createElement('td')
     tr.appendChild(td)
-    td.className = 'draft'
+    td.className = 'draftCell'
 
     td.appendChild(renderDraftLink(state, brief))
 

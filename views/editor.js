@@ -41,6 +41,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     main.appendChild(renderDraftHeader(state))
 
     var form = document.createElement('form')
+    form.id = 'draft'
     main.appendChild(form)
     form.addEventListener('submit', function (event) {
       event.preventDefault()
