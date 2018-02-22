@@ -1,10 +1,11 @@
 var identityLine = require('./partials/identity-line')
 var loading = require('./loading')
+var renderDraftLink = require('./partials/draft-link')
 var renderHomeLink = require('./partials/home-link')
+var renderIntro = require('./partials/intro')
+var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var timestamp = require('./partials/timestamp')
-
-// TODO: List most recent activity.
 
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
@@ -28,6 +29,7 @@ module.exports = function (state, send, discoveryKey) {
     main.appendChild(newDraft(state))
     main.appendChild(inviteViaEMail(state))
     main.appendChild(copyInvitation(state))
+    main.appendChild(activity(state, send))
     if (state.draftBriefs.length !== 0) {
       main.appendChild(graph(state))
     }
@@ -109,6 +111,42 @@ function copyInvitation (state) {
   a.setAttribute('data-clipboard-text', url)
   a.appendChild(document.createTextNode('Copy a link to this project.'))
   return a
+}
+
+function activity (state, send) {
+  var ol = document.createElement('ol')
+  ol.className = 'activity'
+  state.activity.forEach(function (envelope) {
+    var type = envelope.message.body.type
+    var li = document.createElement('li')
+    ol.appendChild(li)
+    if (type === 'draft') {
+      li.appendChild(renderDraftLink(state, envelope))
+    } else if (type === 'intro') {
+      li.appendChild(renderIntro(state, envelope.publicKey))
+    } else if (type === 'mark') {
+      li.appendChild(renderMark(envelope, state))
+    } else if (type === 'note') {
+      li.appendChild(renderIntro(state, envelope.publicKey))
+      var body = envelope.message.body
+      li.appendChild(
+        document.createTextNode(
+          body.parent
+            ? ' replied to a note to '
+            : ' added a note to '
+        )
+      )
+      var a = document.createElement('a')
+      a.href = (
+        '/projects/' + state.discoveryKey +
+        '/drafts/' + body.draft
+      )
+      a.appendChild(document.createTextNode('this draft'))
+      li.appendChild(a)
+      li.appendChild(document.createTextNode('.'))
+    }
+  })
+  return ol
 }
 
 // TODO: Graph merging drafts.

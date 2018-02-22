@@ -234,6 +234,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             })
             done(null, result)
           })
+        },
+        activity: function (done) {
+          db.activity(20, done)
         }
       }, callback)
     })
@@ -249,7 +252,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       identity: data.identity,
       intros: data.intros,
       projectMarks: data.projectMarks || [],
-      draftBriefs: data.draftBriefs || []
+      draftBriefs: data.draftBriefs || [],
+      activity: data.activity
     }
   })
 

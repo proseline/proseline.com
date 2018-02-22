@@ -16,7 +16,7 @@ function Project (secretKey) {
   this._updateStreams = []
   Database.call(this, {
     name: secretKey,
-    version: 2
+    version: 3
   })
 }
 
@@ -57,6 +57,9 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Index everything by digest, a property added just for indexing,
     // so that we can get drafts and notes by digest.
     logs.createIndex('digest', 'digest', {unique: true})
+    // Index everything by time added so we can query for the most
+    // recent activity in a project.
+    logs.createIndex('added', 'added')
   }
 
   callback()
@@ -178,7 +181,7 @@ Project.prototype._log = function (message, identity, callback) {
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey)
     }
-    addDigestForIndexing(envelope)
+    addIndexingMetadata(envelope)
     transaction
       .objectStore('logs')
       .add(envelope, logEntryKey(envelope.publicKey, index))
@@ -189,12 +192,8 @@ Project.prototype.getEnvelope = function (publicKey, index, callback) {
   var key = logEntryKey(publicKey, index)
   this._get('logs', key, function (error, envelope) {
     if (error) return callback(error)
-    callback(null, {
-      message: envelope.message,
-      publicKey: envelope.publicKey,
-      signature: envelope.signature
-      // (Omit the digest stored for indexing.)
-    })
+    removeIndexingMetadata(envelope)
+    callback(null, envelope)
   })
 }
 
@@ -205,7 +204,7 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   assert(envelope.hasOwnProperty('signature'))
   assert.equal(typeof callback, 'function')
   var self = this
-  addDigestForIndexing(envelope)
+  addIndexingMetadata(envelope)
   var transaction = self._db.transaction(['logs'], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
@@ -224,8 +223,14 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     .add(envelope, key)
 }
 
-function addDigestForIndexing (envelope) {
+function addIndexingMetadata (envelope) {
   envelope.digest = hash(stringify(envelope.message))
+  envelope.added = new Date().toISOString()
+}
+
+function removeIndexingMetadata (envelope) {
+  delete envelope.digest
+  delete envelope.added
 }
 
 Project.prototype._streamUpdate = function (publicKey, index, callback) {
@@ -336,4 +341,32 @@ Project.prototype.getNotes = function (digest, callback) {
 
 Project.prototype.putNote = function (message, identity, callback) {
   this._log(message, identity, callback)
+}
+
+// Activity
+
+Project.prototype.activity = function (count, callback) {
+  assert(Number.isInteger(count))
+  assert(count > 0)
+  var transaction = this._db.transaction(['logs'], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore('logs')
+  var index = objectStore.index('added')
+  var request = index.openCursor(null, 'prev') // reverse
+  var results = []
+  request.onsuccess = function () {
+    var cursor = request.result
+    if (cursor) {
+      results.push(cursor.value)
+      if (results.length === count) {
+        callback(null, results)
+      } else {
+        cursor.continue()
+      }
+    } else {
+      callback(null, results)
+    }
+  }
 }
