@@ -81,7 +81,7 @@ function newDraft (state) {
   var a = document.createElement('a')
   a.className = 'button'
   a.href = '/projects/' + state.discoveryKey + '/drafts/new'
-  a.appendChild(document.createTextNode('Start a new draft.'))
+  a.appendChild(document.createTextNode('Start a new draft from scratch.'))
   return a
 }
 
