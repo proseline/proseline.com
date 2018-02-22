@@ -12,7 +12,9 @@ module.exports = function (state, publicKey) {
       )
     )
   } else {
-    span.appendChild(document.createTextNode(publicKey))
+    span.appendChild(document.createTextNode(
+      'An anonymous user'
+    ))
   }
   return span
 }
