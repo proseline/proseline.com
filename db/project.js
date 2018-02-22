@@ -16,7 +16,7 @@ function Project (secretKey) {
   this._updateStreams = []
   Database.call(this, {
     name: secretKey,
-    version: 1
+    version: 2
   })
 }
 
