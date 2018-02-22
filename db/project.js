@@ -106,7 +106,7 @@ Project.prototype.putIntro = function (message, identity, callback) {
   assert.equal(typeof message, 'object')
   assert.equal(typeof identity, 'object')
   assert.equal(typeof callback, 'function')
-  this._log(identity.publicKey, message, identity, callback)
+  this._log(message, identity, callback)
 }
 
 // Logs
@@ -140,9 +140,7 @@ function formatEntryIndex (index) {
   return index.toString().padStart(INDEX_DIGITS, '0')
 }
 
-var COMPUTE_DIGEST = {}
-
-Project.prototype._log = function (key, message, identity, callback) {
+Project.prototype._log = function (message, identity, callback) {
   assert.equal(typeof message, 'object')
   assert(message.hasOwnProperty('project'))
   assert(message.hasOwnProperty('body'))
@@ -276,7 +274,7 @@ Project.prototype.createOfferStream = function () {
 // Drafts
 
 Project.prototype.putDraft = function (message, identity, callback) {
-  this._log(COMPUTE_DIGEST, message, identity, callback)
+  this._log(message, identity, callback)
 }
 
 Project.prototype.getDraft = function (digest, callback) {
@@ -305,10 +303,7 @@ Project.prototype.listDraftBriefs = function (callback) {
 // Marks
 
 Project.prototype.putMark = function (message, identity, callback) {
-  var publicKey = identity.publicKey
-  var identifier = message.body.identifier
-  var key = markKey(publicKey, identifier)
-  this._log(key, message, identity, callback)
+  this._log(message, identity, callback)
 }
 
 Project.prototype.getMark = function (publicKey, identifier, callback) {
@@ -323,10 +318,6 @@ Project.prototype.getMark = function (publicKey, identifier, callback) {
     var cursor = request.result
     callback(null, cursor ? cursor.value : undefined)
   }
-}
-
-function markKey (publicKey, identifier) {
-  return publicKey + ':' + identifier
 }
 
 Project.prototype.getMarks = function (digest, callback) {
@@ -344,5 +335,5 @@ Project.prototype.getNotes = function (digest, callback) {
 }
 
 Project.prototype.putNote = function (message, identity, callback) {
-  this._log(COMPUTE_DIGEST, message, identity, callback)
+  this._log(message, identity, callback)
 }
