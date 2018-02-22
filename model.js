@@ -322,7 +322,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       diff: null,
       parent: null,
       parentMarks: null,
-      ownMarks: null
+      ownMarks: null,
+      changes: null
     }
   })
 
