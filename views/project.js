@@ -107,11 +107,12 @@ function activity (state, send) {
     var body = envelope.message.body
     var type = body.type
     var li = document.createElement('li')
+    var a
     ol.appendChild(li)
     if (type === 'draft') {
       li.appendChild(renderIntro(state, envelope.publicKey))
       li.appendChild(document.createTextNode(' added '))
-      var a = document.createElement('a')
+      a = document.createElement('a')
       li.appendChild(a)
       a.href = (
         '/projects/' + envelope.message.project +
@@ -138,13 +139,22 @@ function activity (state, send) {
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
       li.appendChild(renderIntro(state, envelope.publicKey))
-      li.appendChild(
+      li.appendChild(document.createTextNode(' '))
+      a = document.createElement('a')
+      li.appendChild(a)
+      a.href = (
+        '/projects/' + envelope.message.project +
+        '/drafts/' + envelope.message.body.draft +
+        '#' + envelope.digest
+      )
+      a.appendChild(
         document.createTextNode(
           body.parent
-            ? ' replied to a note to '
-            : ' added a note to '
+            ? 'replied to a note'
+            : 'added a note'
         )
       )
+      li.appendChild(document.createTextNode(' to '))
       li.appendChild(draftLink(state.discoveryKey, body.draft))
       li.appendChild(document.createTextNode(' '))
       li.appendChild(document.createTextNode(

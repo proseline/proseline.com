@@ -295,7 +295,7 @@ function notesList (state, send) {
 
 function noteLI (state, note, send) {
   var li = document.createElement('li')
-  li.id = 'note-' + note.digest
+  li.id = note.digest
   var replyTo = state.replyTo
   // <blockquote>
   var blockquote = document.createElement('blockquote')

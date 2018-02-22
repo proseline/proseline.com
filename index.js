@@ -244,6 +244,15 @@ window.addEventListener('click', function (event) {
     event.preventDefault()
     window.history.pushState({}, null, pathOf(node.href) || '/')
     update()
+    setTimeout(function () {
+      var match = /#([a-f0-9]{64})$/.exec(node.href)
+      if (match) {
+        var anchor = document.getElementById(match[1])
+        if (anchor) {
+          anchor.scrollIntoView()
+        }
+      }
+    }, 100)
   }
 })
 
