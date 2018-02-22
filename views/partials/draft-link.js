@@ -1,19 +1,19 @@
 var renderIntro = require('./intro')
 var renderTimestamp = require('./timestamp')
 
-module.exports = function (state, draft) {
+module.exports = function (state, draftOrBrief) {
   var a = document.createElement('a')
   a.className = 'draft'
   a.href = (
-    '/projects/' + draft.project +
-    '/drafts/' + draft.digest
+    '/projects/' + draftOrBrief.project +
+    '/drafts/' + draftOrBrief.digest
   )
-  a.appendChild(renderIntro(state, draft.publicKey))
+  a.appendChild(renderIntro(state, draftOrBrief.publicKey))
   a.appendChild(document.createTextNode(' on '))
-  if (draft.message) {
-    a.appendChild(renderTimestamp(draft.message.body.timestamp))
+  if (draftOrBrief.message) {
+    a.appendChild(renderTimestamp(draftOrBrief.message.body.timestamp))
   } else {
-    a.appendChild(renderTimestamp(draft.timestamp))
+    a.appendChild(renderTimestamp(draftOrBrief.timestamp))
   }
   return a
 }
