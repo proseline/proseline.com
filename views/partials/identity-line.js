@@ -14,7 +14,7 @@ module.exports = function (send) {
   // Device
   var select = document.createElement('select')
   var devices = [
-    'desktop', 'laptop', 'phone', 'tablet', 'other'
+    'desktop', 'laptop', 'phone', 'tablet'
   ]
   select.appendChild(document.createElement('option'))
   select.required = true
