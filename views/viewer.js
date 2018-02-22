@@ -31,6 +31,17 @@ module.exports = function (state, send, discoveryKey, digest) {
       main.appendChild(children(state, send))
     }
     main.appendChild(markDraft(send))
+
+    var marksICanMove = state.projectMarks.filter(function (mark) {
+      return (
+        mark.publicKey === state.identity.publicKey &&
+        mark.message.body.draft !== digest
+      )
+    })
+    if (marksICanMove.length !== 0) {
+      main.appendChild(moveMark(marksICanMove, send))
+    }
+
     main.appendChild(newDraft(state, send))
     main.appendChild(download(send))
     main.appendChild(renderText(state))
@@ -235,6 +246,35 @@ function markDraft (send) {
   var button = document.createElement('button')
   button.type = 'submit'
   button.appendChild(document.createTextNode('Put a marker on this draft.'))
+  form.appendChild(button)
+
+  return form
+}
+
+function moveMark (marks, send) {
+  var form = document.createElement('form')
+  form.id = 'moveMark'
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    send('mark', select.value)
+  })
+
+  var select = document.createElement('select')
+  form.appendChild(select)
+
+  marks.forEach(function (mark) {
+    var name = mark.message.body.name
+    var identifier = mark.message.body.identifier
+    var option = document.createElement('option')
+    option.value = identifier
+    option.appendChild(document.createTextNode(name))
+    select.appendChild(option)
+  })
+
+  var button = document.createElement('button')
+  button.type = 'submit'
+  button.appendChild(document.createTextNode('Move this marker to this draft.'))
   form.appendChild(button)
 
   return form

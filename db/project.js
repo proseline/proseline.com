@@ -330,7 +330,22 @@ Project.prototype.getMarks = function (digest, callback) {
 }
 
 Project.prototype.listMarks = function (callback) {
-  this._indexQuery('logs', 'type', 'mark', callback)
+  this._indexQuery('logs', 'type', 'mark', function (error, marks) {
+    if (error) return callback(error)
+    var seen = new Set()
+    callback(null, marks
+      .reverse()
+      .filter(function (mark) {
+        var identifier = mark.message.body.identifier
+        if (seen.has(identifier)) {
+          return false
+        } else {
+          seen.add(identifier)
+          return true
+        }
+      })
+    )
+  })
 }
 
 // Notes
