@@ -582,6 +582,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Change
 
+  handler('changed', function (parent, state, reduce, done) {
+    reduce('changed')
+    done()
+  })
+
   reduction('changed', function () {
     return {changed: true}
   })

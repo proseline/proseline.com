@@ -107,15 +107,13 @@ function reduce (event, data) {
   reductions.emit(event, data)
 }
 
-// TODO: Fix display of refresh requests.
-
 function withDatabase (id, callback) {
   if (databases.hasOwnProperty(id)) {
     callback(null, databases[id])
   } else {
     var db = new ProjectDatabase(id)
     db.on('change', function () {
-      if (globalState.discoveryKey === id) reduce('changed')
+      if (globalState.discoveryKey === id) action('changed')
     })
     databases[id] = db
     db.init(function (error) {
