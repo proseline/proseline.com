@@ -21,20 +21,13 @@ module.exports = function (state, send, discoveryKey, digest) {
         send('load project', discoveryKey)
       }))
     }
+    main.appendChild(renderText(state))
     main.appendChild(renderDraftHeader(state))
-    main.appendChild(renderAuthor(state))
-    main.appendChild(renderMarks(state, send))
-    if (state.draft.message.body.parents.length !== 0) {
-      main.appendChild(renderParents(state, send))
-    }
-    if (state.children.length !== 0) {
-      main.appendChild(renderChildren(state, send))
-    }
     main.appendChild(renderMarkDraft(state, send))
     main.appendChild(renderNewDraft(state, send))
     main.appendChild(renderDownload(send))
-    main.appendChild(renderText(state))
     main.appendChild(renderNotes(state, send))
+    main.appendChild(renderHistory(state, send))
   } else {
     main.appendChild(
       renderLoading(function () {
@@ -46,6 +39,22 @@ module.exports = function (state, send, discoveryKey, digest) {
     )
   }
   return main
+}
+
+function renderHistory (state, send) {
+  var section = document.createElement('section')
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('History'))
+  section.appendChild(renderAuthor(state))
+  if (state.draft.message.body.parents.length !== 0) {
+    section.appendChild(renderParents(state, send))
+  }
+  if (state.children.length !== 0) {
+    section.appendChild(renderChildren(state, send))
+  }
+  section.appendChild(renderMarks(state, send))
+  return section
 }
 
 function renderAuthor (state) {
@@ -63,9 +72,7 @@ function renderDateline (draft) {
 }
 
 function renderMarks (state, send) {
-  // <ul>
-  var ul = document.createElement('ul')
-  ul.className = 'marks'
+  var fragment = document.createDocumentFragment()
   state.marks
     .sort(function (a, b) {
       return a.message.body.timestamp.localeCompare(
@@ -73,27 +80,22 @@ function renderMarks (state, send) {
       )
     })
     .forEach(function (mark) {
-      var li = document.createElement('li')
-      li.appendChild(renderMark(mark, state, send))
-      ul.appendChild(li)
+      fragment.appendChild(renderMark(mark, state, send))
     })
-  var formLI = document.createElement('li')
-  ul.appendChild(formLI)
-  return ul
+  return fragment
 }
 
 function renderParents (state, send) {
-  var section = document.createElement('section')
-  var h2 = document.createElement('h2')
-  h2.appendChild(document.createTextNode('Parents'))
-  section.appendChild(h2)
   var parents = state.parents
-  var ul = document.createElement('ul')
+  var p = document.createElement('p')
+  p.appendChild(renderIntro(state, state.draft.publicKey))
+  p.appendChild(
+    document.createTextNode(' started this draft from ')
+  )
+  // TODO: Display multiple parents.
   parents.forEach(function (parent, index) {
-    var li = document.createElement('li')
-    li.id = 'parent-' + parent.digest
-    // <a>
     var a = document.createElement('a')
+    p.appendChild(a)
     a.href = (
       '/projects/' + state.discoveryKey +
       '/drafts/' + parent.digest
@@ -101,9 +103,9 @@ function renderParents (state, send) {
     a.appendChild(renderIntro(state, parent.publicKey))
     a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(parent.message.body.timestamp))
-    li.appendChild(a)
-    // Comparison Button
+    p.appendChild(document.createTextNode(' '))
     var button = document.createElement('button')
+    p.appendChild(button)
     if (
       state.diff &&
       state.diff.source === 'parents' &&
@@ -124,25 +126,19 @@ function renderParents (state, send) {
         })
       })
     }
-    li.appendChild(button)
-    ul.appendChild(li)
   })
-  section.appendChild(ul)
-  return section
+  p.appendChild(document.createTextNode('. '))
+  return p
 }
 
 function renderChildren (state, send) {
-  var section = document.createElement('section')
-  var h2 = document.createElement('h2')
-  h2.appendChild(document.createTextNode('Children'))
-  section.appendChild(h2)
   var children = state.children
-  var ul = document.createElement('ul')
+  var p = document.createElement('p')
+  var length = children.length
+  var lastIndex = length - 1
   children.forEach(function (child, index) {
-    var li = document.createElement('li')
-    li.id = 'child-' + child.digest
-    // <a>
     var a = document.createElement('a')
+    p.appendChild(a)
     a.href = (
       '/projects/' + state.discoveryKey +
       '/drafts/' + child.digest
@@ -150,9 +146,9 @@ function renderChildren (state, send) {
     a.appendChild(renderIntro(state, child.publicKey))
     a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(child.message.body.timestamp))
-    li.appendChild(a)
-    // Comparison Button
+    p.appendChild(document.createTextNode(' '))
     var button = document.createElement('button')
+    p.appendChild(button)
     if (
       state.diff &&
       state.diff.source === 'children' &&
@@ -173,11 +169,18 @@ function renderChildren (state, send) {
         })
       })
     }
-    li.appendChild(button)
-    ul.appendChild(li)
+    if (length > 1) {
+      if (index === lastIndex - 1) {
+        p.appendChild(document.createTextNode(', and '))
+      } else {
+        p.appendChild(document.createTextNode(', '))
+      }
+    }
   })
-  section.appendChild(ul)
-  return section
+  p.appendChild(document.createTextNode(
+    ' started from this draft.'
+  ))
+  return p
 }
 
 function renderText (state) {
