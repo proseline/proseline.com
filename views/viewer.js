@@ -30,18 +30,7 @@ module.exports = function (state, send, discoveryKey, digest) {
     if (state.children.length !== 0) {
       main.appendChild(renderChildren(state, send))
     }
-    main.appendChild(renderMarkDraft(send))
-
-    var marksICanMove = state.projectMarks.filter(function (mark) {
-      return (
-        mark.publicKey === state.identity.publicKey &&
-        mark.message.body.draft !== digest
-      )
-    })
-    if (marksICanMove.length !== 0) {
-      main.appendChild(renderMoveMark(marksICanMove, send))
-    }
-
+    main.appendChild(renderMarkDraft(state, send))
     main.appendChild(renderNewDraft(state, send))
     main.appendChild(renderDownload(send))
     main.appendChild(renderText(state))
@@ -231,51 +220,49 @@ function renderMarkdown (markdown) {
   return template.content
 }
 
-function renderMarkDraft (send) {
+function renderMarkDraft (state, send) {
   var form = document.createElement('form')
   form.id = 'markDraft'
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()
-    send('mark', input.value)
+    var name = input.value
+    var continuing = marksICanMove.find(function (mark) {
+      return mark.message.body.name === name
+    })
+    send('mark', {
+      name: name,
+      identifier: continuing
+        ? continuing.message.body.identifier
+        : null
+    })
   })
 
   var input = document.createElement('input')
   input.required = true
   form.appendChild(input)
 
+  var marksICanMove = state.projectMarks.filter(function (mark) {
+    return (
+      mark.publicKey === state.identity.publicKey &&
+      mark.message.body.draft !== state.draft.digest
+    )
+  })
+  if (marksICanMove.length !== 0) {
+    var datalist = document.createElement('datalist')
+    form.appendChild(datalist)
+    datalist.id = 'marksICanMove'
+    input.setAttribute('list', datalist.id)
+    marksICanMove.forEach(function (mark) {
+      var option = document.createElement('option')
+      datalist.appendChild(option)
+      option.value = mark.message.body.name
+    })
+  }
+
   var button = document.createElement('button')
   button.type = 'submit'
   button.appendChild(document.createTextNode('Put a marker on this draft.'))
-  form.appendChild(button)
-
-  return form
-}
-
-function renderMoveMark (marks, send) {
-  var form = document.createElement('form')
-  form.id = 'moveMark'
-  form.addEventListener('submit', function (event) {
-    event.preventDefault()
-    event.stopPropagation()
-    send('mark', select.value)
-  })
-
-  var select = document.createElement('select')
-  form.appendChild(select)
-
-  marks.forEach(function (mark) {
-    var name = mark.message.body.name
-    var identifier = mark.message.body.identifier
-    var option = document.createElement('option')
-    option.value = identifier
-    option.appendChild(document.createTextNode(name))
-    select.appendChild(option)
-  })
-
-  var button = document.createElement('button')
-  button.type = 'submit'
-  button.appendChild(document.createTextNode('Move this marker to this draft.'))
   form.appendChild(button)
 
   return form

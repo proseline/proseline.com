@@ -478,9 +478,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Marks
 
-  handler('mark', function (name, state, reduce, done) {
+  handler('mark', function (data, state, reduce, done) {
     putMark(
-      null, name, state.draft.digest, state,
+      data.identifier, data.name, state.draft.digest, state,
       function (error, mark) {
         if (error) return done(error)
         reduce('push mark', mark)
