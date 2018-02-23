@@ -121,9 +121,7 @@ function activity (state, send) {
       )
       a.appendChild(document.createTextNode('a draft'))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(document.createTextNode(
-        moment(envelope.message.body.timestamp).fromNow()
-      ))
+      li.appendChild(relativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
       li.appendChild(renderIntro(state, envelope.publicKey))
@@ -135,9 +133,7 @@ function activity (state, send) {
             : 'themself '
         )
       ))
-      li.appendChild(document.createTextNode(
-        moment(envelope.message.body.timestamp).fromNow()
-      ))
+      li.appendChild(relativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
       li.appendChild(renderIntro(state, envelope.publicKey))
@@ -146,9 +142,7 @@ function activity (state, send) {
       li.appendChild(document.createTextNode(' on '))
       li.appendChild(draftLink(state.discoveryKey, body.draft))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(document.createTextNode(
-        moment(body.timestamp).fromNow()
-      ))
+      li.appendChild(relativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
       li.appendChild(renderIntro(state, envelope.publicKey))
@@ -170,9 +164,7 @@ function activity (state, send) {
       li.appendChild(document.createTextNode(' to '))
       li.appendChild(draftLink(state.discoveryKey, body.draft))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(document.createTextNode(
-        moment(body.timestamp).fromNow()
-      ))
+      li.appendChild(relativeTimestamp(body.timestamp))
       li.appendChild(document.createTextNode('.'))
     }
   })
@@ -274,4 +266,14 @@ function graph (state) {
   })
 
   return section
+}
+
+function relativeTimestamp (timestamp) {
+  var span = document.createElement('span')
+  span.className = 'relativeTimestamp'
+  span.dataset.timestamp = timestamp
+  span.appendChild(document.createTextNode(
+    moment(timestamp).fromNow()
+  ))
+  return span
 }

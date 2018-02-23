@@ -2,6 +2,7 @@
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
+var moment = require('moment')
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
@@ -127,13 +128,17 @@ function withDatabase (id, callback) {
   }
 }
 
+var timestampInterval
+
 function update () {
+  clearInterval(timestampInterval)
   var rerendered = render(globalState)
   // All renderers must return a <main> or the
   // diff algorithm will fail.
   assert(rerendered instanceof Element)
   assert.equal(rerendered.tagName, 'MAIN')
   nanomorph(rendered, rerendered)
+  timestampInterval = setInterval(updateTimestamps, 30 * 1000)
 }
 
 function resetState () {
@@ -265,3 +270,16 @@ new Clipboard('.clipboard')
   })
 
 window.databases = databases
+
+// Timestamps
+
+function updateTimestamps () {
+  var elements = document.getElementsByClassName('relativeTimestamp')
+  for (var index = 0; index < elements.length; index++) {
+    var element = elements[index]
+    var timestamp = element.dataset.timestamp
+    if (timestamp) {
+      element.innerText = moment(timestamp).fromNow()
+    }
+  }
+}
