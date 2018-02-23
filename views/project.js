@@ -1,16 +1,16 @@
 var identityLine = require('./partials/identity-line')
-var loading = require('./loading')
-var relativeTimestamp = require('./partials/relative-timestamp')
 var renderDraftHeader = require('./partials/draft-header')
 var renderDraftLink = require('./partials/draft-link')
 var renderIntro = require('./partials/intro')
+var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
+var renderRelativeTimestamp = require('./partials/relative-timestamp')
 
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
   if (discoveryKey && state.discoveryKey !== discoveryKey) {
     main.appendChild(
-      loading(function () {
+      renderLoading(function () {
         send('load project', discoveryKey)
       }, 'Loading project…')
     )
@@ -39,7 +39,7 @@ module.exports = function (state, send, discoveryKey) {
 
 var CONFIRM_DELETE = 'Do you really want to delete this project?'
 
-function deleteButton (state, send) {
+function renderDeleteButton (state, send) {
   var button = document.createElement('button')
   button.id = 'deleteProject'
   button.appendChild(document.createTextNode('Leave this project.'))
@@ -110,7 +110,7 @@ function activity (state, send) {
       )
       a.appendChild(document.createTextNode('a draft'))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(relativeTimestamp(envelope.message.body.timestamp))
+      li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
       li.appendChild(renderIntro(state, envelope.publicKey))
@@ -122,7 +122,7 @@ function activity (state, send) {
             : 'themself '
         )
       ))
-      li.appendChild(relativeTimestamp(envelope.message.body.timestamp))
+      li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
       li.appendChild(renderIntro(state, envelope.publicKey))
@@ -131,7 +131,7 @@ function activity (state, send) {
       li.appendChild(document.createTextNode(' on '))
       li.appendChild(draftLink(state.discoveryKey, body.draft))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(relativeTimestamp(envelope.message.body.timestamp))
+      li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
       li.appendChild(renderIntro(state, envelope.publicKey))
@@ -153,7 +153,7 @@ function activity (state, send) {
       li.appendChild(document.createTextNode(' to '))
       li.appendChild(draftLink(state.discoveryKey, body.draft))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(relativeTimestamp(body.timestamp))
+      li.appendChild(renderRelativeTimestamp(body.timestamp))
       li.appendChild(document.createTextNode('.'))
     }
   })
@@ -282,13 +282,13 @@ function organize (state, send) {
   section.appendChild(h2)
   h2.appendChild(document.createTextNode('Organize'))
 
-  section.appendChild(deleteButton(state, send))
-  section.appendChild(rename(state, send))
+  section.appendChild(renderDeleteButton(state, send))
+  section.appendChild(renderRename(state, send))
 
   return section
 }
 
-function rename (state, send) {
+function renderRename (state, send) {
   var form = document.createElement('form')
   form.addEventListener('submit', function (event) {
     event.preventDefault()

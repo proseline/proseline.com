@@ -1,4 +1,4 @@
-var loading = require('./loading')
+var renderLoading = require('./loading')
 var renderDraftHeader = require('./partials/draft-header')
 var renderRefreshNotice = require('./partials/refresh-notice')
 
@@ -6,7 +6,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
   var main = document.createElement('main')
   if (state.discoveryKey !== discoveryKey) {
     main.appendChild(
-      loading(function () {
+      renderLoading(function () {
         send('load project', discoveryKey)
       })
     )
@@ -18,7 +18,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     )
   ) {
     main.appendChild(
-      loading(function () {
+      renderLoading(function () {
         send('load parent', {
           discoveryKey: discoveryKey,
           digest: parentDigest

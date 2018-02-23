@@ -1,4 +1,4 @@
-var loading = require('./loading')
+var renderLoading = require('./loading')
 var renderHomeLink = require('./partials/home-link')
 
 // TODO: paid peer UI
@@ -7,26 +7,26 @@ module.exports = function (state, send) {
   var main = document.createElement('main')
   if (!state.projects) {
     main.appendChild(
-      loading(function () {
+      renderLoading(function () {
         send('load projects')
       })
     )
   } else {
-    main.appendChild(header())
-    main.appendChild(projectsList(state.projects))
-    main.appendChild(createProject(send))
-    main.appendChild(backup(send))
+    main.appendChild(renderHeader())
+    main.appendChild(renderProjectsList(state.projects))
+    main.appendChild(renderCreateProject(send))
+    main.appendChild(renderBackup(send))
   }
   return main
 }
 
-function header () {
+function renderHeader () {
   var header = document.createElement('header')
   header.appendChild(renderHomeLink())
   return header
 }
 
-function projectsList (projects) {
+function renderProjectsList (projects) {
   var section = document.createElement('section')
   if (projects.length === 0) {
     var p = document.createElement('p')
@@ -47,7 +47,7 @@ function projectsList (projects) {
   return section
 }
 
-function createProject (send) {
+function renderCreateProject (send) {
   var button = document.createElement('button')
   button.addEventListener('click', function () {
     send('create project')
@@ -56,7 +56,7 @@ function createProject (send) {
   return button
 }
 
-function backup (send) {
+function renderBackup (send) {
   var button = document.createElement('button')
   button.addEventListener('click', function () {
     send('backup')

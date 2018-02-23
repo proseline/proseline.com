@@ -1,6 +1,6 @@
 var assert = require('assert')
 
-module.exports = function loading (onLoadEvent, text) {
+module.exports = function (onLoadEvent, text) {
   assert(typeof onLoadEvent === 'function')
   if (text) assert.equal(typeof text, 'string')
   onLoadEvent()

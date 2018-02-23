@@ -1,5 +1,5 @@
 var renderIntro = require('./intro')
-var relativeTimestamp = require('./relative-timestamp')
+var renderRelativeTimestamp = require('./relative-timestamp')
 
 module.exports = function (mark, state, send) {
   var p = document.createElement('p')
@@ -15,7 +15,7 @@ module.exports = function (mark, state, send) {
 
   p.appendChild(document.createTextNode(' on this draft '))
 
-  p.appendChild(relativeTimestamp(mark.message.body.timestamp))
+  p.appendChild(renderRelativeTimestamp(mark.message.body.timestamp))
   p.appendChild(document.createTextNode('.'))
 
   return p

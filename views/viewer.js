@@ -1,8 +1,8 @@
 var commonmark = require('commonmark')
-var expandingTextArea = require('./partials/expanding-textarea')
-var loading = require('./loading')
 var renderDraftHeader = require('./partials/draft-header')
+var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
+var renderLoading = require('./loading')
 var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
@@ -11,7 +11,7 @@ module.exports = function (state, send, discoveryKey, digest) {
   var main = document.createElement('main')
   if (discoveryKey && state.discoveryKey !== discoveryKey) {
     main.appendChild(
-      loading(function () {
+      renderLoading(function () {
         send('load project', discoveryKey)
       })
     )
@@ -22,15 +22,15 @@ module.exports = function (state, send, discoveryKey, digest) {
       }))
     }
     main.appendChild(renderDraftHeader(state))
-    main.appendChild(author(state))
-    main.appendChild(marks(state, send))
+    main.appendChild(renderAuthor(state))
+    main.appendChild(renderMarks(state, send))
     if (state.draft.message.body.parents.length !== 0) {
-      main.appendChild(parents(state, send))
+      main.appendChild(renderParents(state, send))
     }
     if (state.children.length !== 0) {
-      main.appendChild(children(state, send))
+      main.appendChild(renderChildren(state, send))
     }
-    main.appendChild(markDraft(send))
+    main.appendChild(renderMarkDraft(send))
 
     var marksICanMove = state.projectMarks.filter(function (mark) {
       return (
@@ -39,16 +39,16 @@ module.exports = function (state, send, discoveryKey, digest) {
       )
     })
     if (marksICanMove.length !== 0) {
-      main.appendChild(moveMark(marksICanMove, send))
+      main.appendChild(renderMoveMark(marksICanMove, send))
     }
 
-    main.appendChild(newDraft(state, send))
-    main.appendChild(download(send))
+    main.appendChild(renderNewDraft(state, send))
+    main.appendChild(renderDownload(send))
     main.appendChild(renderText(state))
-    main.appendChild(notes(state, send))
+    main.appendChild(renderNotes(state, send))
   } else {
     main.appendChild(
-      loading(function () {
+      renderLoading(function () {
         send('load draft', {
           discoveryKey: discoveryKey,
           digest: digest
@@ -59,21 +59,21 @@ module.exports = function (state, send, discoveryKey, digest) {
   return main
 }
 
-function author (state) {
+function renderAuthor (state) {
   var p = document.createElement('p')
   p.className = 'byline'
   p.appendChild(renderIntro(state, state.draft.publicKey))
   p.appendChild(document.createTextNode(' saved this draft on '))
-  p.appendChild(dateline(state.draft))
+  p.appendChild(renderDateline(state.draft))
   p.appendChild(document.createTextNode('.'))
   return p
 }
 
-function dateline (draft) {
+function renderDateline (draft) {
   return renderTimestamp(draft.message.body.timestamp)
 }
 
-function marks (state, send) {
+function renderMarks (state, send) {
   // <ul>
   var ul = document.createElement('ul')
   ul.className = 'marks'
@@ -93,7 +93,7 @@ function marks (state, send) {
   return ul
 }
 
-function parents (state, send) {
+function renderParents (state, send) {
   var section = document.createElement('section')
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Parents'))
@@ -142,7 +142,7 @@ function parents (state, send) {
   return section
 }
 
-function children (state, send) {
+function renderChildren (state, send) {
   var section = document.createElement('section')
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Children'))
@@ -231,7 +231,7 @@ function renderMarkdown (markdown) {
   return template.content
 }
 
-function markDraft (send) {
+function renderMarkDraft (send) {
   var form = document.createElement('form')
   form.id = 'markDraft'
   form.addEventListener('submit', function (event) {
@@ -252,7 +252,7 @@ function markDraft (send) {
   return form
 }
 
-function moveMark (marks, send) {
+function renderMoveMark (marks, send) {
   var form = document.createElement('form')
   form.id = 'moveMark'
   form.addEventListener('submit', function (event) {
@@ -281,7 +281,7 @@ function moveMark (marks, send) {
   return form
 }
 
-function newDraft (state, send) {
+function renderNewDraft (state, send) {
   var a = document.createElement('a')
   a.className = 'button'
   a.href = (
@@ -292,7 +292,7 @@ function newDraft (state, send) {
   return a
 }
 
-function download (send) {
+function renderDownload (send) {
   var a = document.createElement('a')
   a.addEventListener('click', function () {
     send('download')
@@ -302,22 +302,22 @@ function download (send) {
   return a
 }
 
-function notes (state, send) {
+function renderNotes (state, send) {
   var section = document.createElement('section')
   var h2 = document.createElement('h2')
   h2.appendChild(document.createTextNode('Notes'))
   section.appendChild(h2)
-  section.appendChild(notesList(state, send))
+  section.appendChild(renderNotesList(state, send))
   return section
 }
 
-function notesList (state, send) {
+function renderNotesList (state, send) {
   var notes = state.notesTree
   var replyTo = state.replyTo
   var ol = document.createElement('ol')
   ol.className = 'notesList'
   notes.forEach(function (note) {
-    ol.appendChild(noteLI(state, note, send))
+    ol.appendChild(renderNote(state, note, send))
   })
   var directLI = document.createElement('li')
   if (replyTo) {
@@ -328,13 +328,13 @@ function notesList (state, send) {
     })
     directLI.appendChild(button)
   } else {
-    directLI.appendChild(noteForm(null, send))
+    directLI.appendChild(renderNoteForm(null, send))
   }
   ol.appendChild(directLI)
   return ol
 }
 
-function noteLI (state, note, send) {
+function renderNote (state, note, send) {
   var li = document.createElement('li')
   li.id = note.digest
   var replyTo = state.replyTo
@@ -351,7 +351,7 @@ function noteLI (state, note, send) {
   p.appendChild(renderTimestamp(note.message.body.timestamp))
   li.appendChild(p)
   if (replyTo === note.digest) {
-    li.appendChild(noteForm(note.digest, send))
+    li.appendChild(renderNoteForm(note.digest, send))
   } else {
     // <button>
     var button = document.createElement('button')
@@ -364,14 +364,14 @@ function noteLI (state, note, send) {
   if (note.children.length !== 0) {
     var ol = document.createElement('ol')
     note.children.forEach(function (child) {
-      ol.appendChild(noteLI(state, child, send))
+      ol.appendChild(renderNote(state, child, send))
     })
     li.appendChild(ol)
   }
   return li
 }
 
-function noteForm (parent, send) {
+function renderNoteForm (parent, send) {
   var form = document.createElement('form')
   form.className = 'noteForm'
   form.addEventListener('submit', function (event) {
@@ -383,7 +383,7 @@ function noteForm (parent, send) {
     })
   })
   // <textarea>
-  var textarea = expandingTextArea()
+  var textarea = renderExpandingTextArea()
   textarea.required = true
   form.appendChild(textarea)
   // <button>
