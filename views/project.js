@@ -1,8 +1,8 @@
 var identityLine = require('./partials/identity-line')
 var loading = require('./loading')
 var relativeTimestamp = require('./partials/relative-timestamp')
+var renderDraftHeader = require('./partials/draft-header')
 var renderDraftLink = require('./partials/draft-link')
-var renderHomeLink = require('./partials/home-link')
 var renderIntro = require('./partials/intro')
 var renderRefreshNotice = require('./partials/refresh-notice')
 
@@ -20,39 +20,21 @@ module.exports = function (state, send, discoveryKey) {
         send('load project', discoveryKey)
       }))
     }
-    main.appendChild(header(state, send))
+    main.appendChild(renderDraftHeader(state))
     var intro = state.intros[state.identity.publicKey]
     if (!intro) {
       main.appendChild(identityLine(send))
     } else {
-      main.appendChild(newDraft(state))
-      main.appendChild(inviteViaEMail(state))
-      main.appendChild(copyInvitation(state))
       main.appendChild(activity(state, send))
       if (state.draftBriefs.length !== 0) {
         main.appendChild(graph(state))
       }
+      main.appendChild(newDraft(state))
+      main.appendChild(share(state))
+      main.appendChild(organize(state, send))
     }
   }
   return main
-}
-
-function header (state, send) {
-  var header = document.createElement('header')
-  header.appendChild(renderHomeLink())
-  header.appendChild(title(state, send))
-  header.appendChild(deleteButton(state, send))
-  return header
-}
-
-function title (state, send) {
-  var input = document.createElement('input')
-  input.value = state.title
-  input.required = true
-  input.addEventListener('input', function () {
-    send('rename', input.value)
-  })
-  return input
 }
 
 var CONFIRM_DELETE = 'Do you really want to delete this project?'
@@ -102,7 +84,14 @@ function copyInvitation (state) {
 }
 
 function activity (state, send) {
+  var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('What’s New'))
+
   var ol = document.createElement('ol')
+  section.appendChild(ol)
   ol.className = 'activity'
   state.activity.forEach(function (envelope) {
     var body = envelope.message.body
@@ -168,7 +157,8 @@ function activity (state, send) {
       li.appendChild(document.createTextNode('.'))
     }
   })
-  return ol
+
+  return section
 }
 
 function draftLink (discoveryKey, digest) {
@@ -186,6 +176,10 @@ function draftLink (discoveryKey, digest) {
 
 function graph (state) {
   var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('Project Map'))
 
   var digestsSeen = []
   var briefs = state.draftBriefs
@@ -266,4 +260,51 @@ function graph (state) {
   })
 
   return section
+}
+
+function share (state) {
+  var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('Share'))
+
+  section.appendChild(inviteViaEMail(state))
+  section.appendChild(copyInvitation(state))
+
+  return section
+}
+
+function organize (state, send) {
+  var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('Organize'))
+
+  section.appendChild(deleteButton(state, send))
+  section.appendChild(rename(state, send))
+
+  return section
+}
+
+function rename (state, send) {
+  var form = document.createElement('form')
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    send('rename', input.value)
+  })
+
+  var input = document.createElement('input')
+  form.appendChild(input)
+  input.requred = true
+  input.value = state.title
+
+  var button = document.createElement('button')
+  form.appendChild(button)
+  button.type = 'submit'
+  button.appendChild(document.createTextNode('Rename this project.'))
+
+  return form
 }
