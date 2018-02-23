@@ -1,8 +1,6 @@
-var autosize = require('autosize')
 var loading = require('./loading')
 var renderDraftHeader = require('./partials/draft-header')
 var renderRefreshNotice = require('./partials/refresh-notice')
-var expandingTextArea = require('./partials/expanding-textarea')
 
 module.exports = function (state, send, discoveryKey, parentDigest) {
   var main = document.createElement('main')
@@ -37,8 +35,6 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
       }))
     }
     var parent = state.parent
-
-    main.appendChild(renderDraftHeader(state))
 
     var form = document.createElement('form')
     form.id = 'draft'
@@ -117,15 +113,16 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     save.id = 'save'
     save.appendChild(document.createTextNode('Save'))
 
+    main.appendChild(renderDraftHeader(state, form))
+
     // <textarea>
-    var textarea = expandingTextArea()
+    var textarea = document.createElement('textarea')
     textarea.autofocus = true
     textarea.spellcheck = true
     textarea.className = 'editor'
     if (parent) {
       textarea.value = state.parent.message.body.text
     }
-    autosize(textarea)
     main.appendChild(textarea)
   }
   return main

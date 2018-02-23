@@ -4,20 +4,34 @@ body
   padding: 1rem
   font-size: 125%
 
+$header-height: 2rem
+
 body > main
   width: 100%
+  margin-top: $header-height + 2rem
 
 header
+  background: white
+  box-sizing: padding-box
+  padding: 1rem
   width: 100%
-  padding-bottom: 1rem
+  height: $header-height
+  z-index: 2
+  position: fixed
+  top: 0
+  left: 0
   a
-    margin-left: 1rem
     display: inline-block
     &:first-child
       font-weight: bold
-      margin-left: 0
-  button, input
+  * + *
     margin-left: 1rem
+  form
+    display: inline-block
+    select, button, input
+      margin: 0
+    * + *
+      margin-left: 1rem !important
 
 button, a.button
   display: inline-block
@@ -40,8 +54,19 @@ section
   padding: 1rem 0
 
 .editor
+  box-sizing: border-box
+    box-sizing: border-box
   display: block
+  position: fixed
+  top: $header-height + 2rem
+  border: none
+  bottom: 0
+  overflow-y: scroll
+  overflow-x: auto
+  left: 0
   width: 100%
+  padding: 1rem
+  z-index: 1
 
 .intro *
   margin: 0 0.5rem
