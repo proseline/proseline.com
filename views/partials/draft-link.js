@@ -1,5 +1,5 @@
 var renderIntro = require('./intro')
-var renderTimestamp = require('./timestamp')
+var relativeTimestamp = require('./relative-timestamp')
 
 module.exports = function (state, draftOrBrief) {
   var a = document.createElement('a')
@@ -9,11 +9,11 @@ module.exports = function (state, draftOrBrief) {
     '/drafts/' + draftOrBrief.digest
   )
   a.appendChild(renderIntro(state, draftOrBrief.publicKey))
-  a.appendChild(document.createTextNode(' on '))
+  a.appendChild(document.createTextNode(' '))
   if (draftOrBrief.message) {
-    a.appendChild(renderTimestamp(draftOrBrief.message.body.timestamp))
+    a.appendChild(relativeTimestamp(draftOrBrief.message.body.timestamp))
   } else {
-    a.appendChild(renderTimestamp(draftOrBrief.timestamp))
+    a.appendChild(relativeTimestamp(draftOrBrief.timestamp))
   }
   return a
 }

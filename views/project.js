@@ -1,6 +1,6 @@
 var identityLine = require('./partials/identity-line')
 var loading = require('./loading')
-var moment = require('moment')
+var relativeTimestamp = require('./partials/relative-timestamp')
 var renderDraftLink = require('./partials/draft-link')
 var renderHomeLink = require('./partials/home-link')
 var renderIntro = require('./partials/intro')
@@ -266,14 +266,4 @@ function graph (state) {
   })
 
   return section
-}
-
-function relativeTimestamp (timestamp) {
-  var span = document.createElement('span')
-  span.className = 'relativeTimestamp'
-  span.dataset.timestamp = timestamp
-  span.appendChild(document.createTextNode(
-    moment(timestamp).fromNow()
-  ))
-  return span
 }
