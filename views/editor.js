@@ -37,7 +37,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     var parent = state.parent
 
     var form = document.createElement('form')
-    form.id = 'draft'
+    form.className = 'saveDraftForm'
     main.appendChild(form)
 
     form.addEventListener('submit', function (event) {
@@ -98,7 +98,6 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     var save = document.createElement('button')
     form.appendChild(save)
     save.className = 'button'
-    save.id = 'save'
     save.appendChild(document.createTextNode('Save'))
 
     main.appendChild(renderDraftHeader(state, form))

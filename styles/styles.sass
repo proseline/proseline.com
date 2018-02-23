@@ -4,17 +4,18 @@ body
   padding: 1rem
   font-size: 125%
 
-$header-height: 2rem
+$header-height: 5rem
+$standard-padding: 1rem
 
 body > main
   width: 100%
-  margin-top: $header-height + 2rem
+  margin-top: $header-height
 
 header
   border-bottom: 1px solid black
   background: white
-  box-sizing: padding-box
-  padding: 1rem
+  box-sizing: border-box
+  padding: $standard-padding
   width: 100%
   height: $header-height
   z-index: 2
@@ -23,16 +24,15 @@ header
   left: 0
   a
     display: inline-block
+    padding: 1rem
     &:first-child
       font-weight: bold
-  * + *
-    margin-left: 1rem
   select, button, input
     margin: 0
   form
     display: inline-block
-    * + *
-      margin-left: 1rem !important
+  .saveDraftForm
+    float: right
 
 button, a.button
   display: inline-block
