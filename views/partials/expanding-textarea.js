@@ -1,7 +1,5 @@
-var autosize = require('autosize')
-
 module.exports = function () {
   var textarea = document.createElement('textarea')
-  autosize(textarea)
+  textarea.rows = 3
   return textarea
 }
