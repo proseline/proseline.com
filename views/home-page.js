@@ -28,6 +28,11 @@ function renderHeader () {
 
 function renderProjectsList (projects) {
   var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('Projects'))
+
   if (projects.length === 0) {
     var p = document.createElement('p')
     p.appendChild(document.createTextNode('You do not have any projects.'))
