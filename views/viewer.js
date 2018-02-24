@@ -1,4 +1,3 @@
-var commonmark = require('commonmark')
 var renderDraftHeader = require('./partials/draft-header')
 var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
@@ -205,22 +204,9 @@ function renderText (state) {
       article.appendChild(p)
     })
   } else {
-    article.appendChild(renderMarkdown(draft.message.body.text))
+    article.appendChild(document.createTextNode(draft.message.body.text))
   }
   return article
-}
-
-function renderMarkdown (markdown) {
-  var reader = new commonmark.Parser()
-  var writer = new commonmark.HtmlRenderer({
-    smart: true,
-    safe: true
-  })
-  var parsed = reader.parse(markdown)
-  var rendered = writer.render(parsed)
-  var template = document.createElement('template')
-  template.innerHTML = rendered
-  return template.content
 }
 
 function renderMarkDraft (state, send) {
@@ -331,7 +317,7 @@ function renderNote (state, note, send) {
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   blockquote.className = 'note'
-  blockquote.appendChild(renderMarkdown(note.message.body.text))
+  blockquote.appendChild(renderText(note.message.body.text))
   li.appendChild(blockquote)
   // <p>
   var p = document.createElement('p')
