@@ -6,6 +6,7 @@ var ajv = new AJV()
 
 // TODO: Note resolutions.
 // TODO: Note edits.
+// TODO: Note character ranges.
 
 exports.draft = ajv.compile(require('./draft'))
 exports.envelopeData = ajv.compile(require('./envelope'))
