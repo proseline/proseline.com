@@ -2,6 +2,7 @@
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
+var debounce = require('debounce')
 var moment = require('moment')
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
@@ -282,4 +283,27 @@ function updateTimestamps () {
       element.innerText = moment(timestamp).fromNow()
     }
   }
+}
+
+document.addEventListener('selectionchange', debounce(function () {
+  var selection = window.getSelection()
+  if (selection.isCollapsed) return
+  var anchor = selection.anchorNode
+  var focus = selection.focusNode
+  var bothDraftText = (
+    isDraftText(anchor) &&
+    isDraftText(focus) &&
+    anchor === focus
+  )
+  if (bothDraftText) {
+    var start = Math.min(selection.anchorOffset, selection.focusOffset)
+    var end = Math.max(selection.anchorOffset, selection.focusOffset)
+    console.log('start: ' + start)
+    console.log('end: ' + end)
+  }
+}, 200))
+
+function isDraftText (node) {
+  var parent = node.parentNode
+  return parent.className && parent.className.includes('draftText')
 }
