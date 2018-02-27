@@ -1,5 +1,6 @@
-var renderLoading = require('./loading')
+var Quill = window.Quill
 var renderDraftHeader = require('./partials/draft-header')
+var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
 
 module.exports = function (state, send, discoveryKey, parentDigest) {
@@ -48,7 +49,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
       })
       send('save', {
         discoveryKey: discoveryKey,
-        text: textarea.value,
+        document: quill.getContents(),
         parents: parent ? [parent.digest] : [],
         mark: {
           name: input.value,
@@ -102,15 +103,42 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
 
     main.appendChild(renderDraftHeader(state, form))
 
-    // <textarea>
-    var textarea = document.createElement('textarea')
-    textarea.autofocus = true
-    textarea.spellcheck = true
-    textarea.className = 'editor'
+    // Editor
+    var container = document.createElement('div')
+    main.appendChild(container)
+    container.className = 'quillContainer'
+
+    var editor = document.createElement('div')
+    container.appendChild(editor)
+
+    var quill = new Quill(editor, {
+      modules: {
+        toolbar: [
+          [{header: [1, 2, 3, 4, 5, 6, false]}],
+          ['bold', 'italic', 'underline', 'strike', 'code'],
+          ['link', 'blockquote', 'code-block'],
+          [{list: 'ordered'}, {list: 'bullet'}]
+        ]
+      },
+      theme: 'snow',
+      scrollingContainer: container,
+      formats: [
+        'bold',
+        'code',
+        'italic',
+        'link',
+        'strike',
+        'underline',
+        'blockquote',
+        'header',
+        'indent',
+        'list',
+        'code-block'
+      ]
+    })
     if (parent) {
-      textarea.value = state.parent.message.body.text
+      quill.setContents(state.parent.message.body.document)
     }
-    main.appendChild(textarea)
   }
   return main
 }

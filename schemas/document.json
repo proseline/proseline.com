@@ -1,0 +1,175 @@
+{
+  "type": "array",
+  "items": {
+    "oneOf": [
+      {
+        "description": "unformatted text",
+        "type": "object",
+        "properties": {
+          "insert": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "insert"
+        ],
+        "additionalProperties": false
+      },
+      {
+        "description": "formatted text",
+        "type": "object",
+        "properties": {
+          "insert": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "bold": {
+                "const": true
+              },
+              "italic": {
+                "const": true
+              },
+              "underline": {
+                "const": true
+              },
+              "strike": {
+                "const": true
+              },
+              "code": {
+                "const": true
+              },
+              "link": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "insert",
+          "attributes"
+        ],
+        "additionalProperties": false
+      },
+      {
+        "description": "header",
+        "type": "object",
+        "properties": {
+          "insert": {
+            "const": "\n"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "header": {
+                "enum": [
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6
+                ]
+              }
+            },
+            "required": "header",
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "insert",
+          "attributes"
+        ],
+        "additionalProperties": false
+      },
+      {
+        "description": "header",
+        "type": "object",
+        "properties": {
+          "insert": {
+            "const": "\n"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "quote": {
+                "const": true
+              }
+            },
+            "required": "quote",
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "insert",
+          "attributes"
+        ],
+        "additionalProperties": false
+      },
+      {
+        "description": "code block",
+        "type": "object",
+        "properties": {
+          "insert": {
+            "const": "\n"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "code-block": {
+                "const": true
+              }
+            },
+            "required": "code-block",
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "insert",
+          "attributes"
+        ],
+        "additionalProperties": false
+      },
+      {
+        "description": "list item",
+        "type": "object",
+        "properties": {
+          "insert": {
+            "const": "\n"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "list": {
+                "enum": [
+                  "bullet",
+                  "ordered"
+                ]
+              },
+              "indent": {
+                "indent": {
+                  "type": "number",
+                  "multipleOf": 1,
+                  "minimum": 1
+                }
+              }
+            },
+            "required": "list",
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "insert",
+          "attributes"
+        ],
+        "additionalProperties": false
+      }
+    ]
+  },
+  "minItems": 1
+}

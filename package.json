@@ -29,6 +29,7 @@
     "nanoraf": "^3.0.1",
     "pump": "^3.0.0",
     "pumpify": "^1.4.0",
+    "quill-delta": "^3.6.2",
     "run-parallel": "^1.1.6",
     "run-series": "^1.1.4",
     "signalhub": "^4.9.0",

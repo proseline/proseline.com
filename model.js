@@ -329,6 +329,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
+  // TODO: Fix diff with delta.diff.
   handler('diff', function (data, state, reduce, done) {
     reduce('diff', {
       source: data.source,
@@ -423,7 +424,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var draft = {
       type: 'draft',
       parents: data.parents,
-      text: data.text,
+      document: data.document,
       timestamp: new Date().toISOString()
     }
     var message = {
@@ -616,10 +617,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('download', function (_, state, reduce, done) {
     saveAs(
       new Blob(
-        [state.draft.message.body.text],
-        {type: 'text/plain;charset=utf-8'}
+        [state.draft.message.body.document],
+        {type: 'application/json;charset=utf-8'}
       ),
-      'proseline.md'
+      'proseline.json'
     )
   })
 
