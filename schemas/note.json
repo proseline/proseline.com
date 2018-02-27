@@ -19,7 +19,7 @@
         }
       ]
     },
-    "selection": {
+    "range": {
       "type": "object",
       "properties": {
         "start": {
@@ -53,7 +53,6 @@
       "required": [
         "type",
         "draft",
-        "parent",
         "text",
         "timestamp"
       ]
@@ -63,6 +62,15 @@
         "type",
         "draft",
         "range",
+        "text",
+        "timestamp"
+      ]
+    },
+    {
+      "required": [
+        "type",
+        "draft",
+        "parent",
         "text",
         "timestamp"
       ]

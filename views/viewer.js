@@ -1,3 +1,4 @@
+var assert = require('assert')
 var renderDraftHeader = require('./partials/draft-header')
 var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
@@ -20,12 +21,12 @@ module.exports = function (state, send, discoveryKey, digest) {
         send('load project', discoveryKey)
       }))
     }
-    main.appendChild(renderText(state))
     main.appendChild(renderDraftHeader(state))
+    main.appendChild(renderDraft(state, send))
+    main.appendChild(renderNotes(state, send))
     main.appendChild(renderMarkDraft(state, send))
     main.appendChild(renderNewDraft(state, send))
     main.appendChild(renderDownload(send))
-    main.appendChild(renderNotes(state, send))
     main.appendChild(renderHistory(state, send))
   } else {
     main.appendChild(
@@ -182,10 +183,10 @@ function renderChildren (state, send) {
   return p
 }
 
-function renderText (state) {
+function renderDraft (state, send) {
   var draft = state.draft
   var article = document.createElement('article')
-  article.className = 'draftText'
+  article.className = 'draftText renderedText'
   if (state.diff) {
     state.diff.changes.forEach(function (change) {
       var p = document.createElement('p')
@@ -204,9 +205,78 @@ function renderText (state) {
       article.appendChild(p)
     })
   } else {
-    article.appendChild(document.createTextNode(draft.message.body.text))
+    // TODO: Highlight ranges.
+    var inlineNotes = state.notesTree.filter(function (note) {
+      return note.message.body.range
+    })
+    article.appendChild(renderText(draft.message.body.text))
+    Array.from(article.children).forEach(function (child) {
+      var childRange = {
+        start: parseInt(child.dataset.start),
+        end: parseInt(child.dataset.end)
+      }
+      // Render existing notes.
+      var notesHere = inlineNotes.filter(function (note) {
+        return endsInRange(note.message.body.range.end, childRange)
+      })
+      if (notesHere.length !== 0) {
+        notesHere.reverse().forEach(function (note) {
+          insertAfter(renderInlineNotesList(state, send, note))
+        })
+      }
+      // Render the new-note form.
+      var selection = state.selection
+      if (selection) {
+        if (endsInRange(selection.end, childRange)) {
+          var aside = document.createElement('aside')
+          insertAfter(aside)
+          aside.appendChild(renderNoteForm(
+            null, state.selection, send
+          ))
+        }
+      }
+      function insertAfter (sibling) {
+        child.parentNode.insertBefore(sibling, child.nextSibling)
+      }
+    })
   }
   return article
+
+  // TODO: Deduplicate renderInlineNotesList and renderNotesList.
+
+  function renderInlineNotesList (state, send, parent) {
+    var aside = document.createElement('aside')
+    aside.className = 'note'
+
+    var ol = document.createElement('ol')
+    aside.appendChild(ol)
+    ol.className = 'notesList'
+    ol.appendChild(renderNote(state, parent, send))
+
+    return aside
+  }
+
+  function endsInRange (position, range) {
+    return position >= range.start && position <= range.end
+  }
+}
+
+var SEPARATOR = '\n\n'
+
+function renderText (text) {
+  var fragment = document.createDocumentFragment()
+  var offset = 0
+  text
+    .split(SEPARATOR)
+    .forEach(function (line) {
+      var p = document.createElement('p')
+      fragment.appendChild(p)
+      p.dataset.start = offset
+      p.dataset.end = offset + line.length
+      p.appendChild(document.createTextNode(line))
+      offset += line.length + SEPARATOR.length
+    })
+  return fragment
 }
 
 function renderMarkDraft (state, send) {
@@ -280,9 +350,6 @@ function renderDownload (send) {
 
 function renderNotes (state, send) {
   var section = document.createElement('section')
-  var h2 = document.createElement('h2')
-  h2.appendChild(document.createTextNode('Notes'))
-  section.appendChild(h2)
   section.appendChild(renderNotesList(state, send))
   return section
 }
@@ -293,7 +360,9 @@ function renderNotesList (state, send) {
   var ol = document.createElement('ol')
   ol.className = 'notesList'
   notes.forEach(function (note) {
-    ol.appendChild(renderNote(state, note, send))
+    if (!note.message.body.range) {
+      ol.appendChild(renderNote(state, note, send))
+    }
   })
   var directLI = document.createElement('li')
   if (replyTo) {
@@ -304,7 +373,7 @@ function renderNotesList (state, send) {
     })
     directLI.appendChild(button)
   } else {
-    directLI.appendChild(renderNoteForm(null, send))
+    directLI.appendChild(renderNoteForm(null, null, send))
   }
   ol.appendChild(directLI)
   return ol
@@ -327,7 +396,7 @@ function renderNote (state, note, send) {
   p.appendChild(renderTimestamp(note.message.body.timestamp))
   li.appendChild(p)
   if (replyTo === note.digest) {
-    li.appendChild(renderNoteForm(note.digest, send))
+    li.appendChild(renderNoteForm(note.digest, null, send))
   } else {
     // <button>
     var button = document.createElement('button')
@@ -347,14 +416,24 @@ function renderNote (state, note, send) {
   return li
 }
 
-function renderNoteForm (parent, send) {
+function renderNoteForm (parent, range, send) {
+  assert(parent === null || typeof parent === 'string')
+  assert(
+    range === null ||
+    (
+      typeof range === 'object' &&
+      range.hasOwnProperty('start') &&
+      range.hasOwnProperty('end')
+    )
+  )
   var form = document.createElement('form')
   form.className = 'noteForm'
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()
     send('note', {
-      parent: parent,
+      parent,
+      range,
       text: textarea.value
     })
   })

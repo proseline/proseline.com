@@ -21,6 +21,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notes: null,
       intros: null,
       replyTo: null,
+      selection: null,
       parent: null,
       parentMarks: null,
       draft: null,
@@ -317,6 +318,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notes: notes,
       notesTree: treeifyNotes(notes),
       replyTo: null,
+      selection: null,
       parents: data.parents || [],
       children: children,
       diff: null,
@@ -543,10 +545,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var note = {
       type: 'note',
       draft: state.draft.digest,
-      parent: data.parent,
       text: data.text,
       timestamp: new Date().toISOString()
     }
+    if (data.parent) note.parent = data.parent
+    else if (data.range) note.range = data.range
     var message = {
       project: state.discoveryKey,
       body: note
@@ -567,6 +570,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notes: notes,
       notesTree: treeifyNotes(notes),
       replyTo: null,
+      selection: null,
       activity: [newNote].concat(state.activity)
     }
   })
@@ -577,7 +581,19 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('reply to', function (parent, state) {
-    return {replyTo: parent}
+    return {
+      replyTo: parent,
+      selection: null
+    }
+  })
+
+  handler('select', function (data, state, reduce, done) {
+    reduce('selection', data)
+    done()
+  })
+
+  reduction('selection', function (data, state) {
+    return {selection: data}
   })
 
   // Change

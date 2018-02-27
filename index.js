@@ -7,6 +7,7 @@ var moment = require('moment')
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
+var selectedRange = require('./utilities/selected-range')
 
 runSeries([
   detectFeatures,
@@ -286,24 +287,6 @@ function updateTimestamps () {
 }
 
 document.addEventListener('selectionchange', debounce(function () {
-  var selection = window.getSelection()
-  if (selection.isCollapsed) return
-  var anchor = selection.anchorNode
-  var focus = selection.focusNode
-  var bothDraftText = (
-    isDraftText(anchor) &&
-    isDraftText(focus) &&
-    anchor === focus
-  )
-  if (bothDraftText) {
-    var start = Math.min(selection.anchorOffset, selection.focusOffset)
-    var end = Math.max(selection.anchorOffset, selection.focusOffset)
-    console.log('start: ' + start)
-    console.log('end: ' + end)
-  }
+  var range = selectedRange('draftText')
+  if (range) action('select', range)
 }, 200))
-
-function isDraftText (node) {
-  var parent = node.parentNode
-  return parent.className && parent.className.includes('draftText')
-}

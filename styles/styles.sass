@@ -107,13 +107,14 @@ textarea
     padding: 1rem
     border: 1px solid black
     margin: 1rem 0
+    background: #fffcd3
   blockquote
     margin: 1rem 0
 
 .note
   position: relative
 
-.note *
+.note blockquote *
   max-width: 50%
   max-height: 10%
 
@@ -158,3 +159,10 @@ a
   text-decoration: none
   &:hover
     text-decoration: underline
+
+.commentHere
+  position: absolute
+
+.renderedText
+  p
+    margin-top: 1rem
