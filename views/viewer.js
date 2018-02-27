@@ -1,3 +1,6 @@
+var assert = require('assert')
+var commonmark = require('commonmark')
+var parseSourcePosition = require('../utilities/parse-source-position')
 var renderDraftHeader = require('./partials/draft-header')
 var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
@@ -20,12 +23,12 @@ module.exports = function (state, send, discoveryKey, digest) {
         send('load project', discoveryKey)
       }))
     }
-    main.appendChild(renderText(state))
     main.appendChild(renderDraftHeader(state))
+    main.appendChild(renderText(state, send))
+    main.appendChild(renderNotes(state, send))
     main.appendChild(renderMarkDraft(state, send))
     main.appendChild(renderNewDraft(state, send))
     main.appendChild(renderDownload(send))
-    main.appendChild(renderNotes(state, send))
     main.appendChild(renderHistory(state, send))
   } else {
     main.appendChild(
@@ -182,10 +185,10 @@ function renderChildren (state, send) {
   return p
 }
 
-function renderText (state) {
+function renderText (state, send) {
   var draft = state.draft
   var article = document.createElement('article')
-  article.className = 'draftText'
+  article.className = 'draftText commonmark'
   if (state.diff) {
     state.diff.changes.forEach(function (change) {
       var p = document.createElement('p')
@@ -204,9 +207,101 @@ function renderText (state) {
       article.appendChild(p)
     })
   } else {
-    article.appendChild(document.createTextNode(draft.message.body.text))
+    // TODO: Highlight ranges.
+    var inlineNotes = state.notesTree.filter(function (note) {
+      return note.message.body.range
+    })
+    article.appendChild(renderCommonMark(draft.message.body.text))
+    Array.from(article.children).forEach(function (child) {
+      recurseContent(child)
+    })
   }
   return article
+
+  function recurseContent (element) {
+    var elementRange = parseSourcePosition(element)
+    if (hasChildWithRange(element)) {
+      Array.from(element.children).forEach(function (child) {
+        recurseContent(child)
+      })
+    } else {
+      // Render existing notes.
+      var notesHere = inlineNotes.filter(function (note) {
+        return withinRange(note.message.body.range.end, elementRange)
+      })
+      if (notesHere.length !== 0) {
+        notesHere.reverse().forEach(function (note) {
+          insertAfter(renderInlineNotesList(state, send, note))
+        })
+      }
+      // Render the new-note form.
+      var selection = state.selection
+      if (selection) {
+        if (withinRange(selection.end, elementRange)) {
+          var aside = document.createElement('aside')
+          insertAfter(aside)
+          aside.appendChild(renderNoteForm(
+            null, state.selection, send
+          ))
+        }
+      }
+    }
+
+    function insertAfter (sibling) {
+      element.parentNode.insertBefore(sibling, element.nextSibling)
+    }
+  }
+
+  // TODO: Deduplicate renderInlineNotesList and renderNotesList.
+
+  function renderInlineNotesList (state, send, parent) {
+    var aside = document.createElement('aside')
+    aside.className = 'note'
+
+    var ol = document.createElement('ol')
+    aside.appendChild(ol)
+    ol.className = 'notesList'
+    ol.appendChild(renderNote(state, parent, send))
+
+    return aside
+  }
+
+  function hasChildWithRange (element) {
+    var children = element.children
+    for (var index = 0; index < children.length; index++) {
+      var child = children[index]
+      if (child.dataset.sourcepos) return true
+    }
+    return false
+  }
+
+  function withinRange (position, range) {
+    return (
+      position.line >= range.start.line &&
+      position.line <= range.end.line &&
+      (
+        position.line > range.start.line ||
+        position.character >= range.start.character
+      ) &&
+      (
+        position.line < range.end.line ||
+        position.character <= range.end.character
+      )
+    )
+  }
+}
+
+function renderCommonMark (markdown) {
+  var reader = new commonmark.Parser()
+  var writer = new commonmark.HtmlRenderer({
+    sourcepos: true,
+    safe: true
+  })
+  var parsed = reader.parse(markdown)
+  var rendered = writer.render(parsed)
+  var template = document.createElement('template')
+  template.innerHTML = rendered
+  return template.content
 }
 
 function renderMarkDraft (state, send) {
@@ -280,9 +375,6 @@ function renderDownload (send) {
 
 function renderNotes (state, send) {
   var section = document.createElement('section')
-  var h2 = document.createElement('h2')
-  h2.appendChild(document.createTextNode('Notes'))
-  section.appendChild(h2)
   section.appendChild(renderNotesList(state, send))
   return section
 }
@@ -293,7 +385,9 @@ function renderNotesList (state, send) {
   var ol = document.createElement('ol')
   ol.className = 'notesList'
   notes.forEach(function (note) {
-    ol.appendChild(renderNote(state, note, send))
+    if (!note.message.body.range) {
+      ol.appendChild(renderNote(state, note, send))
+    }
   })
   var directLI = document.createElement('li')
   if (replyTo) {
@@ -304,7 +398,7 @@ function renderNotesList (state, send) {
     })
     directLI.appendChild(button)
   } else {
-    directLI.appendChild(renderNoteForm(null, send))
+    directLI.appendChild(renderNoteForm(null, null, send))
   }
   ol.appendChild(directLI)
   return ol
@@ -317,7 +411,7 @@ function renderNote (state, note, send) {
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   blockquote.className = 'note'
-  blockquote.appendChild(renderText(note.message.body.text))
+  blockquote.appendChild(renderCommonMark(note.message.body.text))
   li.appendChild(blockquote)
   // <p>
   var p = document.createElement('p')
@@ -327,7 +421,7 @@ function renderNote (state, note, send) {
   p.appendChild(renderTimestamp(note.message.body.timestamp))
   li.appendChild(p)
   if (replyTo === note.digest) {
-    li.appendChild(renderNoteForm(note.digest, send))
+    li.appendChild(renderNoteForm(note.digest, null, send))
   } else {
     // <button>
     var button = document.createElement('button')
@@ -347,14 +441,24 @@ function renderNote (state, note, send) {
   return li
 }
 
-function renderNoteForm (parent, send) {
+function renderNoteForm (parent, range, send) {
+  assert(parent === null || typeof parent === 'string')
+  assert(
+    range === null ||
+    (
+      typeof range === 'object' &&
+      range.hasOwnProperty('start') &&
+      range.hasOwnProperty('end')
+    )
+  )
   var form = document.createElement('form')
   form.className = 'noteForm'
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()
     send('note', {
-      parent: parent,
+      parent,
+      range,
       text: textarea.value
     })
   })

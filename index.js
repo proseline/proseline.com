@@ -2,6 +2,7 @@
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
+var commonmarkSelection = require('./utilities/commonmark-selection')
 var debounce = require('debounce')
 var moment = require('moment')
 var peer = require('./net/peer')
@@ -288,22 +289,35 @@ function updateTimestamps () {
 document.addEventListener('selectionchange', debounce(function () {
   var selection = window.getSelection()
   if (selection.isCollapsed) return
+
   var anchor = selection.anchorNode
   var focus = selection.focusNode
-  var bothDraftText = (
-    isDraftText(anchor) &&
-    isDraftText(focus) &&
-    anchor === focus
+
+  var anchorArticle = commonmarkParent(anchor)
+  if (!anchorArticle) return
+
+  var focusArticle = commonmarkParent(focus)
+  if (!focusArticle) return
+
+  if (anchorArticle !== focusArticle) return
+
+  if (!anchorArticle.className.includes('draftText')) return
+
+  var cmSelection = commonmarkSelection(
+    window, globalState.draft.message.body.text
   )
-  if (bothDraftText) {
-    var start = Math.min(selection.anchorOffset, selection.focusOffset)
-    var end = Math.max(selection.anchorOffset, selection.focusOffset)
-    console.log('start: ' + start)
-    console.log('end: ' + end)
-  }
+  if (cmSelection) action('select', {selection: cmSelection})
 }, 200))
 
-function isDraftText (node) {
+function commonmarkParent (node) {
   var parent = node.parentNode
-  return parent.className && parent.className.includes('draftText')
+  while (true) {
+    if (parent.className.includes('commonmark')) {
+      return parent
+    } else if (parent === document.body) {
+      return false
+    } else {
+      parent = parent.parentNode
+    }
+  }
 }

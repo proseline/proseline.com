@@ -23,7 +23,7 @@ module.exports = function (notes) {
       return map[digest]
     })
     .filter(function (note) {
-      return note.message.body.parent === null
+      return !note.message.body.parent
     })
   returned.sort(byTimestamp)
   returned.reverse()

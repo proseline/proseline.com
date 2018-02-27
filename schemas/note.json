@@ -19,18 +19,38 @@
         }
       ]
     },
-    "selection": {
+    "range": {
       "type": "object",
       "properties": {
         "start": {
-          "type": "number",
-          "multipleOf": 1,
-          "minimum": 0
+          "type": "object",
+          "properties": {
+            "line": {
+              "type": "number",
+              "multipleOf": 1,
+              "minimum": 0
+            },
+            "character": {
+              "type": "number",
+              "multipleOf": 1,
+              "minimum": 0
+            }
+          }
         },
         "end": {
-          "type": "number",
-          "multipleOf": 1,
-          "minimum": 0
+          "type": "object",
+          "properties": {
+            "line": {
+              "type": "number",
+              "multipleOf": 1,
+              "minimum": 0
+            },
+            "character": {
+              "type": "number",
+              "multipleOf": 1,
+              "minimum": 0
+            }
+          }
         }
       },
       "required": [
@@ -53,7 +73,6 @@
       "required": [
         "type",
         "draft",
-        "parent",
         "text",
         "timestamp"
       ]
@@ -63,6 +82,15 @@
         "type",
         "draft",
         "range",
+        "text",
+        "timestamp"
+      ]
+    },
+    {
+      "required": [
+        "type",
+        "draft",
+        "parent",
         "text",
         "timestamp"
       ]
