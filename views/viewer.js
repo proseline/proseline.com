@@ -205,11 +205,12 @@ function renderDraft (state, send) {
       article.appendChild(p)
     })
   } else {
-    // TODO: Highlight ranges.
     var inlineNotes = state.notesTree.filter(function (note) {
       return note.message.body.range
     })
-    article.appendChild(renderText(draft.message.body.text))
+    article.appendChild(
+      renderText(draft.message.body.text, inlineNotes)
+    )
     Array.from(article.children).forEach(function (child) {
       var childRange = {
         start: parseInt(child.dataset.start),
@@ -263,17 +264,66 @@ function renderDraft (state, send) {
 
 var SEPARATOR = '\n\n'
 
-function renderText (text) {
+function renderText (text, notes) {
+  notes = notes || []
   var fragment = document.createDocumentFragment()
   var offset = 0
   text
     .split(SEPARATOR)
     .forEach(function (line) {
+      // Create <p>.
       var p = document.createElement('p')
       fragment.appendChild(p)
       p.dataset.start = offset
       p.dataset.end = offset + line.length
-      p.appendChild(document.createTextNode(line))
+
+      var items = []
+      line
+        .split('')
+        .forEach(function (character, relativeIndex) {
+          var last = items.length ? items[items.length - 1] : false
+          var absoluteIndex = relativeIndex + offset
+          var inHighlighted = notes.some(function (note) {
+            var range = note.message.body.range
+            return (
+              range.start <= absoluteIndex &&
+              absoluteIndex <= range.end + 1
+            )
+          })
+          if (inHighlighted) {
+            if (last && last.marked) {
+              last.string = last.string + character
+              last.end = absoluteIndex
+            } else {
+              items.push({
+                string: character,
+                marked: true,
+                start: absoluteIndex
+              })
+            }
+          } else {
+            if (last && !last.marked) {
+              last.string = last.string + character
+              last.end = absoluteIndex
+            } else {
+              items.push({
+                string: character,
+                marked: false,
+                start: absoluteIndex
+              })
+            }
+          }
+        })
+      items.forEach(function (item) {
+        var child = document.createElement(
+          item.marked ? 'mark' : 'span'
+        )
+        child.appendChild(document.createTextNode(item.string))
+        child.dataset.start = item.start
+        child.dataset.end = item.end
+        p.appendChild(child)
+      })
+
       offset += line.length + SEPARATOR.length
     })
   return fragment

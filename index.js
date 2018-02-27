@@ -289,4 +289,4 @@ function updateTimestamps () {
 document.addEventListener('selectionchange', debounce(function () {
   var range = selectedRange('draftText')
   if (range) action('select', range)
-}, 200))
+}, 500))

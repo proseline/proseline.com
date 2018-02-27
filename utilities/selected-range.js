@@ -35,11 +35,7 @@ function position (node, offset) {
 }
 
 function needParent (node) {
-  return (
-    node.nodeType === 3 ||
-    node.nodeName === 'BR' ||
-    node.nodeName === 'MARK'
-  )
+  return node.nodeType === 3
 }
 
 function hasRange (node) {
