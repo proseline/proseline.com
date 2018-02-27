@@ -2,12 +2,15 @@
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
-var debounce = require('debounce')
 var moment = require('moment')
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 var selectedRange = require('./utilities/selected-range')
+
+var debug = {
+  selection: require('debug')('proseline:selection')
+}
 
 runSeries([
   detectFeatures,
@@ -286,7 +289,10 @@ function updateTimestamps () {
   }
 }
 
-document.addEventListener('selectionchange', debounce(function () {
+document.addEventListener('mouseup', function () {
   var range = selectedRange('draftText')
-  if (range) action('select', range)
-}, 500))
+  if (range) {
+    debug.selection('range: %o', range)
+    action('select', range)
+  }
+})

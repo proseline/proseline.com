@@ -209,7 +209,7 @@ function renderDraft (state, send) {
       return note.message.body.range
     })
     article.appendChild(
-      renderText(draft.message.body.text, inlineNotes)
+      renderText(draft.message.body.text, inlineNotes, state.selection)
     )
     Array.from(article.children).forEach(function (child) {
       var childRange = {
@@ -264,7 +264,7 @@ function renderDraft (state, send) {
 
 var SEPARATOR = '\n\n'
 
-function renderText (text, notes) {
+function renderText (text, notes, selection) {
   notes = notes || []
   var fragment = document.createDocumentFragment()
   var offset = 0
@@ -283,13 +283,17 @@ function renderText (text, notes) {
         .forEach(function (character, relativeIndex) {
           var last = items.length ? items[items.length - 1] : false
           var absoluteIndex = relativeIndex + offset
-          var inHighlighted = notes.some(function (note) {
-            var range = note.message.body.range
-            return (
-              range.start <= absoluteIndex &&
-              absoluteIndex <= range.end + 1
-            )
-          })
+          var inHighlighted = notes
+            .map(function (note) {
+              return note.message.body.range
+            })
+            .concat(selection || [])
+            .some(function (range) {
+              return (
+                range.start <= absoluteIndex &&
+                absoluteIndex < range.end
+              )
+            })
           if (inHighlighted) {
             if (last && last.marked) {
               last.string = last.string + character
@@ -490,6 +494,7 @@ function renderNoteForm (parent, range, send) {
   // <textarea>
   var textarea = renderExpandingTextArea()
   textarea.required = true
+  if (range) textarea.autofocus = true
   form.appendChild(textarea)
   // <button>
   var button = document.createElement('button')
