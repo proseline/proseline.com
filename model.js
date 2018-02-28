@@ -621,7 +621,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         [state.draft.message.body.text],
         {type: 'text/plain;charset=utf-8'}
       ),
-      'proseline.md'
+      'proseline.txt'
     )
   })
 
