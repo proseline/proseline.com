@@ -2,6 +2,7 @@
   "type": "object",
   "properties": {
     "type": {
+      "type": "string",
       "const": "note"
     },
     "draft": {
@@ -9,15 +10,8 @@
       "pattern": "^[a-f0-9]{64}$"
     },
     "parent": {
-      "oneOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        }
-      ]
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     },
     "range": {
       "type": "object",
@@ -30,7 +24,7 @@
         "end": {
           "type": "number",
           "multipleOf": 1,
-          "minimum": 0
+          "minimum": 1
         }
       },
       "required": [
@@ -48,7 +42,7 @@
       "format": "date-time"
     }
   },
-  "oneOf": [
+  "anyOf": [
     {
       "required": [
         "type",
@@ -61,18 +55,18 @@
       "required": [
         "type",
         "draft",
-        "range",
         "text",
-        "timestamp"
+        "timestamp",
+        "range"
       ]
     },
     {
       "required": [
         "type",
         "draft",
-        "parent",
         "text",
-        "timestamp"
+        "timestamp",
+        "parent"
       ]
     }
   ],
