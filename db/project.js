@@ -291,18 +291,28 @@ Project.prototype.getChildren = function (digest, callback) {
 }
 
 Project.prototype.listDraftBriefs = function (callback) {
-  this._indexQuery('logs', 'type', 'draft', function (error, drafts) {
+  var self = this
+  self._indexQuery('logs', 'type', 'draft', function (error, drafts) {
     if (error) return callback(error)
-    callback(null, drafts.map(function (draft) {
-      var body = draft.message.body
-      return {
-        digest: draft.digest,
-        project: draft.message.project,
-        publicKey: draft.publicKey,
-        parents: body.parents,
-        timestamp: body.timestamp
-      }
-    }))
+    runParallel(
+      drafts.map(function (draft) {
+        return function (done) {
+          self.countNotes(draft.digest, function (error, notesCount) {
+            if (error) return done(error)
+            var body = draft.message.body
+            done(null, {
+              digest: draft.digest,
+              project: draft.message.project,
+              publicKey: draft.publicKey,
+              parents: body.parents,
+              timestamp: body.timestamp,
+              notesCount
+            })
+          })
+        }
+      }),
+      callback
+    )
   })
 }
 
@@ -353,6 +363,10 @@ Project.prototype.listMarks = function (callback) {
 
 Project.prototype.getNotes = function (digest, callback) {
   this._indexQuery('logs', 'type-draft', ['note', digest], callback)
+}
+
+Project.prototype.countNotes = function (digest, callback) {
+  this._indexCount('logs', 'type-draft', ['note', digest], callback)
 }
 
 Project.prototype.putNote = function (message, identity, callback) {

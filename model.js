@@ -571,7 +571,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notesTree: treeifyNotes(notes),
       replyTo: null,
       selection: null,
-      activity: [newNote].concat(state.activity)
+      activity: [newNote].concat(state.activity),
+      draftBriefs: state.draftBriefs.map(function (brief) {
+        if (brief.digest === newNote.message.body.draft) {
+          brief.notesCount++
+        }
+        return brief
+      })
     }
   })
 

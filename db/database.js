@@ -155,3 +155,16 @@ prototype._indexQuery = function (storeName, indexName, key, callback) {
     }
   }
 }
+
+prototype._indexCount = function (storeName, indexName, key, callback) {
+  var transaction = this._db.transaction([storeName], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore(storeName)
+  var index = objectStore.index(indexName)
+  var request = index.count(key)
+  request.onsuccess = function () {
+    callback(null, request.result)
+  }
+}

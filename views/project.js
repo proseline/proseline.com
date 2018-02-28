@@ -257,6 +257,15 @@ function graph (state) {
         p.appendChild(document.createTextNode(mark.message.body.name))
       })
     }
+    if (brief.notesCount) {
+      var p = document.createElement('p')
+      td.appendChild(p)
+      p.className = 'notesCount'
+      p.appendChild(document.createTextNode(brief.notesCount))
+      p.appendChild(document.createTextNode(
+        brief.notesCount === 1 ? ' note' : ' notes'
+      ))
+    }
   })
 
   return section
