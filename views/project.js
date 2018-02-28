@@ -254,7 +254,9 @@ function graph (state) {
         p.className = 'mark'
         p.appendChild(renderIntro(state, mark.publicKey))
         p.appendChild(document.createTextNode(': '))
-        p.appendChild(document.createTextNode(mark.message.body.name))
+        p.appendChild(document.createTextNode(
+          '“' + mark.message.body.name + '”'
+        ))
       })
     }
     if (brief.notesCount) {
