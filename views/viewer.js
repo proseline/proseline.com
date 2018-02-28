@@ -421,7 +421,7 @@ function renderNotesList (state, send) {
   var directLI = document.createElement('li')
   if (replyTo) {
     var button = document.createElement('button')
-    button.appendChild(document.createTextNode('Add a note to this draft.'))
+    button.appendChild(document.createTextNode('Add a note to the draft as a whole.'))
     button.addEventListener('click', function () {
       send('reply to', null)
     })
