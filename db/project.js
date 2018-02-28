@@ -16,14 +16,16 @@ function Project (secretKey) {
   this._updateStreams = []
   Database.call(this, {
     name: secretKey,
-    version: 3
+    version: CURRENT_VERSION
   })
 }
 
 inherits(Project, Database)
 
+var CURRENT_VERSION = 3
+
 Project.prototype._upgrade = function (db, oldVersion, callback) {
-  if (oldVersion < 1) {
+  if (oldVersion < CURRENT_VERSION) {
     // Identities
     var identities = db.createObjectStore('identities')
     identities.createIndex('publicKey', 'publicKey', {unique: true})
