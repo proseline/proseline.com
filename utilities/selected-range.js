@@ -13,6 +13,9 @@ module.exports = function (parentClass) {
   var haveRanges = hasRange(anchor) && hasRange(focus)
   if (!haveRanges) return false
 
+  if (withinNote(anchor)) return false
+  if (withinNote(focus)) return false
+
   var anchorParent = renderedParent(anchor)
   if (!anchorParent) return false
 
@@ -40,6 +43,15 @@ function needParent (node) {
 
 function hasRange (node) {
   return startOf(node) !== undefined && endOf(node) !== undefined
+}
+
+function withinNote (node) {
+  var parent = node.parentNode
+  while (true) {
+    if (parent === document.body) return false
+    if (parent.className.includes('note')) return true
+    parent = parent.parentNode
+  }
 }
 
 function startOf (node) {
