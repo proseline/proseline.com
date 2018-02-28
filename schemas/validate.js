@@ -6,7 +6,6 @@ var ajv = new AJV()
 
 // TODO: Note resolutions.
 // TODO: Note edits.
-// TODO: Note character ranges.
 
 exports.draft = ajv.compile(require('./draft'))
 exports.envelopeData = ajv.compile(require('./envelope'))
@@ -23,7 +22,16 @@ exports.envelope = function (envelope) {
 exports.identity = ajv.compile(require('./identity'))
 exports.intro = ajv.compile(require('./intro'))
 exports.mark = ajv.compile(require('./mark'))
-exports.note = ajv.compile(require('./note'))
+exports.noteData = ajv.compile(require('./note'))
+exports.note = function (note) {
+  return (
+    exports.noteData(note) &&
+    (
+      !note.hasOwnProperty('range') ||
+      note.range.start < note.range.end
+    )
+  )
+}
 
 exports.body = function (argument) {
   return (
