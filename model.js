@@ -11,6 +11,8 @@ var hashHex = require('./crypto/hash-hex')
 var random = require('./crypto/random')
 var treeifyNotes = require('./utilities/treeify-notes')
 
+// TODO: Copy draft to new project.
+
 var DEFAULT_TITLE = 'Nameless Project'
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
