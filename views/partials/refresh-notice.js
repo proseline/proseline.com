@@ -4,6 +4,6 @@ module.exports = function (onclick) {
     onclick()
   })
   div.className = 'refresh'
-  div.appendChild(document.createTextNode('Refresh to show changes'))
+  div.appendChild(document.createTextNode('Click to show new work from others.'))
   return div
 }
