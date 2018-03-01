@@ -1686,6 +1686,14 @@
       "integrity": "sha1-9lNNFRSCabIDUue+4m9QH5oZEpA=",
       "dev": true
     },
+    "decompress-response": {
+      "version": "3.3.0",
+      "resolved": "https://registry.npmjs.org/decompress-response/-/decompress-response-3.3.0.tgz",
+      "integrity": "sha1-gKTdMjdIOEv6JICDYirt7Jgq3/M=",
+      "requires": {
+        "mimic-response": "1.0.0"
+      }
+    },
     "dedent": {
       "version": "0.7.0",
       "resolved": "https://registry.npmjs.org/dedent/-/dedent-0.7.0.tgz",
@@ -5373,6 +5381,11 @@
       "integrity": "sha1-5md4PZLonb00KBi1IwudYqZyrRg=",
       "dev": true
     },
+    "mimic-response": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/mimic-response/-/mimic-response-1.0.0.tgz",
+      "integrity": "sha1-3z02Uqc/3ta5sLJBRub9BSNTRY4="
+    },
     "min-document": {
       "version": "2.19.0",
       "resolved": "https://registry.npmjs.org/min-document/-/min-document-2.19.0.tgz",
@@ -7318,8 +7331,17 @@
     "simple-concat": {
       "version": "1.0.0",
       "resolved": "https://registry.npmjs.org/simple-concat/-/simple-concat-1.0.0.tgz",
-      "integrity": "sha1-c0TLuLbib7J9ZrL8hvn21Zl1IcY=",
-      "dev": true
+      "integrity": "sha1-c0TLuLbib7J9ZrL8hvn21Zl1IcY="
+    },
+    "simple-get": {
+      "version": "2.7.0",
+      "resolved": "https://registry.npmjs.org/simple-get/-/simple-get-2.7.0.tgz",
+      "integrity": "sha512-RkE9rGPHcxYZ/baYmgJtOSM63vH0Vyq+ma5TijBcLla41SWlh8t6XYIGMR/oeZcmr+/G8k+zrClkkVrtnQ0esg==",
+      "requires": {
+        "decompress-response": "3.3.0",
+        "once": "1.4.0",
+        "simple-concat": "1.0.0"
+      }
     },
     "simple-peer": {
       "version": "6.4.4",
