@@ -444,30 +444,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           parents: draft.parents,
           timestamp: draft.timestamp
         })
-        if (data.mark) {
-          var mark = data.mark
-          putMark(
-            mark.identifier, mark.name, digest, state,
-            function (error, mark) {
-              if (error) return done(error)
-              reduce('push mark', mark)
-              window.history.pushState(
-                {}, null,
-                '/projects/' + state.discoveryKey +
-                '/marks/' + identity.publicKey +
-                ':' + mark.message.body.identifier
-              )
-              done()
-            }
-          )
-        } else {
-          window.history.pushState(
-            {}, null,
-            '/projects/' + state.discoveryKey +
-            '/drafts/' + digest
-          )
-          done()
-        }
+        window.history.pushState(
+          {}, null,
+          '/projects/' + state.discoveryKey +
+          '/drafts/' + digest
+        )
+        done()
       })
     })
   })

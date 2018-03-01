@@ -43,56 +43,12 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       event.stopPropagation()
-      var continuing = marksICanMove.find(function (mark) {
-        return mark.message.body.name === input.value
-      })
       send('save', {
         discoveryKey: discoveryKey,
         text: textarea.value,
-        parents: parent ? [parent.digest] : [],
-        mark: {
-          name: input.value,
-          identifier: continuing
-            ? continuing.message.body.identifier
-            : null
-        }
+        parents: parent ? [parent.digest] : []
       })
     })
-
-    var marksICanMove = state.projectMarks.filter(function (mark) {
-      return mark.publicKey === state.identity.publicKey
-    })
-    var haveMarks = marksICanMove.length !== 0
-
-    // Marker Input
-    var input = document.createElement('input')
-    form.appendChild(input)
-    input.placeholder = 'Enter a name.'
-    input.required = true
-    if (haveMarks) {
-      var continuing = marksICanMove
-        .reverse()
-        .find(function (mark) {
-          return parent && mark.message.body.draft === parent.digest
-        })
-      if (continuing) {
-        input.value = continuing.message.body.name
-      }
-    }
-
-    if (haveMarks) {
-      var datalist = document.createElement('datalist')
-      datalist.id = 'existingMarks'
-      input.setAttribute('list', datalist.id)
-      form.appendChild(datalist)
-      marksICanMove.forEach(function (mark) {
-        var option = document.createElement('option')
-        datalist.appendChild(option)
-        option.appendChild(document.createTextNode(
-          mark.message.body.name
-        ))
-      })
-    }
 
     // Save Button
     var save = document.createElement('button')
