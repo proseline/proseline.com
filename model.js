@@ -69,6 +69,29 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
+  // Member Activity
+
+  handler('load member', function (data, state, reduce, done) {
+    assert.equal(typeof data.publicKey, 'string')
+    assert.equal(data.publicKey.length, 64)
+    var publicKey = data.publicKey
+    withIndexedDB(data.discoveryKey, function (error, db) {
+      if (error) return done(error)
+      db.memberActivity(publicKey, 100, function (error, activity) {
+        if (error) return done(error)
+        reduce('member', {
+          member: publicKey,
+          memberActivity: activity
+        })
+        done()
+      })
+    })
+  })
+
+  reduction('member', function (data, state) {
+    return data
+  })
+
   // Projects
 
   handler('create project', function (data, state, reduce, done) {

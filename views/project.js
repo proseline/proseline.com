@@ -1,14 +1,12 @@
 var identityLine = require('./partials/identity-line')
+var renderActivity = require('./partials/activity')
 var renderDraftHeader = require('./partials/draft-header')
 var renderDraftIcon = require('./partials/draft-icon')
 var renderDraftLink = require('./partials/draft-link')
 var renderIntro = require('./partials/intro')
-var renderIntroIcon = require('./partials/intro-icon')
 var renderLoading = require('./loading')
 var renderMarkIcon = require('./partials/mark-icon')
-var renderNoteIcon = require('./partials/note-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
-var renderRelativeTimestamp = require('./partials/relative-timestamp')
 
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
@@ -29,7 +27,7 @@ module.exports = function (state, send, discoveryKey) {
     if (!intro) {
       main.appendChild(identityLine(send))
     } else {
-      main.appendChild(activity(state, send))
+      main.appendChild(renderWhatsNew(state))
       if (state.draftBriefs.length !== 0) {
         main.appendChild(graph(state))
       }
@@ -84,102 +82,6 @@ function copyInvitation (state) {
   var url = 'https://proseline.com/join/' + state.secretKey
   a.setAttribute('data-clipboard-text', url)
   a.appendChild(document.createTextNode('Copy a link to this project.'))
-  return a
-}
-
-function activity (state, send) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('What’s New'))
-
-  var ol = document.createElement('ol')
-  section.appendChild(ol)
-  ol.className = 'activity'
-  state.activity.forEach(function (envelope) {
-    var body = envelope.message.body
-    var type = body.type
-    var li = document.createElement('li')
-    var a
-    ol.appendChild(li)
-    if (type === 'draft') {
-      li.appendChild(renderDraftIcon())
-      li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderIntro(state, envelope.publicKey))
-      li.appendChild(document.createTextNode(' added '))
-      a = document.createElement('a')
-      li.appendChild(a)
-      a.href = (
-        '/projects/' + envelope.message.project +
-        '/drafts/' + envelope.digest
-      )
-      a.appendChild(document.createTextNode('a draft'))
-      li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
-      li.appendChild(document.createTextNode('.'))
-    } else if (type === 'intro') {
-      li.appendChild(renderIntroIcon())
-      li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderIntro(state, envelope.publicKey))
-      li.appendChild(document.createTextNode(
-        ' introduced ' +
-        (
-          envelope.publicKey === state.identity.publicKey
-            ? 'yourself '
-            : 'themself '
-        )
-      ))
-      li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
-      li.appendChild(document.createTextNode('.'))
-    } else if (type === 'mark') {
-      li.appendChild(renderMarkIcon())
-      li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderIntro(state, envelope.publicKey))
-      li.appendChild(document.createTextNode(' put the mark '))
-      li.appendChild(document.createTextNode('“' + body.name + '”'))
-      li.appendChild(document.createTextNode(' on '))
-      li.appendChild(draftLink(state.discoveryKey, body.draft))
-      li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
-      li.appendChild(document.createTextNode('.'))
-    } else if (type === 'note') {
-      li.appendChild(renderNoteIcon())
-      li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderIntro(state, envelope.publicKey))
-      li.appendChild(document.createTextNode(' '))
-      a = document.createElement('a')
-      li.appendChild(a)
-      a.href = (
-        '/projects/' + envelope.message.project +
-        '/drafts/' + envelope.message.body.draft +
-        '#' + envelope.digest
-      )
-      a.appendChild(
-        document.createTextNode(
-          body.parent
-            ? 'replied to a note'
-            : 'added a note'
-        )
-      )
-      li.appendChild(document.createTextNode(' to '))
-      li.appendChild(draftLink(state.discoveryKey, body.draft))
-      li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(body.timestamp))
-      li.appendChild(document.createTextNode('.'))
-    }
-  })
-
-  return section
-}
-
-function draftLink (discoveryKey, digest) {
-  var a = document.createElement('a')
-  a.href = (
-    '/projects/' + discoveryKey +
-    '/drafts/' + digest
-  )
-  a.appendChild(document.createTextNode('this draft'))
   return a
 }
 
@@ -333,4 +235,15 @@ function renderRename (state, send) {
   button.appendChild(document.createTextNode('Rename this project.'))
 
   return form
+}
+
+function renderWhatsNew (state) {
+  var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('What’s New'))
+
+  section.appendChild(renderActivity(state, state.activity))
+  return section
 }

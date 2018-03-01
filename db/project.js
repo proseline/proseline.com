@@ -402,3 +402,31 @@ Project.prototype.activity = function (count, callback) {
     }
   }
 }
+
+Project.prototype.memberActivity = function (publicKey, count, callback) {
+  assert.equal(typeof publicKey, 'string')
+  assert.equal(publicKey.length, 64)
+  assert(Number.isInteger(count))
+  assert(count > 0)
+  var transaction = this._db.transaction(['logs'], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore('logs')
+  var index = objectStore.index('publicKey')
+  var request = index.openCursor(publicKey, 'prev') // reverse
+  var results = []
+  request.onsuccess = function () {
+    var cursor = request.result
+    if (cursor) {
+      results.push(cursor.value)
+      if (results.length === count) {
+        callback(null, results)
+      } else {
+        cursor.continue()
+      }
+    } else {
+      callback(null, results)
+    }
+  }
+}

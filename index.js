@@ -151,9 +151,10 @@ function resetState () {
 }
 
 var renderEditor = require('./views/editor')
-var renderLoading = require('./views/loading')
-var renderNotFound = require('./views/not-found')
 var renderHomePage = require('./views/home-page')
+var renderLoading = require('./views/loading')
+var renderMember = require('./views/member')
+var renderNotFound = require('./views/not-found')
 var renderProject = require('./views/project')
 var renderViewer = require('./views/viewer')
 
@@ -207,6 +208,10 @@ function render (state) {
         })
       )
       return main
+    // Member Activity
+    } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
+      var publicKey = remainder.substr(9, 64)
+      return renderMember(state, action, discoveryKey, publicKey)
     } else {
       return renderNotFound(state, action)
     }
