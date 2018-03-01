@@ -4,6 +4,7 @@ var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
 var renderLoading = require('./loading')
 var renderMark = require('./partials/mark')
+var renderNoteIcon = require('./partials/note-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
 
@@ -437,18 +438,21 @@ function renderNote (state, note, send) {
   var li = document.createElement('li')
   li.id = note.digest
   var replyTo = state.replyTo
+  // <p>
+  var p = document.createElement('p')
+  p.className = 'byline'
+  p.appendChild(renderNoteIcon())
+  p.appendChild(document.createTextNode(' '))
+  p.appendChild(renderIntro(state, note.publicKey))
+  p.appendChild(document.createTextNode(' on '))
+  p.appendChild(renderTimestamp(note.message.body.timestamp))
+  p.appendChild(document.createTextNode(':'))
+  li.appendChild(p)
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   blockquote.className = 'note'
   blockquote.appendChild(renderText(note.message.body.text))
   li.appendChild(blockquote)
-  // <p>
-  var p = document.createElement('p')
-  p.className = 'byline'
-  p.appendChild(renderIntro(state, note.publicKey))
-  p.appendChild(document.createTextNode(' on '))
-  p.appendChild(renderTimestamp(note.message.body.timestamp))
-  li.appendChild(p)
   if (replyTo === note.digest) {
     li.appendChild(renderNoteForm(note.digest, null, send))
   } else {

@@ -1,8 +1,12 @@
 var identityLine = require('./partials/identity-line')
 var renderDraftHeader = require('./partials/draft-header')
+var renderDraftIcon = require('./partials/draft-icon')
 var renderDraftLink = require('./partials/draft-link')
 var renderIntro = require('./partials/intro')
+var renderIntroIcon = require('./partials/intro-icon')
 var renderLoading = require('./loading')
+var renderMarkIcon = require('./partials/mark-icon')
+var renderNoteIcon = require('./partials/note-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderRelativeTimestamp = require('./partials/relative-timestamp')
 
@@ -100,6 +104,8 @@ function activity (state, send) {
     var a
     ol.appendChild(li)
     if (type === 'draft') {
+      li.appendChild(renderDraftIcon())
+      li.appendChild(document.createTextNode(' '))
       li.appendChild(renderIntro(state, envelope.publicKey))
       li.appendChild(document.createTextNode(' added '))
       a = document.createElement('a')
@@ -113,6 +119,8 @@ function activity (state, send) {
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
+      li.appendChild(renderIntroIcon())
+      li.appendChild(document.createTextNode(' '))
       li.appendChild(renderIntro(state, envelope.publicKey))
       li.appendChild(document.createTextNode(
         ' introduced ' +
@@ -125,6 +133,8 @@ function activity (state, send) {
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
+      li.appendChild(renderMarkIcon())
+      li.appendChild(document.createTextNode(' '))
       li.appendChild(renderIntro(state, envelope.publicKey))
       li.appendChild(document.createTextNode(' put the mark '))
       li.appendChild(document.createTextNode('“' + body.name + '”'))
@@ -134,6 +144,8 @@ function activity (state, send) {
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
+      li.appendChild(renderNoteIcon())
+      li.appendChild(document.createTextNode(' '))
       li.appendChild(renderIntro(state, envelope.publicKey))
       li.appendChild(document.createTextNode(' '))
       a = document.createElement('a')
@@ -244,6 +256,8 @@ function graph (state) {
     tr.appendChild(td)
     td.className = 'draftCell'
 
+    td.appendChild(renderDraftIcon())
+    td.appendChild(document.createTextNode(' '))
     td.appendChild(renderDraftLink(state, brief))
 
     var marks = digestToMarks[brief.digest]
@@ -252,11 +266,12 @@ function graph (state) {
         var p = document.createElement('p')
         td.appendChild(p)
         p.className = 'mark'
+        p.appendChild(renderMarkIcon())
+        p.appendChild(document.createTextNode(' '))
+        p.appendChild(document.createTextNode(mark.message.body.name))
+        p.appendChild(document.createTextNode(' ('))
         p.appendChild(renderIntro(state, mark.publicKey))
-        p.appendChild(document.createTextNode(': '))
-        p.appendChild(document.createTextNode(
-          '“' + mark.message.body.name + '”'
-        ))
+        p.appendChild(document.createTextNode(')'))
       })
     }
     if (brief.notesCount) {
