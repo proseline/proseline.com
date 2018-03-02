@@ -1,5 +1,6 @@
-var renderLoading = require('./loading')
 var renderHomeLink = require('./partials/home-link')
+var renderLoading = require('./loading')
+var renderSection = require('./partials/section')
 
 // TODO: paid peer UI
 
@@ -27,11 +28,7 @@ function renderHeader () {
 }
 
 function renderProjectsList (projects) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('Projects'))
+  var section = renderSection('Projects')
 
   if (projects.length === 0) {
     var p = document.createElement('p')

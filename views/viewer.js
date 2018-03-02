@@ -7,6 +7,7 @@ var renderMark = require('./partials/mark')
 var renderNoteIcon = require('./partials/note-icon')
 var renderQuoteIcon = require('./partials/quote-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
+var renderSection = require('./partials/section')
 var renderTimestamp = require('./partials/timestamp')
 
 module.exports = function (state, send, discoveryKey, digest) {
@@ -44,10 +45,7 @@ module.exports = function (state, send, discoveryKey, digest) {
 }
 
 function renderHistory (state, send) {
-  var section = document.createElement('section')
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('History'))
+  var section = renderSection('History')
   section.appendChild(renderAuthor(state))
   if (state.draft.message.body.parents.length !== 0) {
     section.appendChild(renderParents(state, send))

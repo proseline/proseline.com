@@ -7,6 +7,7 @@ var renderIntro = require('./partials/intro')
 var renderLoading = require('./loading')
 var renderMarkIcon = require('./partials/mark-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
+var renderSection = require('./partials/section')
 
 module.exports = function (state, send, discoveryKey) {
   var main = document.createElement('main')
@@ -35,16 +36,15 @@ module.exports = function (state, send, discoveryKey) {
       if (state.draftSelection.size > 0) {
         main.appendChild(renderDeselect(send))
       }
-      main.appendChild(share(state))
-      main.appendChild(organize(state, send))
-      main.appendChild(rename(state, send))
+      main.appendChild(renderShareSection(state))
+      main.appendChild(renderOrganizeSection(state, send))
+      main.appendChild(renderRenameSection(state, send))
     }
   }
   return main
 }
 
 function renderDeleteExplanation () {
-  var fragment = document.createDocumentFragment()
   var p = document.createElement('p')
   p.appendChild(document.createTextNode(
     'Leaving this project deletes it from your computer. ' +
@@ -52,8 +52,7 @@ function renderDeleteExplanation () {
     'Leaving the project does not delete your work from other ' +
     'member’s computers.'
   ))
-  fragment.appendChild(p)
-  return fragment
+  return p
 }
 
 var CONFIRM_DELETE = 'Do you really want to delete this project?'
@@ -128,11 +127,7 @@ function copyInvitation (state) {
 // TODO: Render lines between graph nodes
 
 function renderGraph (state, send) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('Project Map'))
+  var section = renderSection('Project Map')
 
   var digestsSeen = []
   var briefs = state.draftBriefs
@@ -258,57 +253,35 @@ function renderGraph (state, send) {
   return section
 }
 
-function share (state) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('Share'))
-
+function renderShareSection (state) {
+  var section = renderSection('Share')
   section.appendChild(inviteExplanation())
   section.appendChild(inviteViaEMail(state))
   section.appendChild(copyInvitation(state))
-
   return section
 }
 
-function organize (state, send) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('Organize'))
-
+function renderOrganizeSection (state, send) {
+  var section = renderSection('Organize')
   section.appendChild(renderDeleteExplanation())
   section.appendChild(renderDeleteButton(state, send))
-
   return section
 }
 
-function rename (state, send) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('Rename'))
-
+function renderRenameSection (state, send) {
+  var section = renderSection('Rename')
   section.appendChild(renderRenameExplanation())
   section.appendChild(renderRename(state, send))
-
   return section
 }
 
 function renderRenameExplanation () {
-  var fragment = document.createDocumentFragment()
-
   var p = document.createElement('p')
-  fragment.appendChild(p)
   p.appendChild(document.createTextNode(
     'Renaming the project changes your name for the project. ' +
     'Other members of the project cannot see the name you use.'
   ))
-
-  return fragment
+  return p
 }
 
 function renderRename (state, send) {
@@ -333,12 +306,7 @@ function renderRename (state, send) {
 }
 
 function renderWhatsNew (state) {
-  var section = document.createElement('section')
-
-  var h2 = document.createElement('h2')
-  section.appendChild(h2)
-  h2.appendChild(document.createTextNode('What’s New'))
-
+  var section = renderSection('What’s New')
   section.appendChild(renderActivity(state, state.activity))
   return section
 }
