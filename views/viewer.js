@@ -210,7 +210,7 @@ function renderDraft (state, send) {
       return note.message.body.range
     })
     article.appendChild(
-      renderText(draft.message.body.text, inlineNotes, state.selection)
+      renderText(draft.message.body.text, inlineNotes, state.textSelection)
     )
     Array.from(article.children).forEach(function (child) {
       var childRange = {
@@ -227,13 +227,13 @@ function renderDraft (state, send) {
         })
       }
       // Render the new-note form.
-      var selection = state.selection
-      if (selection) {
-        if (endsInRange(selection.end, childRange)) {
+      var textSelection = state.textSelection
+      if (textSelection) {
+        if (endsInRange(textSelection.end, childRange)) {
           var aside = document.createElement('aside')
           insertAfter(aside)
           aside.appendChild(renderNoteForm(
-            null, state.selection, send
+            null, state.textSelection, send
           ))
         }
       }
@@ -265,7 +265,7 @@ function renderDraft (state, send) {
 
 var SEPARATOR = '\n\n'
 
-function renderText (text, notes, selection) {
+function renderText (text, notes, textSelection) {
   notes = notes || []
   var fragment = document.createDocumentFragment()
   var offset = 0
@@ -288,7 +288,7 @@ function renderText (text, notes, selection) {
             .map(function (note) {
               return note.message.body.range
             })
-            .concat(selection || [])
+            .concat(textSelection || [])
             .some(function (range) {
               return (
                 range.start <= absoluteIndex &&

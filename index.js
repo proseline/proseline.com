@@ -9,7 +9,7 @@ var runSeries = require('run-series')
 var selectedRange = require('./utilities/selected-range')
 
 var debug = {
-  selection: require('debug')('proseline:selection')
+  textSelection: require('debug')('proseline:text-selection')
 }
 
 runSeries([
@@ -297,7 +297,7 @@ function updateTimestamps () {
 document.addEventListener('mouseup', function () {
   var range = selectedRange('draftText')
   if (range) {
-    debug.selection('range: %o', range)
+    debug.textSelection('range: %o', range)
     action('select', range)
   }
 })

@@ -23,7 +23,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notes: null,
       intros: null,
       replyTo: null,
-      selection: null,
+      textSelection: null,
       parent: null,
       parentMarks: null,
       draft: null,
@@ -343,7 +343,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notes: notes,
       notesTree: treeifyNotes(notes),
       replyTo: null,
-      selection: null,
+      textSelection: null,
       parents: data.parents || [],
       children: children,
       diff: null,
@@ -577,7 +577,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       notes: notes,
       notesTree: treeifyNotes(notes),
       replyTo: null,
-      selection: null,
+      textSelection: null,
       activity: [newNote].concat(state.activity),
       draftBriefs: state.draftBriefs.map(function (brief) {
         if (brief.digest === newNote.message.body.draft) {
@@ -596,17 +596,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reduction('reply to', function (parent, state) {
     return {
       replyTo: parent,
-      selection: null
+      textSelection: null
     }
   })
 
   handler('select', function (data, state, reduce, done) {
-    reduce('selection', data)
+    reduce('text selection', data)
     done()
   })
 
-  reduction('selection', function (data, state) {
-    return {selection: data}
+  reduction('text selection', function (data, state) {
+    return {textSelection: data}
   })
 
   // Change
