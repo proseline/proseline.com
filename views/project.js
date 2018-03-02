@@ -164,6 +164,7 @@ function renderGraph (state, send) {
 
     var tr = document.createElement('tr')
     table.appendChild(tr)
+    tr.style.width = (100 / columnCounter) + '%'
 
     // <td>s for spacing
     for (var i = 0; i < brief.column; i++) {
@@ -216,23 +217,16 @@ function renderGraph (state, send) {
       ))
     }
 
-    var a = document.createElement('a')
-    a.className = 'button'
     if (selectedMultiple && selected) {
+      var a = document.createElement('a')
       a.className = 'button'
       a.href = (
         '/projects/' + state.discoveryKey +
         '/drafts/new/' + Array.from(state.draftSelection).join(',')
       )
-      a.appendChild(document.createTextNode('Combine the drafts you selected.'))
-    } else {
-      a.href = (
-        '/projects/' + state.discoveryKey +
-        '/drafts/new/' + brief.digest
-      )
-      a.appendChild(document.createTextNode('Start a new draft based on this one.'))
+      a.appendChild(document.createTextNode('Combine these drafts.'))
+      td.appendChild(a)
     }
-    td.appendChild(a)
   })
 
   return section
