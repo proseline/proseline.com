@@ -37,9 +37,23 @@ module.exports = function (state, send, discoveryKey) {
       }
       main.appendChild(share(state))
       main.appendChild(organize(state, send))
+      main.appendChild(rename(state, send))
     }
   }
   return main
+}
+
+function renderDeleteExplanation () {
+  var fragment = document.createDocumentFragment()
+  var p = document.createElement('p')
+  p.appendChild(document.createTextNode(
+    'Leaving this project deletes it from your computer. ' +
+    'To see the project again, you will need an invitation link. ' +
+    'Leaving the project does not delete your work from other ' +
+    'member’s computers.'
+  ))
+  fragment.appendChild(p)
+  return fragment
 }
 
 var CONFIRM_DELETE = 'Do you really want to delete this project?'
@@ -74,6 +88,18 @@ function newDraft (state) {
   return a
 }
 
+function inviteExplanation () {
+  var p = document.createElement('p')
+  p.appendChild(document.createTextNode(
+    'To invite others to join your project, ' +
+    'send them a link with a secret code. ' +
+    'Everyone with the secret code can create drafts, ' +
+    'add comments, create and move markers, ' +
+    'and see all the work done by others on the project.'
+  ))
+  return p
+}
+
 function inviteViaEMail (state) {
   var a = document.createElement('a')
   a.className = 'button'
@@ -84,7 +110,7 @@ function inviteViaEMail (state) {
     '&body=' + encodeURIComponent(url)
   )
   a.appendChild(document.createTextNode(
-    'Invite someone to this project via e-mail.'
+    'E-mail a link for joining this project.'
   ))
   return a
 }
@@ -94,7 +120,7 @@ function copyInvitation (state) {
   a.className = 'clipboard button'
   var url = 'https://proseline.com/join/' + state.secretKey
   a.setAttribute('data-clipboard-text', url)
-  a.appendChild(document.createTextNode('Copy a link to this project.'))
+  a.appendChild(document.createTextNode('Copy a link for joining this project.'))
   return a
 }
 
@@ -239,6 +265,7 @@ function share (state) {
   section.appendChild(h2)
   h2.appendChild(document.createTextNode('Share'))
 
+  section.appendChild(inviteExplanation())
   section.appendChild(inviteViaEMail(state))
   section.appendChild(copyInvitation(state))
 
@@ -252,10 +279,36 @@ function organize (state, send) {
   section.appendChild(h2)
   h2.appendChild(document.createTextNode('Organize'))
 
+  section.appendChild(renderDeleteExplanation())
   section.appendChild(renderDeleteButton(state, send))
+
+  return section
+}
+
+function rename (state, send) {
+  var section = document.createElement('section')
+
+  var h2 = document.createElement('h2')
+  section.appendChild(h2)
+  h2.appendChild(document.createTextNode('Rename'))
+
+  section.appendChild(renderRenameExplanation())
   section.appendChild(renderRename(state, send))
 
   return section
+}
+
+function renderRenameExplanation () {
+  var fragment = document.createDocumentFragment()
+
+  var p = document.createElement('p')
+  fragment.appendChild(p)
+  p.appendChild(document.createTextNode(
+    'Renaming the project changes your name for the project. ' +
+    'Other members of the project cannot see the name you use.'
+  ))
+
+  return fragment
 }
 
 function renderRename (state, send) {
