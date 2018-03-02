@@ -39,14 +39,18 @@ function renderProjectsList (projects) {
     section.appendChild(p)
   } else {
     var ul = document.createElement('ul')
-    projects.forEach(function (project) {
-      var li = document.createElement('li')
-      var a = document.createElement('a')
-      a.href = '/projects/' + project.discoveryKey
-      a.appendChild(document.createTextNode(project.title))
-      li.appendChild(a)
-      ul.appendChild(li)
-    })
+    projects
+      .sort(function (a, b) {
+        return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+      })
+      .forEach(function (project) {
+        var li = document.createElement('li')
+        var a = document.createElement('a')
+        a.href = '/projects/' + project.discoveryKey
+        a.appendChild(document.createTextNode(project.title))
+        li.appendChild(a)
+        ul.appendChild(li)
+      })
     section.appendChild(ul)
   }
   return section
