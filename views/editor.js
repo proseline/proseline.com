@@ -24,7 +24,18 @@ module.exports = function (state, send, discoveryKey, parentDigests) {
         send('load project', discoveryKey)
       })
     )
-  } else if (parentDigests && state.parents === null) {
+  } else if (
+    parentDigests &&
+    (
+      state.parents === null ||
+      state.parents.length !== parentDigests.length ||
+      !parentDigests.every(function (digest) {
+        return state.parents.some(function (parent) {
+          return parent.digest === digest
+        })
+      })
+    )
+  ) {
     main.appendChild(
       renderLoading(function () {
         send('load parents', {discoveryKey, parentDigests})
