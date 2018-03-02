@@ -5,6 +5,7 @@ var renderIntro = require('./partials/intro')
 var renderLoading = require('./loading')
 var renderMark = require('./partials/mark')
 var renderNoteIcon = require('./partials/note-icon')
+var renderQuoteIcon = require('./partials/quote-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderTimestamp = require('./partials/timestamp')
 
@@ -233,7 +234,7 @@ function renderDraft (state, send) {
           var aside = document.createElement('aside')
           insertAfter(aside)
           aside.appendChild(renderNoteForm(
-            null, state.textSelection, send
+            state, null, state.textSelection, send
           ))
         }
       }
@@ -428,7 +429,7 @@ function renderNotesList (state, send) {
     })
     directLI.appendChild(button)
   } else {
-    directLI.appendChild(renderNoteForm(null, null, send))
+    directLI.appendChild(renderNoteForm(state, null, null, send))
   }
   ol.appendChild(directLI)
   return ol
@@ -438,6 +439,18 @@ function renderNote (state, note, send) {
   var li = document.createElement('li')
   li.id = note.digest
   var replyTo = state.replyTo
+  var range = note.message.body.range
+  if (range) {
+    // <blockquote>
+    var substring = document.createElement('blockquote')
+    substring.appendChild(renderQuoteIcon())
+    substring.appendChild(document.createTextNode(
+      state.draft.message.body.text.substring(
+        range.start, range.end
+      )
+    ))
+    li.appendChild(substring)
+  }
   // <p>
   var p = document.createElement('p')
   p.className = 'byline'
@@ -454,7 +467,7 @@ function renderNote (state, note, send) {
   blockquote.appendChild(renderText(note.message.body.text))
   li.appendChild(blockquote)
   if (replyTo === note.digest) {
-    li.appendChild(renderNoteForm(note.digest, null, send))
+    li.appendChild(renderNoteForm(state, note.digest, null, send))
   } else {
     // <button>
     var button = document.createElement('button')
@@ -474,7 +487,9 @@ function renderNote (state, note, send) {
   return li
 }
 
-function renderNoteForm (parent, range, send) {
+function renderNoteForm (state, parent, range, send) {
+  console.log(arguments)
+  assert(typeof state, 'object')
   assert(parent === null || typeof parent === 'string')
   assert(
     range === null ||
@@ -484,6 +499,7 @@ function renderNoteForm (parent, range, send) {
       range.hasOwnProperty('end')
     )
   )
+  assert.equal(typeof send, 'function')
   var form = document.createElement('form')
   form.className = 'noteForm'
   form.addEventListener('submit', function (event) {
@@ -495,6 +511,17 @@ function renderNoteForm (parent, range, send) {
       text: textarea.value
     })
   })
+  if (range) {
+    // <blockquote>
+    var blockquote = document.createElement('blockquote')
+    form.appendChild(blockquote)
+    blockquote.appendChild(renderQuoteIcon())
+    blockquote.appendChild(document.createTextNode(
+      state.draft.message.body.text.substring(
+        range.start, range.end
+      )
+    ))
+  }
   // <textarea>
   var textarea = renderExpandingTextArea()
   textarea.required = true
