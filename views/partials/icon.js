@@ -1,5 +1,5 @@
-module.exports = function (name) {
-  var span = document.createElement('span')
-  span.className = name
-  return span
+var fontawesome = require('@fortawesome/fontawesome')
+
+module.exports = function (icon) {
+  return fontawesome.icon(icon).node[0]
 }

@@ -1,5 +1,6 @@
 var renderIcon = require('./icon')
+var icon = require('@fortawesome/fontawesome-free-regular/faBookmark')
 
 module.exports = function () {
-  return renderIcon('far fa-bookmark')
+  return renderIcon(icon)
 }
