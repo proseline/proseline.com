@@ -187,10 +187,10 @@ function render (state) {
     // New Draft
     } else if (remainder === '/drafts/new') {
       return renderEditor(state, action, discoveryKey)
-    // New Draft with Parent
-    } else if (/^\/drafts\/new\/[a-f0-9]{64}$/.test(remainder)) {
-      var parent = remainder.substr(12, 64)
-      return renderEditor(state, action, discoveryKey, parent)
+    // New Draft with Parents
+    } else if (/^\/drafts\/new\/[a-f0-9]{64}(,[a-f0-9]{64})*$/.test(remainder)) {
+      var parents = remainder.substr(12).split(',')
+      return renderEditor(state, action, discoveryKey, parents)
     // View Drafts
     } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
       var digest = remainder.substr(8, 64)

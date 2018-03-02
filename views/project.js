@@ -29,9 +29,12 @@ module.exports = function (state, send, discoveryKey) {
     } else {
       main.appendChild(renderWhatsNew(state))
       if (state.draftBriefs.length !== 0) {
-        main.appendChild(graph(state))
+        main.appendChild(renderGraph(state, send))
       }
       main.appendChild(newDraft(state))
+      if (state.draftSelection.size > 0) {
+        main.appendChild(renderDeselect(send))
+      }
       main.appendChild(share(state))
       main.appendChild(organize(state, send))
     }
@@ -50,6 +53,16 @@ function renderDeleteButton (state, send) {
       send('delete project', state.discoveryKey)
     }
   })
+  return button
+}
+
+function renderDeselect (send) {
+  var button = document.createElement('button')
+  button.className = 'deselect'
+  button.addEventListener('click', function () {
+    send('deselect all drafts')
+  })
+  button.appendChild(document.createTextNode('Deselect all drafts.'))
   return button
 }
 
@@ -88,7 +101,7 @@ function copyInvitation (state) {
 // TODO: Graph merging drafts.
 // TODO: Render lines between graph nodes
 
-function graph (state) {
+function renderGraph (state, send) {
   var section = document.createElement('section')
 
   var h2 = document.createElement('h2')
@@ -144,7 +157,11 @@ function graph (state) {
   section.appendChild(table)
   table.className = 'graph'
 
+  var selectedMultiple = state.draftSelection.size > 1
+
   briefs.forEach(function (brief) {
+    var selected = state.draftSelection.has(brief.digest)
+
     var tr = document.createElement('tr')
     table.appendChild(tr)
 
@@ -157,6 +174,19 @@ function graph (state) {
     var td = document.createElement('td')
     tr.appendChild(td)
     td.className = 'draftCell'
+    if (selected) td.className += ' selected'
+
+    if (!selectedMultiple || selected) {
+      var checkbox = document.createElement('input')
+      checkbox.type = 'checkbox'
+      checkbox.className = 'draftCheckBox'
+      checkbox.addEventListener('change', function (event) {
+        if (event.target.checked) send('select draft', brief.digest)
+        else send('deselect draft', brief.digest)
+      })
+      if (selected) checkbox.checked = true
+      td.appendChild(checkbox)
+    }
 
     td.appendChild(renderDraftIcon())
     td.appendChild(document.createTextNode(' '))
@@ -185,6 +215,24 @@ function graph (state) {
         brief.notesCount === 1 ? ' note' : ' notes'
       ))
     }
+
+    var a = document.createElement('a')
+    a.className = 'button'
+    if (selectedMultiple && selected) {
+      a.className = 'button'
+      a.href = (
+        '/projects/' + state.discoveryKey +
+        '/drafts/new/' + Array.from(state.draftSelection).join(',')
+      )
+      a.appendChild(document.createTextNode('Combine the drafts you selected.'))
+    } else {
+      a.href = (
+        '/projects/' + state.discoveryKey +
+        '/drafts/new/' + brief.digest
+      )
+      a.appendChild(document.createTextNode('Start a new draft based on this one.'))
+    }
+    td.appendChild(a)
   })
 
   return section

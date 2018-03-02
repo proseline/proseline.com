@@ -1,8 +1,22 @@
-var renderLoading = require('./loading')
+var assert = require('assert')
+var diff = require('diff/lib/diff/line').diffLines
 var renderDraftHeader = require('./partials/draft-header')
-var renderRefreshNotice = require('./partials/refresh-notice')
+var renderLoading = require('./loading')
 
-module.exports = function (state, send, discoveryKey, parentDigest) {
+module.exports = function (state, send, discoveryKey, parentDigests) {
+  assert(
+    parentDigests === undefined ||
+    (
+      Array.isArray(parentDigests) &&
+      parentDigests.length > 0 &&
+      parentDigests.every(function (element) {
+        return (
+          typeof element === 'string' &&
+          element.length === 64
+        )
+      })
+    )
+  )
   var main = document.createElement('main')
   if (state.discoveryKey !== discoveryKey) {
     main.appendChild(
@@ -10,32 +24,13 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
         send('load project', discoveryKey)
       })
     )
-  } else if (
-    parentDigest &&
-    (
-      state.parent === null ||
-      state.parent.digest !== parentDigest
-    )
-  ) {
+  } else if (parentDigests && state.parents === null) {
     main.appendChild(
       renderLoading(function () {
-        send('load parent', {
-          discoveryKey: discoveryKey,
-          digest: parentDigest
-        })
+        send('load parents', {discoveryKey, parentDigests})
       })
     )
   } else {
-    if (state.changed) {
-      main.appendChild(renderRefreshNotice(function () {
-        send('load parent', {
-          discoveryKey: discoveryKey,
-          digest: parentDigest
-        })
-      }))
-    }
-    var parent = state.parent
-
     var form = document.createElement('form')
     form.className = 'saveDraftForm'
     main.appendChild(form)
@@ -46,7 +41,7 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
       send('save', {
         discoveryKey: discoveryKey,
         text: textarea.value,
-        parents: parent ? [parent.digest] : []
+        parents: parentDigests || []
       })
     })
 
@@ -63,8 +58,21 @@ module.exports = function (state, send, discoveryKey, parentDigest) {
     textarea.autofocus = true
     textarea.spellcheck = true
     textarea.className = 'editor'
-    if (parent) {
-      textarea.value = state.parent.message.body.text
+    if (parentDigests) {
+      if (parentDigests.length === 1) {
+        textarea.value = state.parents[0].message.body.text
+      } else {
+        var first = state.parents[0].message.body.text
+        var second = state.parents[1].message.body.text
+        textarea.value = diff(first, second)
+          .map(function (change) {
+            var text = change.value
+            if (change.added) return '[inserted:]' + text + '[end]'
+            else if (change.removed) return '[deleted:]' + text + '[end]'
+            else return text
+          })
+          .join('')
+      }
     }
     main.appendChild(textarea)
   }

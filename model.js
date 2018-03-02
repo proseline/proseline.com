@@ -24,14 +24,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       intros: null,
       replyTo: null,
       textSelection: null,
-      parent: null,
-      parentMarks: null,
+      parents: null,
       draft: null,
       // Project
       identity: null,
       secretKey: null,
       discoveryKey: null,
       title: null,
+      draftSelection: new Set(),
       // Overview
       projects: null
     }
@@ -282,7 +282,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       intros: data.intros,
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || [],
-      activity: data.activity
+      activity: data.activity,
+      draftSelection: new Set()
     }
   })
 
@@ -290,7 +291,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {
       changed: false,
       discoveryKey: null,
-      projects: null
+      projects: null,
+      draftSelection: new Set()
     }
   })
 
@@ -350,7 +352,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       parent: null,
       parentMarks: null,
       ownMarks: null,
-      changes: null
+      changes: null,
+      draftSelection: new Set()
     }
   })
 
@@ -397,29 +400,33 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {diff: diff}
   })
 
-  handler('load parent', function (data, state, reduce, done) {
+  handler('load parents', function (data, state, reduce, done) {
+    assert(data.hasOwnProperty('parentDigests'))
+    var parentDigests = data.parentDigests
+    assert(Array.isArray(parentDigests))
+    assert(parentDigests.length > 0)
+    assert(parentDigests.every(function (element) {
+      return (
+        typeof element === 'string' &&
+        element.length === 64
+      )
+    }))
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      runParallel({
-        parent: function (done) {
-          db.getDraft(data.digest, done)
-        },
-        parentMarks: function (done) {
-          db.getMarks(data.digest, done)
+      runParallel(parentDigests.map(function (digest) {
+        return function (done) {
+          db.getDraft(digest, done)
         }
-      }, function (error, results) {
+      }), function (error, parents) {
         if (error) return done(error)
-        reduce('parent', results)
+        reduce('parents', parents)
         done()
       })
     })
   })
 
-  reduction('parent', function (data, state) {
-    return {
-      parent: data.parent,
-      parentMarks: data.parentMarks
-    }
+  reduction('parents', function (parents, state) {
+    return {parents}
   })
 
   handler('load mark', function (data, state, reduce, done) {
@@ -607,6 +614,37 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('text selection', function (data, state) {
     return {textSelection: data}
+  })
+
+  handler('select draft', function (digest, state, reduce, done) {
+    reduce('select draft', digest)
+    done()
+  })
+
+  reduction('select draft', function (digest, state) {
+    var draftSelection = state.draftSelection
+    draftSelection.add(digest)
+    return {draftSelection}
+  })
+
+  handler('deselect draft', function (digest, state, reduce, done) {
+    reduce('deselect draft', digest)
+    done()
+  })
+
+  reduction('deselect draft', function (digest, state) {
+    var draftSelection = state.draftSelection
+    draftSelection.delete(digest)
+    return {draftSelection}
+  })
+
+  handler('deselect all drafts', function (_, state, reduce, done) {
+    reduce('deselect all drafts')
+    done()
+  })
+
+  reduction('deselect all drafts', function () {
+    return {draftSelection: new Set()}
   })
 
   // Change
