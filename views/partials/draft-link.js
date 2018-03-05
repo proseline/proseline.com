@@ -8,7 +8,7 @@ module.exports = function (state, draftOrBrief) {
     '/projects/' + draftOrBrief.project +
     '/drafts/' + draftOrBrief.digest
   )
-  a.appendChild(renderIntro(state, draftOrBrief.publicKey))
+  a.appendChild(renderIntro(state, draftOrBrief.publicKey, true))
   a.appendChild(document.createTextNode(' '))
   if (draftOrBrief.message) {
     a.appendChild(renderRelativeTimestamp(draftOrBrief.message.body.timestamp))

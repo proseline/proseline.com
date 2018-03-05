@@ -100,7 +100,7 @@ function renderParents (state, send) {
       '/projects/' + state.discoveryKey +
       '/drafts/' + parent.digest
     )
-    a.appendChild(renderIntro(state, parent.publicKey))
+    a.appendChild(renderIntro(state, parent.publicKey, true))
     a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(parent.message.body.timestamp))
     p.appendChild(document.createTextNode(' '))
@@ -143,7 +143,7 @@ function renderChildren (state, send) {
       '/projects/' + state.discoveryKey +
       '/drafts/' + child.digest
     )
-    a.appendChild(renderIntro(state, child.publicKey))
+    a.appendChild(renderIntro(state, child.publicKey, true))
     a.appendChild(document.createTextNode(' on '))
     a.appendChild(renderTimestamp(child.message.body.timestamp))
     p.appendChild(document.createTextNode(' '))
