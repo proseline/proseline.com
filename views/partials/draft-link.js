@@ -8,6 +8,7 @@ module.exports = function (state, draftOrBrief) {
     '/projects/' + draftOrBrief.project +
     '/drafts/' + draftOrBrief.digest
   )
+  a.title = 'Click to read the draft.'
   a.appendChild(renderIntro(state, draftOrBrief.publicKey, true))
   a.appendChild(document.createTextNode(' '))
   if (draftOrBrief.message) {

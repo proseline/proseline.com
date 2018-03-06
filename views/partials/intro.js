@@ -12,6 +12,7 @@ module.exports = function (state, publicKey, plainText) {
       '/projects/' + state.discoveryKey +
       '/members/' + publicKey
     )
+    element.title = 'Click to view activity.'
   }
   element.className = 'intro'
   var intro = state.intros[publicKey]
