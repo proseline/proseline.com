@@ -11,9 +11,7 @@ var webRTCSwarm = require('webrtc-swarm')
 
 var events = new EventEmitter()
 
-var count = 0
-
-module.exports = {joinSwarm, leaveSwarm, events, count}
+module.exports = {joinSwarm, leaveSwarm, events, countPeers}
 
 var swarms = []
 
@@ -40,13 +38,9 @@ function joinSwarm (project, database) {
         database: database
       })
       replicationStream.pipe(peer).pipe(replicationStream)
-      count++
-      debug('peer: %o', count)
       events.emit('connect')
     })
     swarm.on('disconnect', function () {
-      count--
-      debug('peer: %o', count)
       events.emit('disconnect')
     })
     swarms.push({
@@ -67,4 +61,10 @@ function leaveSwarm (discoveryKey) {
     swarms.splice(index, 1)
     debug('left: %s', discoveryKey)
   }
+}
+
+function countPeers () {
+  return swarms.reduce(function (count, entry) {
+    return count + entry.swarm.peers.length
+  }, 0)
 }

@@ -240,7 +240,7 @@ function joinSwarms (done) {
     .on('connect', onPeersChange)
     .on('disconnect', onPeersChange)
   function onPeersChange () {
-    action('peers', peer.count)
+    action('peers', peer.countPeers())
   }
 }
 
