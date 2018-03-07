@@ -288,7 +288,6 @@ function renderText (text, notes, textSelection) {
             .map(function (note) {
               return note.message.body.range
             })
-            .concat(textSelection || [])
             .some(function (range) {
               return (
                 range.start <= absoluteIndex &&
