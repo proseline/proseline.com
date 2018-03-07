@@ -21,7 +21,8 @@ function renderPeersCounter (state) {
   p.appendChild(document.createTextNode(state.peers))
   p.title = (
     state.peers.toString() +
-    ' collaborators are online sharing work with you.'
+    (state.peers === 1 ? 'collaborator' : 'collaborators') +
+    ' are online sharing work with you.'
   )
   return p
 }
