@@ -31,6 +31,7 @@
     "pumpify": "^1.4.0",
     "run-parallel": "^1.1.6",
     "run-series": "^1.1.4",
+    "screenfull": "^3.3.2",
     "signalhub": "^4.9.0",
     "simple-get": "^2.7.0",
     "sodium-javascript": "^0.5.4",

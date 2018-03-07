@@ -2,6 +2,7 @@ var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
+var screenfull = require('screenfull')
 
 module.exports = function (state, send, discoveryKey, parentDigests) {
   state.route = 'editor'
@@ -43,11 +44,13 @@ module.exports = function (state, send, discoveryKey, parentDigests) {
       })
     )
   } else {
-    var form = document.createElement('form')
-    form.className = 'saveDraftForm'
-    main.appendChild(form)
+    var headerAddition = document.createDocumentFragment()
 
-    form.addEventListener('submit', function (event) {
+    var saveForm = document.createElement('form')
+    headerAddition.appendChild(saveForm)
+    saveForm.className = 'saveDraftForm'
+    main.appendChild(saveForm)
+    saveForm.addEventListener('submit', function (event) {
       event.preventDefault()
       event.stopPropagation()
       send('save', {
@@ -59,11 +62,20 @@ module.exports = function (state, send, discoveryKey, parentDigests) {
 
     // Save Button
     var save = document.createElement('button')
-    form.appendChild(save)
+    saveForm.appendChild(save)
     save.className = 'button'
     save.appendChild(document.createTextNode('Save'))
 
-    main.appendChild(renderDraftHeader(state, form))
+    if (screenfull.enabled) {
+      var fullScreenButton = document.createElement('button')
+      headerAddition.appendChild(fullScreenButton)
+      fullScreenButton.appendChild(document.createTextNode('Full Screen'))
+      fullScreenButton.addEventListener('click', function () {
+        screenfull.request()
+      })
+    }
+
+    main.appendChild(renderDraftHeader(state, headerAddition))
 
     // <textarea>
     var textarea = document.createElement('textarea')
