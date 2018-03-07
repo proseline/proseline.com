@@ -19,6 +19,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
     return {
       changed: false,
+      peers: 0,
       marks: null,
       notes: null,
       intros: null,
@@ -656,6 +657,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('changed', function () {
     return {changed: true}
+  })
+
+  handler('peers', function (count, state, reduce, done) {
+    reduce('peers', count)
+    done()
+  })
+
+  reduction('peers', function (count) {
+    return {peers: count}
   })
 
   // Downloads

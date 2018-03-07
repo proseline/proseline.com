@@ -1,3 +1,4 @@
+var EventEmitter = require('events').EventEmitter
 var HUBS = require('./hubs')
 var assert = require('assert')
 var debug = require('debug')('proseline:peer')
@@ -8,7 +9,11 @@ var webRTCSwarm = require('webrtc-swarm')
 
 // TODO: tune maxPeers by last access time
 
-module.exports = {joinSwarm, leaveSwarm}
+var events = new EventEmitter()
+
+var count = 0
+
+module.exports = {joinSwarm, leaveSwarm, events, count}
 
 var swarms = []
 
@@ -35,6 +40,12 @@ function joinSwarm (project, database) {
         database: database
       })
       replicationStream.pipe(peer).pipe(replicationStream)
+      count++
+      events.emit('connect')
+    })
+    swarm.on('disconnect', function () {
+      count--
+      events.emit('disconnect')
     })
     swarms.push({
       project: project,

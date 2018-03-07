@@ -4,6 +4,7 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 
 module.exports = function (state, send, discoveryKey, parentDigests) {
+  state.route = 'editor'
   assert(
     parentDigests === undefined ||
     (

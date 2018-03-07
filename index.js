@@ -236,6 +236,12 @@ function joinSwarms (done) {
       done
     )
   })
+  peer.events
+    .on('connect', onPeersChange)
+    .on('disconnect', onPeersChange)
+  function onPeersChange () {
+    action('peers', peer.count)
+  }
 }
 
 function launchApplication (done) {

@@ -11,6 +11,7 @@ var renderSection = require('./partials/section')
 var renderTimestamp = require('./partials/timestamp')
 
 module.exports = function (state, send, discoveryKey, digest) {
+  state.route = 'viewer'
   var main = document.createElement('main')
   if (discoveryKey && state.discoveryKey !== discoveryKey) {
     main.appendChild(

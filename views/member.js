@@ -5,6 +5,7 @@ var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
 
 module.exports = function (state, send, discoveryKey, publicKey) {
+  state.route = 'member'
   assert.equal(typeof state, 'object')
   assert.equal(typeof send, 'function')
   assert.equal(typeof discoveryKey, 'string')

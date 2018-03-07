@@ -1,10 +1,11 @@
-var renderHomeLink = require('./partials/home-link')
+var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var renderSection = require('./partials/section')
 
 // TODO: paid peer UI
 
 module.exports = function (state, send) {
+  state.route = 'home'
   var main = document.createElement('main')
   if (!state.projects) {
     main.appendChild(
@@ -13,18 +14,12 @@ module.exports = function (state, send) {
       })
     )
   } else {
-    main.appendChild(renderHeader())
+    main.appendChild(renderDraftHeader(state))
     main.appendChild(renderProjectsList(state.projects))
     main.appendChild(renderCreateProject(send))
     main.appendChild(renderBackup(send))
   }
   return main
-}
-
-function renderHeader () {
-  var header = document.createElement('header')
-  header.appendChild(renderHomeLink())
-  return header
 }
 
 function renderProjectsList (projects) {

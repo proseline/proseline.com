@@ -10,6 +10,7 @@ var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 
 module.exports = function (state, send, discoveryKey) {
+  state.route = 'project'
   var main = document.createElement('main')
   if (discoveryKey && state.discoveryKey !== discoveryKey) {
     main.appendChild(
