@@ -487,7 +487,6 @@ function renderNote (state, note, send) {
 }
 
 function renderNoteForm (state, parent, range, send) {
-  console.log(arguments)
   assert(typeof state, 'object')
   assert(parent === null || typeof parent === 'string')
   assert(

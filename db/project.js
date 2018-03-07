@@ -430,3 +430,33 @@ Project.prototype.memberActivity = function (publicKey, count, callback) {
     }
   }
 }
+
+Project.prototype.markHistory = function (publicKey, identifier, count, callback) {
+  assert.equal(typeof publicKey, 'string')
+  assert.equal(publicKey.length, 64)
+  assert(Number.isInteger(count))
+  assert.equal(typeof identifier, 'string')
+  assert.equal(identifier.length, 8)
+  assert(count > 0)
+  var transaction = this._db.transaction(['logs'], 'readonly')
+  transaction.onerror = function () {
+    callback(transaction.error)
+  }
+  var objectStore = transaction.objectStore('logs')
+  var index = objectStore.index('publicKey-identifier')
+  var request = index.openCursor([publicKey, identifier], 'prev')
+  var results = []
+  request.onsuccess = function () {
+    var cursor = request.result
+    if (cursor) {
+      results.push(cursor.value)
+      if (results.length === count) {
+        callback(null, results)
+      } else {
+        cursor.continue()
+      }
+    } else {
+      callback(null, results)
+    }
+  }
+}

@@ -153,6 +153,7 @@ function resetState () {
 var renderEditor = require('./views/editor')
 var renderHomePage = require('./views/home-page')
 var renderLoading = require('./views/loading')
+var renderMark = require('./views/mark')
 var renderMember = require('./views/member')
 var renderNotFound = require('./views/not-found')
 var renderProject = require('./views/project')
@@ -182,6 +183,7 @@ function render (state) {
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
     var discoveryKey = path.substr(10, 64)
     var remainder = path.substr(74)
+    var publicKey
     if (remainder === '' || remainder === '/') {
       return renderProject(state, action, discoveryKey)
     // New Draft
@@ -197,20 +199,12 @@ function render (state) {
       return renderViewer(state, action, discoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
-      main = document.createElement('main')
-      main.appendChild(
-        renderLoading(function () {
-          action('load mark', {
-            discoveryKey: discoveryKey,
-            publicKey: remainder.substr(7, 64),
-            identifier: remainder.substr(7 + 64 + 1, 8)
-          })
-        })
-      )
-      return main
+      publicKey = remainder.substr(7, 64)
+      var identifier = remainder.substr(7 + 64 + 1, 8)
+      return renderMark(state, action, discoveryKey, publicKey, identifier)
     // Member Activity
     } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
-      var publicKey = remainder.substr(9, 64)
+      publicKey = remainder.substr(9, 64)
       return renderMember(state, action, discoveryKey, publicKey)
     } else {
       return renderNotFound(state, action)

@@ -436,17 +436,22 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     assert(data.hasOwnProperty('identifier'))
     withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.getMark(data.publicKey, data.identifier, function (error, mark) {
+      db.markHistory(data.publicKey, data.identifier, 100, function (error, history) {
         if (error) return done(error)
-        // TODO: Handle mark not found.
-        window.history.replaceState(
-          {}, null,
-          '/projects/' + data.discoveryKey +
-          '/drafts/' + mark.message.body.draft
-        )
+        var latestMark = history[0]
+        reduce('mark', {
+          markPublicKey: latestMark.publicKey,
+          markIdentifier: latestMark.message.body.identifier,
+          mark: latestMark,
+          markHistory: history
+        })
         done()
       })
     })
+  })
+
+  reduction('mark', function (data, state) {
+    return data
   })
 
   // Drafts
