@@ -42,7 +42,7 @@ function needParent (node) {
 }
 
 function hasRange (node) {
-  return startOf(node) !== undefined && endOf(node) !== undefined
+  return startOf(node) !== undefined
 }
 
 function withinNote (node) {
@@ -56,10 +56,6 @@ function withinNote (node) {
 
 function startOf (node) {
   return parseInt(node.dataset.start)
-}
-
-function endOf (node) {
-  return parseInt(node.dataset.end)
 }
 
 function renderedParent (node) {

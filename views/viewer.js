@@ -297,7 +297,6 @@ function renderText (text, notes, textSelection) {
           if (inHighlighted) {
             if (last && last.marked) {
               last.string = last.string + character
-              last.end = absoluteIndex
             } else {
               items.push({
                 string: character,
@@ -308,7 +307,6 @@ function renderText (text, notes, textSelection) {
           } else {
             if (last && !last.marked) {
               last.string = last.string + character
-              last.end = absoluteIndex
             } else {
               items.push({
                 string: character,
@@ -324,7 +322,6 @@ function renderText (text, notes, textSelection) {
         )
         child.appendChild(document.createTextNode(item.string))
         child.dataset.start = item.start
-        child.dataset.end = item.end
         p.appendChild(child)
       })
 
