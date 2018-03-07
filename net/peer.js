@@ -41,10 +41,12 @@ function joinSwarm (project, database) {
       })
       replicationStream.pipe(peer).pipe(replicationStream)
       count++
+      debug('peer: %o', count)
       events.emit('connect')
     })
     swarm.on('disconnect', function () {
       count--
+      debug('peer: %o', count)
       events.emit('disconnect')
     })
     swarms.push({
