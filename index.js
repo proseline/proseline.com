@@ -119,7 +119,12 @@ function withDatabase (id, callback) {
   } else {
     var db = new ProjectDatabase(id)
     db.on('change', function () {
-      if (globalState.discoveryKey === id) action('changed')
+      if (
+        globalState.discoveryKey === id &&
+        globalState.intros[globalState.identity.publicKey]
+      ) {
+        action('changed')
+      }
     })
     databases[id] = db
     db.init(function (error) {
