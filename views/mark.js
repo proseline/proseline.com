@@ -3,6 +3,7 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderDraftLink = require('./partials/draft-link')
 var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
+var renderRelativeTimestamp = require('./partials/relative-timestamp')
 var withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, publicKey, identifier) {
@@ -60,6 +61,8 @@ function renderMarkHistory (state) {
       return brief.digest === body.draft
     })
     li.appendChild(renderDraftLink(state, brief))
+    li.appendChild(document.createTextNode(' '))
+    li.appendChild(renderRelativeTimestamp(brief.timestamp))
   })
   return ol
 }
