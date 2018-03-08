@@ -1,3 +1,4 @@
+var renderDraftDescription = require('./draft-description')
 var renderDraftIcon = require('./draft-icon')
 var renderIntro = require('./intro')
 
@@ -15,13 +16,7 @@ module.exports = function (state, draftOrBrief) {
     possessive: true,
     plainText: true
   }))
-  var parents = draftOrBrief.parents || draftOrBrief.message.body.parents
-  if (parents.length === 0) {
-    a.appendChild(document.createTextNode(' original draft'))
-  } else if (parents.length === 1) {
-    a.appendChild(document.createTextNode(' draft'))
-  } else {
-    a.appendChild(document.createTextNode(' combining draft'))
-  }
+  a.appendChild(document.createTextNode(' '))
+  a.appendChild(renderDraftDescription(draftOrBrief))
   return a
 }

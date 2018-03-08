@@ -1,3 +1,4 @@
+var renderDraftDescription = require('./draft-description')
 var renderDraftIcon = require('./draft-icon')
 var renderDraftLink = require('./draft-link')
 var renderIntro = require('./intro')
@@ -26,7 +27,9 @@ module.exports = function (state, activity) {
         '/drafts/' + envelope.digest
       )
       a.appendChild(renderDraftIcon())
-      a.appendChild(document.createTextNode('a draft'))
+      a.appendChild(renderDraftDescription(envelope, {
+        determiner: true
+      }))
       li.appendChild(document.createTextNode(' '))
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
