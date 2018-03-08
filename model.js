@@ -76,20 +76,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     loadMember(data, state, reduce, done)
   })
 
-  handler('reload member', function (data, state, reduce, done) {
-    runParallel([
-      function reloadMember (done) {
-        loadMember(data, state, reduce, done)
-      },
-      function reloadProject (done) {
-        loadProjectData(data.discoveryKey, function (error, data) {
-          if (error) return done(error)
-          reduce('project', data)
-          done()
-        })
-      }
-    ], done)
-  })
+  reloadHandler('member', loadMember)
 
   function loadMember (data, setate, reduce, done) {
     assert.equal(typeof data.publicKey, 'string')
@@ -359,23 +346,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  handler('reload draft', function (data, state, reduce, done) {
-    runParallel([
-      function reloadDraft (done) {
-        loadDraft(data, state, reduce, done)
-      },
-      function reloadProject (done) {
-        loadProjectData(data.discoveryKey, function (error, data) {
-          if (error) return done(error)
-          reduce('project', data)
-          done()
-        })
-      }
-    ], function (error) {
-      if (error) return done(error)
-      done()
-    })
-  })
+  reloadHandler('draft', loadDraft)
 
   reduction('draft', function (data, state) {
     var children = data.children || []
@@ -446,23 +417,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     loadParents(data, state, reduce, done)
   })
 
-  handler('reload parents', function (data, state, reduce, done) {
-    runParallel([
-      function reloadParents (done) {
-        loadParents(data, state, reduce, done)
-      },
-      function reloadProject (done) {
-        loadProjectData(data.discoveryKey, function (error, data) {
-          if (error) return done(error)
-          reduce('project', data)
-          done()
-        })
-      }
-    ], function (error) {
-      if (error) return done(error)
-      done()
-    })
-  })
+  reloadHandler('parents', loadParents)
 
   function loadParents (data, state, reduce, done) {
     assert(data.hasOwnProperty('parentDigests'))
@@ -497,23 +452,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     loadMark(data, state, reduce, done)
   })
 
-  handler('reload mark', function (data, state, reduce, done) {
-    runParallel([
-      function reloadMark (done) {
-        loadMark(data, state, reduce, done)
-      },
-      function reloadProject (done) {
-        loadProjectData(data.discoveryKey, function (error, data) {
-          if (error) return done(error)
-          reduce('project', data)
-          done()
-        })
-      }
-    ], function (error) {
-      if (error) return done(error)
-      done()
-    })
-  })
+  reloadHandler('mark', loadMark)
 
   function loadMark (data, state, reduce, done) {
     assert(data.hasOwnProperty('discoveryKey'))
@@ -802,4 +741,23 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       })
     })
   })
+
+  // Helper Functions
+
+  function reloadHandler (name, loader) {
+    handler('reload ' + name, function (data, state, reduce, done) {
+      runParallel([
+        function (done) {
+          loader(data, state, reduce, done)
+        },
+        function (done) {
+          loadProjectData(data.discoveryKey, function (error, data) {
+            if (error) return done(error)
+            reduce('project', data)
+            done()
+          })
+        }
+      ], done)
+    })
+  }
 }
