@@ -3,8 +3,9 @@ var renderActivity = require('./partials/activity')
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
+var withProject = require('./with-project')
 
-module.exports = function (state, send, discoveryKey, publicKey) {
+module.exports = withProject(function (state, send, discoveryKey, publicKey) {
   state.route = 'member'
   assert.equal(typeof state, 'object')
   assert.equal(typeof send, 'function')
@@ -13,13 +14,7 @@ module.exports = function (state, send, discoveryKey, publicKey) {
   assert.equal(typeof publicKey, 'string')
   assert.equal(publicKey.length, 64)
   var main = document.createElement('main')
-  if (discoveryKey && state.discoveryKey !== discoveryKey) {
-    main.appendChild(
-      renderLoading(function () {
-        send('load project', discoveryKey)
-      })
-    )
-  } else if (state.member === publicKey && state.memberActivity) {
+  if (state.member === publicKey && state.memberActivity) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
         send('load project', discoveryKey)
@@ -46,4 +41,4 @@ module.exports = function (state, send, discoveryKey, publicKey) {
     )
   }
   return main
-}
+})

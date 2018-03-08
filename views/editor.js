@@ -2,8 +2,9 @@ var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
+var withProject = require('./with-project')
 
-module.exports = function (state, send, discoveryKey, parentDigests) {
+module.exports = withProject(function (state, send, discoveryKey, parentDigests) {
   state.route = 'editor'
   assert(
     parentDigests === undefined ||
@@ -19,13 +20,7 @@ module.exports = function (state, send, discoveryKey, parentDigests) {
     )
   )
   var main = document.createElement('main')
-  if (state.discoveryKey !== discoveryKey) {
-    main.appendChild(
-      renderLoading(function () {
-        send('load project', discoveryKey)
-      })
-    )
-  } else if (
+  if (
     parentDigests &&
     (
       state.parents === null ||
@@ -89,4 +84,4 @@ module.exports = function (state, send, discoveryKey, parentDigests) {
     main.appendChild(textarea)
   }
   return main
-}
+})

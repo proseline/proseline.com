@@ -1,11 +1,12 @@
 var assert = require('assert')
 var renderDraftHeader = require('./partials/draft-header')
-var renderLoading = require('./loading')
-var renderRefreshNotice = require('./partials/refresh-notice')
 var renderDraftIcon = require('./partials/draft-icon')
 var renderDraftLink = require('./partials/draft-link')
+var renderLoading = require('./loading')
+var renderRefreshNotice = require('./partials/refresh-notice')
+var withProject = require('./with-project')
 
-module.exports = function (state, send, discoveryKey, publicKey, identifier) {
+module.exports = withProject(function (state, send, discoveryKey, publicKey, identifier) {
   state.route = 'mark'
   assert.equal(typeof state, 'object')
   assert.equal(typeof send, 'function')
@@ -16,16 +17,20 @@ module.exports = function (state, send, discoveryKey, publicKey, identifier) {
   assert.equal(typeof identifier, 'string')
   assert.equal(identifier.length, 8)
   var main = document.createElement('main')
-  if (discoveryKey && state.discoveryKey !== discoveryKey) {
+  if (
+    state.markPublicKey !== publicKey ||
+    state.markIdentifier !== identifier
+  ) {
     main.appendChild(
       renderLoading(function () {
-        send('load project', discoveryKey)
+        send('load mark', {
+          discoveryKey: discoveryKey,
+          publicKey: publicKey,
+          identifier: identifier
+        })
       })
     )
-  } else if (
-    state.markPublicKey === publicKey &&
-    state.markIdentifier === identifier
-  ) {
+  } else {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
         send('load project', discoveryKey)
@@ -41,19 +46,9 @@ module.exports = function (state, send, discoveryKey, publicKey, identifier) {
     h2.appendChild(document.createTextNode('Mark History'))
 
     section.appendChild(renderMarkHistory(state))
-  } else {
-    main.appendChild(
-      renderLoading(function () {
-        send('load mark', {
-          discoveryKey: discoveryKey,
-          publicKey: publicKey,
-          identifier: identifier
-        })
-      })
-    )
   }
   return main
-}
+})
 
 function renderMarkHistory (state) {
   var ol = document.createElement('ol')

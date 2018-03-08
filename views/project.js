@@ -4,46 +4,38 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderDraftIcon = require('./partials/draft-icon')
 var renderDraftLink = require('./partials/draft-link')
 var renderIntro = require('./partials/intro')
-var renderLoading = require('./loading')
 var renderMarkIcon = require('./partials/mark-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
+var withProject = require('./with-project')
 
-module.exports = function (state, send, discoveryKey) {
+module.exports = withProject(function (state, send, discoveryKey) {
   state.route = 'project'
   var main = document.createElement('main')
-  if (discoveryKey && state.discoveryKey !== discoveryKey) {
-    main.appendChild(
-      renderLoading(function () {
-        send('load project', discoveryKey)
-      }, 'Loading project…')
-    )
+  if (state.changed) {
+    main.appendChild(renderRefreshNotice(function () {
+      send('load project', discoveryKey)
+    }))
+  }
+  main.appendChild(renderDraftHeader(state))
+  var intro = state.intros[state.identity.publicKey]
+  if (!intro) {
+    main.appendChild(identityLine(send))
   } else {
-    if (state.changed) {
-      main.appendChild(renderRefreshNotice(function () {
-        send('load project', discoveryKey)
-      }))
+    main.appendChild(renderWhatsNew(state))
+    if (state.draftBriefs.length !== 0) {
+      main.appendChild(renderGraph(state, send))
     }
-    main.appendChild(renderDraftHeader(state))
-    var intro = state.intros[state.identity.publicKey]
-    if (!intro) {
-      main.appendChild(identityLine(send))
-    } else {
-      main.appendChild(renderWhatsNew(state))
-      if (state.draftBriefs.length !== 0) {
-        main.appendChild(renderGraph(state, send))
-      }
-      main.appendChild(newDraft(state))
-      if (state.draftSelection.size > 0) {
-        main.appendChild(renderDeselect(send))
-      }
-      main.appendChild(renderShareSection(state))
-      main.appendChild(renderOrganizeSection(state, send))
-      main.appendChild(renderRenameSection(state, send))
+    main.appendChild(newDraft(state))
+    if (state.draftSelection.size > 0) {
+      main.appendChild(renderDeselect(send))
     }
+    main.appendChild(renderShareSection(state))
+    main.appendChild(renderOrganizeSection(state, send))
+    main.appendChild(renderRenameSection(state, send))
   }
   return main
-}
+})
 
 function renderDeleteExplanation () {
   var p = document.createElement('p')

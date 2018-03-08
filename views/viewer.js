@@ -9,17 +9,12 @@ var renderQuoteIcon = require('./partials/quote-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var renderTimestamp = require('./partials/timestamp')
+var withProject = require('./with-project')
 
-module.exports = function (state, send, discoveryKey, digest) {
+module.exports = withProject(function (state, send, discoveryKey, digest) {
   state.route = 'viewer'
   var main = document.createElement('main')
-  if (discoveryKey && state.discoveryKey !== discoveryKey) {
-    main.appendChild(
-      renderLoading(function () {
-        send('load project', discoveryKey)
-      })
-    )
-  } else if (state.draft && state.draft.digest === digest) {
+  if (state.draft && state.draft.digest === digest) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
         send('load project', discoveryKey)
@@ -43,7 +38,7 @@ module.exports = function (state, send, discoveryKey, digest) {
     )
   }
   return main
-}
+})
 
 function renderHistory (state, send) {
   var section = renderSection('History')
