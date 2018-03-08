@@ -1,3 +1,5 @@
+var renderMark = require('./mark')
+
 module.exports = function (state, mark) {
   var a = document.createElement('a')
   a.className = 'draft'
@@ -7,6 +9,6 @@ module.exports = function (state, mark) {
     ':' + mark.message.body.identifier
   )
   a.title = 'Click to view the history of this mark.'
-  a.appendChild(document.createTextNode(mark.message.body.name))
+  a.appendChild(renderMark(mark, state))
   return a
 }

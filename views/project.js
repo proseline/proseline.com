@@ -1,10 +1,10 @@
 var identityLine = require('./partials/identity-line')
 var renderActivity = require('./partials/activity')
 var renderDraftHeader = require('./partials/draft-header')
-var renderDraftIcon = require('./partials/draft-icon')
 var renderDraftLink = require('./partials/draft-link')
 var renderIntro = require('./partials/intro')
-var renderMarkIcon = require('./partials/mark-icon')
+var renderNoteIcon = require('./partials/note-icon')
+var renderMarkLink = require('./partials/mark-link')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var withProject = require('./with-project')
@@ -203,7 +203,6 @@ function renderGraph (state, send) {
       td.appendChild(checkbox)
     }
 
-    td.appendChild(renderDraftIcon())
     td.appendChild(document.createTextNode(' '))
     td.appendChild(renderDraftLink(state, brief))
 
@@ -213,21 +212,23 @@ function renderGraph (state, send) {
         var p = document.createElement('p')
         td.appendChild(p)
         p.className = 'mark'
-        p.appendChild(renderMarkIcon())
+        p.appendChild(renderIntro(state, mark.publicKey, {
+          possessive: true,
+          plainText: true,
+          noIcon: true,
+          capitalize: true
+        }))
         p.appendChild(document.createTextNode(' '))
-        p.appendChild(document.createTextNode(mark.message.body.name))
-        p.appendChild(document.createTextNode(' ('))
-        p.appendChild(renderIntro(state, mark.publicKey))
-        p.appendChild(document.createTextNode(')'))
+        p.appendChild(renderMarkLink(state, mark))
       })
     }
     if (brief.notesCount) {
       var p = document.createElement('p')
       td.appendChild(p)
       p.className = 'notesCount'
-      p.appendChild(document.createTextNode(brief.notesCount))
+      p.appendChild(renderNoteIcon())
       p.appendChild(document.createTextNode(
-        brief.notesCount === 1 ? ' note' : ' notes'
+        '×' + brief.notesCount
       ))
     }
 

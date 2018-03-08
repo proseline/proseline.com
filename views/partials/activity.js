@@ -1,7 +1,6 @@
 var renderDraftIcon = require('./draft-icon')
+var renderDraftLink = require('./draft-link')
 var renderIntro = require('./intro')
-var renderIntroIcon = require('./intro-icon')
-var renderMarkIcon = require('./mark-icon')
 var renderMarkLink = require('./mark-link')
 var renderNoteIcon = require('./note-icon')
 var renderRelativeTimestamp = require('./relative-timestamp')
@@ -16,8 +15,9 @@ module.exports = function (state, activity) {
     var a
     ol.appendChild(li)
     if (type === 'draft') {
-      li.appendChild(renderDraftIcon())
-      li.appendChild(renderIntro(state, envelope.publicKey))
+      li.appendChild(renderIntro(state, envelope.publicKey, {
+        capitalize: true
+      }))
       li.appendChild(document.createTextNode(' added '))
       a = document.createElement('a')
       li.appendChild(a)
@@ -25,13 +25,15 @@ module.exports = function (state, activity) {
         '/projects/' + envelope.message.project +
         '/drafts/' + envelope.digest
       )
+      a.appendChild(renderDraftIcon())
       a.appendChild(document.createTextNode('a draft'))
       li.appendChild(document.createTextNode(' '))
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
-      li.appendChild(renderIntroIcon())
-      li.appendChild(renderIntro(state, envelope.publicKey))
+      li.appendChild(renderIntro(state, envelope.publicKey, {
+        capitalize: true
+      }))
       li.appendChild(document.createTextNode(
         ' introduced ' +
         (
@@ -43,19 +45,25 @@ module.exports = function (state, activity) {
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
-      li.appendChild(renderMarkIcon())
-      li.appendChild(renderIntro(state, envelope.publicKey))
-      li.appendChild(document.createTextNode(' put the mark '))
+      li.appendChild(renderIntro(state, envelope.publicKey, {
+        capitalize: true
+      }))
+      li.appendChild(document.createTextNode(' put '))
       li.appendChild(renderMarkLink(state, envelope))
       li.appendChild(document.createTextNode(' on '))
-      li.appendChild(renderDraftLink(state.discoveryKey, body.draft))
+      li.appendChild(
+        renderDraftLink(state, state.draftBriefs.find(function (brief) {
+          return brief.digest === body.draft
+        }))
+      )
       li.appendChild(document.createTextNode(' '))
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
-      li.appendChild(renderNoteIcon())
-      li.appendChild(renderIntro(state, envelope.publicKey))
-      li.appendChild(document.createTextNode(' '))
+      li.appendChild(renderIntro(state, envelope.publicKey, {
+        capitalize: true
+      }))
+      li.appendChild(document.createTextNode(' added a '))
       a = document.createElement('a')
       li.appendChild(a)
       a.href = (
@@ -63,29 +71,20 @@ module.exports = function (state, activity) {
         '/drafts/' + envelope.message.body.draft +
         '#' + envelope.digest
       )
+      a.appendChild(renderNoteIcon())
       a.appendChild(
-        document.createTextNode(
-          body.parent
-            ? 'replied to a note'
-            : 'added a note'
-        )
+        document.createTextNode(body.parent ? 'reply' : 'note')
       )
       li.appendChild(document.createTextNode(' to '))
-      li.appendChild(renderDraftLink(state.discoveryKey, body.draft))
+      li.appendChild(
+        renderDraftLink(state, state.draftBriefs.find(function (brief) {
+          return brief.digest === body.draft
+        }))
+      )
       li.appendChild(document.createTextNode(' '))
       li.appendChild(renderRelativeTimestamp(body.timestamp))
       li.appendChild(document.createTextNode('.'))
     }
   })
   return ol
-}
-
-function renderDraftLink (discoveryKey, digest) {
-  var a = document.createElement('a')
-  a.href = (
-    '/projects/' + discoveryKey +
-    '/drafts/' + digest
-  )
-  a.appendChild(document.createTextNode('this draft'))
-  return a
 }

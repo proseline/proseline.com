@@ -4,11 +4,10 @@ var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
 var renderLoading = require('./loading')
 var renderMark = require('./partials/mark')
-var renderNoteIcon = require('./partials/note-icon')
 var renderQuoteIcon = require('./partials/quote-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
+var renderRelativeTimestamp = require('./partials/relative-timestamp')
 var renderSection = require('./partials/section')
-var renderTimestamp = require('./partials/timestamp')
 var withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, digest) {
@@ -57,14 +56,10 @@ function renderAuthor (state) {
   var p = document.createElement('p')
   p.className = 'byline'
   p.appendChild(renderIntro(state, state.draft.publicKey))
-  p.appendChild(document.createTextNode(' saved this draft on '))
-  p.appendChild(renderDateline(state.draft))
+  p.appendChild(document.createTextNode(' saved this draft '))
+  p.appendChild(renderRelativeTimestamp(state.draft.message.body.timestamp))
   p.appendChild(document.createTextNode('.'))
   return p
-}
-
-function renderDateline (draft) {
-  return renderTimestamp(draft.message.body.timestamp)
 }
 
 function renderMarks (state, send) {
@@ -96,9 +91,11 @@ function renderParents (state, send) {
       '/projects/' + state.discoveryKey +
       '/drafts/' + parent.digest
     )
-    a.appendChild(renderIntro(state, parent.publicKey, true))
-    a.appendChild(document.createTextNode(' on '))
-    a.appendChild(renderTimestamp(parent.message.body.timestamp))
+    a.appendChild(renderIntro(state, parent.publicKey, {
+      plainText: true
+    }))
+    a.appendChild(document.createTextNode(' '))
+    a.appendChild(renderRelativeTimestamp(parent.message.body.timestamp))
     p.appendChild(document.createTextNode(' '))
     var button = document.createElement('button')
     p.appendChild(button)
@@ -140,8 +137,8 @@ function renderChildren (state, send) {
       '/drafts/' + child.digest
     )
     a.appendChild(renderIntro(state, child.publicKey, true))
-    a.appendChild(document.createTextNode(' on '))
-    a.appendChild(renderTimestamp(child.message.body.timestamp))
+    a.appendChild(document.createTextNode(' '))
+    a.appendChild(renderRelativeTimestamp(child.message.body.timestamp))
     p.appendChild(document.createTextNode(' '))
     var button = document.createElement('button')
     p.appendChild(button)
@@ -444,11 +441,9 @@ function renderNote (state, note, send) {
   // <p>
   var p = document.createElement('p')
   p.className = 'byline'
-  p.appendChild(renderNoteIcon())
-  p.appendChild(document.createTextNode(' '))
   p.appendChild(renderIntro(state, note.publicKey))
-  p.appendChild(document.createTextNode(' on '))
-  p.appendChild(renderTimestamp(note.message.body.timestamp))
+  p.appendChild(document.createTextNode(' '))
+  p.appendChild(renderRelativeTimestamp(note.message.body.timestamp))
   p.appendChild(document.createTextNode(':'))
   li.appendChild(p)
   // <blockquote>

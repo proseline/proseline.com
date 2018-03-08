@@ -1,5 +1,5 @@
+var renderDraftIcon = require('./draft-icon')
 var renderIntro = require('./intro')
-var renderRelativeTimestamp = require('./relative-timestamp')
 
 module.exports = function (state, draftOrBrief) {
   var a = document.createElement('a')
@@ -9,12 +9,19 @@ module.exports = function (state, draftOrBrief) {
     '/drafts/' + draftOrBrief.digest
   )
   a.title = 'Click to read the draft.'
-  a.appendChild(renderIntro(state, draftOrBrief.publicKey, true))
-  a.appendChild(document.createTextNode(' '))
-  if (draftOrBrief.message) {
-    a.appendChild(renderRelativeTimestamp(draftOrBrief.message.body.timestamp))
+  a.appendChild(renderDraftIcon())
+  a.appendChild(renderIntro(state, draftOrBrief.publicKey, {
+    noIcon: true,
+    possessive: true,
+    plainText: true
+  }))
+  var parents = draftOrBrief.parents || draftOrBrief.message.body.parents
+  if (parents.length === 0) {
+    a.appendChild(document.createTextNode(' original draft'))
+  } else if (parents.length === 1) {
+    a.appendChild(document.createTextNode(' draft'))
   } else {
-    a.appendChild(renderRelativeTimestamp(draftOrBrief.timestamp))
+    a.appendChild(document.createTextNode(' combining draft'))
   }
   return a
 }
