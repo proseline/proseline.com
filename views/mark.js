@@ -1,6 +1,5 @@
 var assert = require('assert')
 var renderDraftHeader = require('./partials/draft-header')
-var renderDraftIcon = require('./partials/draft-icon')
 var renderDraftLink = require('./partials/draft-link')
 var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
@@ -57,7 +56,6 @@ function renderMarkHistory (state) {
     var li = document.createElement('li')
     ol.appendChild(li)
     var body = envelope.message.body
-    li.appendChild(renderDraftIcon())
     var brief = state.draftBriefs.find(function (brief) {
       return brief.digest === body.draft
     })
