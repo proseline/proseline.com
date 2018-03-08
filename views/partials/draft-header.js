@@ -7,7 +7,14 @@ module.exports = function (state, addition) {
   header.className = 'draftHeader'
   header.appendChild(renderHomeLink())
   if (state.route !== 'home') {
-    header.appendChild(renderProjectLink(state))
+    if (state.route === 'project') {
+      var a = document.createElement('a')
+      header.appendChild(a)
+      a.className = 'project'
+      a.appendChild(document.createTextNode(state.title))
+    } else {
+      header.appendChild(renderProjectLink(state))
+    }
   }
   header.appendChild(renderPeersCounter(state))
   if (addition) header.appendChild(addition)
