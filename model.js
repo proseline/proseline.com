@@ -73,6 +73,25 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Member Activity
 
   handler('load member', function (data, state, reduce, done) {
+    loadMember(data, state, reduce, done)
+  })
+
+  handler('reload member', function (data, state, reduce, done) {
+    runParallel([
+      function reloadMember (done) {
+        loadMember(data, state, reduce, done)
+      },
+      function reloadProject (done) {
+        loadProjectData(data.discoveryKey, function (error, data) {
+          if (error) return done(error)
+          reduce('project', data)
+          done()
+        })
+      }
+    ], done)
+  })
+
+  function loadMember (data, setate, reduce, done) {
     assert.equal(typeof data.publicKey, 'string')
     assert.equal(data.publicKey.length, 64)
     var publicKey = data.publicKey
@@ -87,7 +106,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         done()
       })
     })
-  })
+  }
 
   reduction('member', function (data, state) {
     return data
@@ -298,6 +317,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load draft', function (data, state, reduce, done) {
+    loadDraft(data, state, reduce, done)
+  })
+
+  function loadDraft (data, state, reduce, done) {
     var digest = data.digest
     withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
@@ -333,6 +356,24 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           done()
         })
       })
+    })
+  }
+
+  handler('reload draft', function (data, state, reduce, done) {
+    runParallel([
+      function reloadDraft (done) {
+        loadDraft(data, state, reduce, done)
+      },
+      function reloadProject (done) {
+        loadProjectData(data.discoveryKey, function (error, data) {
+          if (error) return done(error)
+          reduce('project', data)
+          done()
+        })
+      }
+    ], function (error) {
+      if (error) return done(error)
+      done()
     })
   })
 
@@ -402,6 +443,28 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load parents', function (data, state, reduce, done) {
+    loadParents(data, state, reduce, done)
+  })
+
+  handler('reload parents', function (data, state, reduce, done) {
+    runParallel([
+      function reloadParents (done) {
+        loadParents(data, state, reduce, done)
+      },
+      function reloadProject (done) {
+        loadProjectData(data.discoveryKey, function (error, data) {
+          if (error) return done(error)
+          reduce('project', data)
+          done()
+        })
+      }
+    ], function (error) {
+      if (error) return done(error)
+      done()
+    })
+  })
+
+  function loadParents (data, state, reduce, done) {
     assert(data.hasOwnProperty('parentDigests'))
     var parentDigests = data.parentDigests
     assert(Array.isArray(parentDigests))
@@ -424,13 +487,35 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         done()
       })
     })
-  })
+  }
 
   reduction('parents', function (parents, state) {
     return {parents}
   })
 
   handler('load mark', function (data, state, reduce, done) {
+    loadMark(data, state, reduce, done)
+  })
+
+  handler('reload mark', function (data, state, reduce, done) {
+    runParallel([
+      function reloadMark (done) {
+        loadMark(data, state, reduce, done)
+      },
+      function reloadProject (done) {
+        loadProjectData(data.discoveryKey, function (error, data) {
+          if (error) return done(error)
+          reduce('project', data)
+          done()
+        })
+      }
+    ], function (error) {
+      if (error) return done(error)
+      done()
+    })
+  })
+
+  function loadMark (data, state, reduce, done) {
     assert(data.hasOwnProperty('discoveryKey'))
     assert(data.hasOwnProperty('publicKey'))
     assert(data.hasOwnProperty('identifier'))
@@ -448,7 +533,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         done()
       })
     })
-  })
+  }
 
   reduction('mark', function (data, state) {
     return data

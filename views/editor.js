@@ -34,7 +34,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
   ) {
     main.appendChild(
       renderLoading(function () {
-        send('load parents', {discoveryKey, parentDigests})
+        send('reload parents', {discoveryKey, parentDigests})
       })
     )
   } else {

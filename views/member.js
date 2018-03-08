@@ -17,7 +17,7 @@ module.exports = withProject(function (state, send, discoveryKey, publicKey) {
   if (state.member === publicKey && state.memberActivity) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('load project', discoveryKey)
+        send('reload member', discoveryKey)
       }))
     }
     main.appendChild(renderDraftHeader(state))

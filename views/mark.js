@@ -33,7 +33,7 @@ module.exports = withProject(function (state, send, discoveryKey, publicKey, ide
   } else {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('load project', discoveryKey)
+        send('reload mark', {discoveryKey, publicKey, identifier})
       }))
     }
     main.appendChild(renderDraftHeader(state))

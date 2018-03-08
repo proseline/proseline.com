@@ -17,7 +17,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
   if (state.draft && state.draft.digest === digest) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('load project', discoveryKey)
+        send('reload draft', {discoveryKey, digest})
       }))
     }
     main.appendChild(renderDraftHeader(state))
