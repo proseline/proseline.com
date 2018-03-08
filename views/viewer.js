@@ -240,7 +240,6 @@ function renderDraft (state, send) {
 
   function renderInlineNotesList (state, send, parent) {
     var aside = document.createElement('aside')
-    aside.className = 'note'
 
     var ol = document.createElement('ol')
     aside.appendChild(ol)
@@ -424,6 +423,7 @@ function renderNotesList (state, send) {
 
 function renderNote (state, note, send) {
   var li = document.createElement('li')
+  li.className = 'note'
   li.id = note.digest
   var replyTo = state.replyTo
   var range = note.message.body.range
@@ -448,7 +448,6 @@ function renderNote (state, note, send) {
   li.appendChild(p)
   // <blockquote>
   var blockquote = document.createElement('blockquote')
-  blockquote.className = 'note'
   blockquote.appendChild(renderText(note.message.body.text))
   li.appendChild(blockquote)
   if (replyTo === note.digest) {
