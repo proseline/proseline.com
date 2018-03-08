@@ -146,9 +146,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       })
     })
     function redirect () {
-      loadProjectData(discoveryKey, function (error, data) {
+      loadProject(discoveryKey, state, reduce, function (error) {
         if (error) return done(error)
-        reduce('project', data)
         redirectToProject(discoveryKey)
         done()
       })
@@ -235,16 +234,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('load project', function (discoveryKey, state, reduce, done) {
-    loadProjectData(discoveryKey, function (error, data) {
-      if (error) return done(error)
-      reduce('project', data)
-      done()
-    })
+    loadProject(discoveryKey, state, reduce, done)
   })
 
-  function loadProjectData (discoveryKey, callback) {
+  function loadProject (discoveryKey, state, reduce, done) {
     withIndexedDB(discoveryKey, function (error, db) {
-      if (error) return callback(error)
+      if (error) return done(error)
       runParallel({
         project: function (done) {
           withIndexedDB('proseline', function (error, db) {
@@ -274,7 +269,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         activity: function (done) {
           db.activity(20, done)
         }
-      }, callback)
+      }, function (error, data) {
+        if (error) return done(error)
+        reduce('project', data)
+        done()
+      })
     })
   }
 
@@ -751,11 +750,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           loader(data, state, reduce, done)
         },
         function (done) {
-          loadProjectData(data.discoveryKey, function (error, data) {
-            if (error) return done(error)
-            reduce('project', data)
-            done()
-          })
+          loadProject(data.discoveryKey, state, reduce, done)
         }
       ], done)
     })
