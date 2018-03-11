@@ -35,13 +35,12 @@ function joinSwarm (project, database) {
       var replicationStream = replicate({
         secretKey: project.secretKey,
         discoveryKey: project.discoveryKey,
-        database: database
+        database: database,
+        onUpdate: function (discoveryKey) {
+          events.emit('update', discoveryKey)
+        }
       })
       replicationStream.pipe(peer).pipe(replicationStream)
-      events.emit('connect')
-    })
-    swarm.on('disconnect', function () {
-      events.emit('disconnect')
     })
     swarms.push({
       project: project,

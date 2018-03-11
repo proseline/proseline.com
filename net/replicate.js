@@ -8,9 +8,11 @@ module.exports = function (options) {
   assert.equal(typeof options.secretKey, 'string')
   assert.equal(typeof options.discoveryKey, 'string')
   assert(options.database)
+  assert(typeof options.onUpdate, 'function')
   var secretKey = options.secretKey
   var discoveryKey = options.discoveryKey
   var database = options.database
+  var onUpdate = options.onUpdate
 
   var protocol = new Protocol(secretKey)
 
@@ -95,6 +97,8 @@ module.exports = function (options) {
     }
     // Write to our database.
     database.putEnvelope(envelope, callback)
+    // Call back about the update.
+    onUpdate(envelope.project)
   })
 
   // Extend our handshake.

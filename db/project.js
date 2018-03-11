@@ -212,7 +212,6 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     callback(transaction.error)
   }
   transaction.oncomplete = function () {
-    self.emit('change')
     self._streamUpdate(
       envelope.publicKey, envelope.message.index, callback
     )

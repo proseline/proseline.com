@@ -2,14 +2,17 @@
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
+var domainSingleton = require('domain-singleton')
 var moment = require('moment')
+var pageBus = require('page-bus')
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 var selectedRange = require('./utilities/selected-range')
 
 var debug = {
-  textSelection: require('debug')('proseline:text-selection')
+  textSelection: require('debug')('proseline:text-selection'),
+  instance: require('debug')('proseline:instance')
 }
 
 runSeries([
@@ -118,14 +121,6 @@ function withDatabase (id, callback) {
     callback(null, databases[id])
   } else {
     var db = new ProjectDatabase(id)
-    db.on('change', function () {
-      if (
-        globalState.discoveryKey === id &&
-        globalState.intros[globalState.identity.publicKey]
-      ) {
-        action('changed')
-      }
-    })
     databases[id] = db
     db.init(function (error) {
       if (error) {
@@ -219,28 +214,60 @@ function render (state) {
   }
 }
 
+var PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
+
 function joinSwarms (done) {
-  databases.proseline.listProjects(function (error, projects) {
-    if (error) return done(error)
-    runParallel(
-      projects.map(function (project) {
-        return function (done) {
-          withDatabase(project.discoveryKey, function (error, database) {
-            if (error) return done(error)
-            peer.joinSwarm(project, database)
-            done()
-          })
-        }
-      }),
-      done
-    )
+  var bus = pageBus()
+  domainSingleton({
+    bus,
+    task: 'proseline-peer',
+    onAppointed: function () {
+      debug.instance('appointed peer')
+      databases.proseline.listProjects(function (error, projects) {
+        if (error) return console.error(error)
+        runParallel(
+          projects.map(function (project) {
+            return function (done) {
+              withDatabase(project.discoveryKey, function (error, database) {
+                if (error) return done(error)
+                peer.joinSwarm(project, database)
+                done()
+              })
+            }
+          }),
+          function (error) {
+            if (error) console.error(error)
+          }
+        )
+      })
+      setInterval(function () {
+        bus.emit('peers', peer.countPeers())
+      }, PEER_COUNT_UPDATE_INTERVAL)
+      peer.events.on('update', function (discoveryKey) {
+        bus.emit('update', discoveryKey)
+      })
+    }
   })
-  peer.events
-    .on('connect', onPeersChange)
-    .on('disconnect', onPeersChange)
-  function onPeersChange () {
-    action('peers', peer.countPeers())
-  }
+  bus.on('peers', function (count) {
+    action('peers', count)
+  })
+  bus.on('update', function (discoveryKey) {
+    if (
+      globalState.discoveryKey === discoveryKey &&
+      // Don't render updates while introducing.
+      globalState.intros[globalState.identity.publicKey]
+    ) {
+      action('changed')
+    } else if (
+      !globalState.discoveryKey &&
+      !globalState.projects.some(function (project) {
+        return project.discoveryKey === discoveryKey
+      })
+    ) {
+      action('changed')
+    }
+  })
+  done()
 }
 
 function launchApplication (done) {
