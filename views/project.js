@@ -3,11 +3,14 @@ var renderActivity = require('./partials/activity')
 var renderDraftHeader = require('./partials/draft-header')
 var renderDraftLink = require('./partials/draft-link')
 var renderIntro = require('./partials/intro')
-var renderNoteIcon = require('./partials/note-icon')
 var renderMarkLink = require('./partials/mark-link')
+var renderNoteIcon = require('./partials/note-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var withProject = require('./with-project')
+
+require('gitgraph.js')
+var GitGraph = window.GitGraph
 
 module.exports = withProject(function (state, send, discoveryKey) {
   state.route = 'project'
@@ -25,6 +28,7 @@ module.exports = withProject(function (state, send, discoveryKey) {
     main.appendChild(renderWhatsNew(state))
     if (state.draftBriefs.length !== 0) {
       main.appendChild(renderGraph(state, send))
+      main.appendChild(renderGitGraph(state, send))
     }
     main.appendChild(newDraft(state))
     if (state.draftSelection.size > 0) {
@@ -245,6 +249,84 @@ function renderGraph (state, send) {
   })
 
   return section
+}
+
+function renderGitGraph (state, send) {
+  var section = renderSection('Project Map')
+
+  var canvas = document.createElement('canvas')
+  var graph = new GitGraph({
+    template: 'metro',
+    canvas: canvas
+  })
+  section.appendChild(canvas)
+
+  var digestsSeen = []
+  var briefs = state.draftBriefs
+    .sort(function (a, b) {
+      return new Date(a.timestamp) - new Date(b.timestamp)
+    })
+    .filter(function removeOrphans (brief) {
+      digestsSeen.push(brief.digest)
+      return (
+        brief.parents.length === 0 ||
+        brief.parents.some(function (parent) {
+          return digestsSeen.indexOf(parent) !== -1
+        })
+      )
+    })
+  digestsSeen = null
+
+  var digestToMarks = {}
+  state.projectMarks.forEach(function (mark) {
+    var body = mark.message.body
+    var digest = body.draft
+    if (digestToMarks.hasOwnProperty(digest)) {
+      digestToMarks[digest].push(mark)
+    } else {
+      digestToMarks[digest] = [mark]
+    }
+  })
+
+  var branches = new Map()
+  var branchCounter = 0
+  briefs.forEach(function (brief) {
+    var digest = brief.digest
+    var options = {
+      sha1: '',
+      message: new Date(brief.timestamp).toISOString(),
+      author: plaintextIntro(state, brief.publicKey)
+    }
+    if (brief.parents.length === 0) {
+      branchCounter++
+      branches.set(digest, graph.branch())
+    } else if (brief.parents.length === 1) {
+      branches.set(digest, branches.get(brief.parents[0]))
+    }
+    var marks = digestToMarks[digest] || []
+    options.tags = marks
+      .map(function (mark) {
+        return mark.message.body.name
+      })
+      .join(' ')
+    branches.get(digest).checkout()
+    graph.commit(options)
+  })
+
+  return section
+}
+
+function plaintextIntro (state, publicKey) {
+  if (publicKey === state.identity.publicKey) return 'you'
+  var intro = state.intros[publicKey]
+  if (intro) {
+    return (
+      intro.message.body.name +
+      '(on ' + intro.message.body.device + ')'
+    )
+  } else {
+    return 'an anonymous user'
+  }
 }
 
 function renderShareSection (state) {
