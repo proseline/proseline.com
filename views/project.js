@@ -94,7 +94,7 @@ function inviteExplanation () {
     'To invite others to join your project, ' +
     'send them a link with a secret code. ' +
     'Everyone with the secret code can create drafts, ' +
-    'add comments, create and move markers, ' +
+    'add comments, create and move marks, ' +
     'and see all the work done by others on the project.'
   ))
   return p

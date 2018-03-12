@@ -367,7 +367,7 @@ function renderMarkDraft (state, send) {
 
   var button = document.createElement('button')
   button.type = 'submit'
-  button.appendChild(document.createTextNode('Put a marker on this draft.'))
+  button.appendChild(document.createTextNode('Put a mark on this draft.'))
   form.appendChild(button)
 
   return form
