@@ -223,7 +223,7 @@ function renderGraph (state, send) {
     var author = document.createElementNS(SVG, 'text')
     a.appendChild(author)
     author.setAttributeNS(null, 'x', node.x)
-    author.setAttributeNS(null, 'y', node.y - (node.height / 4))
+    author.setAttributeNS(null, 'y', node.y - 2 * (node.height / 6))
     author.setAttributeNS(null, 'text-anchor', 'middle')
     author.setAttributeNS(null, 'font-size', '100%')
     author.appendChild(document.createTextNode(
@@ -234,24 +234,54 @@ function renderGraph (state, send) {
     a.appendChild(timestamp)
     timestamp.setAttributeNS(null, 'class', 'relativeTimestamp')
     timestamp.setAttributeNS(null, 'x', node.x)
-    timestamp.setAttributeNS(null, 'y', node.y)
+    timestamp.setAttributeNS(null, 'y', node.y - (node.height / 6))
     timestamp.setAttributeNS(null, 'text-anchor', 'middle')
     timestamp.setAttributeNS(null, 'font-size', '75%')
     timestamp.appendChild(document.createTextNode(
       moment(brief.timestamp).fromNow()
     ))
 
-    if (brief.notesCount !== 0) {
+    if (brief.notesCount && brief.notesCount !== 0) {
       var notesCount = document.createElementNS(SVG, 'text')
       a.appendChild(notesCount)
       notesCount.setAttributeNS(null, 'x', node.x)
-      notesCount.setAttributeNS(null, 'y', node.y + (node.height / 4))
+      notesCount.setAttributeNS(null, 'y', node.y + (node.height / 6))
       notesCount.setAttributeNS(null, 'text-anchor', 'middle')
       notesCount.setAttributeNS(null, 'font-size', '80%')
       notesCount.appendChild(document.createTextNode(
         brief.notesCount + ' ' +
-        (brief.notesCount === 1 ? 'notes' : 'notes')
+        (brief.notesCount === 1 ? 'note' : 'notes')
       ))
+    }
+
+    var marks = state.projectMarks.filter(function (mark) {
+      return mark.message.body.draft === brief.digest
+    })
+    if (marks.length !== 0) {
+      var marksCount = document.createElementNS(SVG, 'text')
+      a.appendChild(marksCount)
+      marksCount.setAttributeNS(null, 'x', node.x)
+      marksCount.setAttributeNS(null, 'y', node.y + 2 * (node.height / 6))
+      marksCount.setAttributeNS(null, 'text-anchor', 'middle')
+      marksCount.setAttributeNS(null, 'font-size', '80%')
+      var ourMarks = marks
+        .filter(function (mark) {
+          return mark.publicKey === state.identity.publicKey
+        })
+        .sort(byTimestamp)
+      if (ourMarks.length !== 0) {
+        marksCount.setAttributeNS(null, 'font-weight', 'bold')
+      }
+      var text = (ourMarks.length !== 0)
+        ? (
+          ourMarks[0].message.body.name +
+          (marks.length > 1 ? '...' : '')
+        )
+        : (
+          marks.length + ' ' +
+          (marks.length === 1 ? 'mark' : 'marks')
+        )
+      marksCount.appendChild(document.createTextNode(text))
     }
   })
 
@@ -288,9 +318,7 @@ function plainTextIntro (state, publicKey) {
 function withoutOrphans (briefs) {
   var digestsSeen = new Set()
   return briefs
-    .sort(function (a, b) {
-      return new Date(a.timestamp) - new Date(b.timestamp)
-    })
+    .sort(byTimestamp)
     .filter(function removeOrphans (brief) {
       digestsSeen.add(brief.digest)
       return (
@@ -358,4 +386,8 @@ function renderWhatsNew (state) {
   var section = renderSection('What’s New')
   section.appendChild(renderActivity(state, state.activity))
   return section
+}
+
+function byTimestamp (a, b) {
+  return new Date(a.timestamp) - new Date(b.timestamp)
 }
