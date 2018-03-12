@@ -1,10 +1,8 @@
+var dagre = require('dagre')
 var identityLine = require('./partials/identity-line')
+var moment = require('moment')
 var renderActivity = require('./partials/activity')
 var renderDraftHeader = require('./partials/draft-header')
-var renderDraftLink = require('./partials/draft-link')
-var renderIntro = require('./partials/intro')
-var renderNoteIcon = require('./partials/note-icon')
-var renderMarkLink = require('./partials/mark-link')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var withProject = require('./with-project')
@@ -116,135 +114,185 @@ function copyInvitation (state) {
   return a
 }
 
-// TODO: Graph merging drafts.
-// TODO: Render lines between graph nodes
+var SVG = 'http://www.w3.org/2000/svg'
+
+var BRIEF_WIDTH = 85 * 1.5
+var BRIEF_HEIGHT = 110 * 1.5
 
 function renderGraph (state, send) {
-  var section = renderSection('Project Map')
+  var briefs = withoutOrphans(state.draftBriefs)
+  var graph = new dagre.graphlib.Graph({directed: true})
+  graph.setGraph({})
+  graph.setDefaultEdgeLabel(function () { return {} })
+  briefs.forEach(function (brief) {
+    graph.setNode(brief.digest, {
+      brief,
+      width: BRIEF_WIDTH,
+      height: BRIEF_HEIGHT
+    })
+    brief.parents.forEach(function (parent) {
+      graph.setEdge(brief.digest, parent)
+    })
+  })
+  dagre.layout(graph, {
+    rankdir: 'TB',
+    align: 'TB',
+    nodesep: 50,
+    edgesep: 10
+  })
 
-  var digestsSeen = []
-  var briefs = state.draftBriefs
+  // <svg>
+  var svg = document.createElementNS(SVG, 'svg')
+  var boxWidth = graph.graph().width
+  var boxHeight = graph.graph().height
+  svg.setAttributeNS(null, 'viewBox', '0 0 ' + boxWidth + ' ' + boxHeight)
+  svg.setAttributeNS(null, 'height', boxHeight)
+  svg.setAttributeNS(null, 'width', boxWidth)
+  svg.setAttribute('class', 'graph')
+
+  // <title>
+  var title = document.createElementNS(SVG, 'title')
+  svg.appendChild(title)
+  title.appendChild(document.createTextNode('Graph of Drafts'))
+
+  // Add SVG styles.
+  var style = document.createElementNS(SVG, 'style')
+  style.appendChild(document.createTextNode(`
+    a[href] {
+      cursor: pointer;
+      text-decoration: none;
+    }
+  `))
+  svg.appendChild(style)
+
+  var defs = document.createElementNS(SVG, 'defs')
+  svg.appendChild(defs)
+
+  // Arrow Marker
+  var arrowMarker = document.createElementNS(SVG, 'marker')
+  defs.appendChild(arrowMarker)
+  arrowMarker.setAttributeNS(null, 'id', 'arrow')
+  arrowMarker.setAttributeNS(null, 'markerWidth', 10)
+  arrowMarker.setAttributeNS(null, 'markerHeight', 10)
+  arrowMarker.setAttributeNS(null, 'refX', 0)
+  arrowMarker.setAttributeNS(null, 'refY', 3)
+  arrowMarker.setAttributeNS(null, 'orient', 'auto')
+  arrowMarker.setAttributeNS(null, 'markerUnits', 'strokeWidth')
+
+  var arrowPath = document.createElementNS(SVG, 'path')
+  arrowMarker.appendChild(arrowPath)
+  arrowPath.setAttributeNS(null, 'd', 'M0,0 L0,6 L9,3 z')
+  arrowPath.setAttributeNS(null, 'fill', 'black')
+
+  // Render nodes.
+  graph.nodes().forEach(function (name) {
+    var node = graph.node(name)
+    var x = node.x - (node.width / 2)
+    var y = node.y - (node.height / 2)
+    var brief = node.brief
+
+    var g = document.createElementNS(SVG, 'g')
+    svg.appendChild(g)
+
+    var a = document.createElementNS(SVG, 'a')
+    g.appendChild(a)
+    a.setAttributeNS(null, 'href', (
+      '/projects/' + state.discoveryKey +
+      '/drafts/' + brief.digest
+    ))
+
+    var rect = document.createElementNS(SVG, 'rect')
+    a.appendChild(rect)
+    rect.setAttributeNS(null, 'x', x)
+    rect.setAttributeNS(null, 'y', y)
+    rect.setAttributeNS(null, 'width', node.width)
+    rect.setAttributeNS(null, 'height', node.height)
+    rect.setAttributeNS(null, 'fill', 'white')
+    rect.setAttributeNS(null, 'stroke', 'black')
+
+    var author = document.createElementNS(SVG, 'text')
+    a.appendChild(author)
+    author.setAttributeNS(null, 'x', node.x)
+    author.setAttributeNS(null, 'y', node.y - (node.height / 4))
+    author.setAttributeNS(null, 'text-anchor', 'middle')
+    author.setAttributeNS(null, 'font-size', '100%')
+    author.appendChild(document.createTextNode(
+      plainTextIntro(state, brief.publicKey)
+    ))
+
+    var timestamp = document.createElementNS(SVG, 'text')
+    a.appendChild(timestamp)
+    timestamp.setAttributeNS(null, 'class', 'relativeTimestamp')
+    timestamp.setAttributeNS(null, 'x', node.x)
+    timestamp.setAttributeNS(null, 'y', node.y)
+    timestamp.setAttributeNS(null, 'text-anchor', 'middle')
+    timestamp.setAttributeNS(null, 'font-size', '80%')
+    timestamp.appendChild(document.createTextNode(
+      moment(brief.timestamp).fromNow()
+    ))
+
+    if (brief.notesCount !== 0) {
+      var notesCount = document.createElementNS(SVG, 'text')
+      a.appendChild(notesCount)
+      notesCount.setAttributeNS(null, 'x', node.x)
+      notesCount.setAttributeNS(null, 'y', node.y + (node.height / 4))
+      notesCount.setAttributeNS(null, 'text-anchor', 'middle')
+      notesCount.setAttributeNS(null, 'font-size', '80%')
+      notesCount.appendChild(document.createTextNode(
+        brief.notesCount + ' ' +
+        (brief.notesCount === 1 ? 'notes' : 'notes')
+      ))
+    }
+  })
+
+  // Render edges.
+  graph.edges().forEach(function (nodes) {
+    var edge = graph.edge(nodes)
+    var polyline = document.createElementNS(SVG, 'polyline')
+    svg.appendChild(polyline)
+    var points = edge.points
+      .map(function (point) {
+        return point.x + ' ' + point.y
+      })
+      .join(', ')
+    polyline.setAttributeNS(null, 'points', points)
+    polyline.setAttributeNS(null, 'fill', 'none')
+    polyline.setAttributeNS(null, 'stroke', 'black')
+    polyline.setAttributeNS(null, 'stroke-width', 1)
+    polyline.setAttributeNS(null, 'marker-end', 'url(#arrow)')
+  })
+
+  return svg
+}
+
+function plainTextIntro (state, publicKey) {
+  if (publicKey === state.identity.publicKey) return 'you'
+  var intro = state.intros[publicKey]
+  if (intro) {
+    return (
+      intro.message.body.name +
+      ' (on ' + intro.message.body.device + ')'
+    )
+  } else {
+    return 'anonymous'
+  }
+}
+
+function withoutOrphans (briefs) {
+  var digestsSeen = new Set()
+  return briefs
     .sort(function (a, b) {
       return new Date(a.timestamp) - new Date(b.timestamp)
     })
     .filter(function removeOrphans (brief) {
-      digestsSeen.push(brief.digest)
+      digestsSeen.add(brief.digest)
       return (
         brief.parents.length === 0 ||
         brief.parents.some(function (parent) {
-          return digestsSeen.indexOf(parent) !== -1
+          return digestsSeen.has(parent)
         })
       )
     })
-  digestsSeen = null
-
-  briefs.reverse()
-
-  var columnCounter = 0
-  var columns = {}
-  briefs.forEach(function (brief) {
-    var digest = brief.digest
-    if (columns.hasOwnProperty(digest)) {
-      brief.column = columns[digest]
-    } else {
-      brief.column = columnCounter
-      columnCounter++
-    }
-    if (brief.parents.length !== 0) {
-      var firstParent = brief.parents[0]
-      columns[firstParent] = brief.column
-    }
-  })
-
-  var digestToMarks = {}
-  state.projectMarks.forEach(function (mark) {
-    var body = mark.message.body
-    var digest = body.draft
-    if (digestToMarks.hasOwnProperty(digest)) {
-      digestToMarks[digest].push(mark)
-    } else {
-      digestToMarks[digest] = [mark]
-    }
-  })
-
-  var table = document.createElement('table')
-  section.appendChild(table)
-  table.className = 'graph'
-
-  var selectedMultiple = state.draftSelection.size > 1
-
-  briefs.forEach(function (brief) {
-    var selected = state.draftSelection.has(brief.digest)
-
-    var tr = document.createElement('tr')
-    table.appendChild(tr)
-    tr.style.width = (100 / columnCounter) + '%'
-
-    // <td>s for spacing
-    for (var i = 0; i < brief.column; i++) {
-      tr.appendChild(document.createElement('td'))
-    }
-
-    // Data <td>
-    var td = document.createElement('td')
-    tr.appendChild(td)
-    td.className = 'draftCell'
-    if (selected) td.className += ' selected'
-
-    if (!selectedMultiple || selected) {
-      var checkbox = document.createElement('input')
-      checkbox.type = 'checkbox'
-      checkbox.className = 'draftCheckBox'
-      checkbox.addEventListener('change', function (event) {
-        if (event.target.checked) send('select draft', brief.digest)
-        else send('deselect draft', brief.digest)
-      })
-      if (selected) checkbox.checked = true
-      td.appendChild(checkbox)
-    }
-
-    td.appendChild(document.createTextNode(' '))
-    td.appendChild(renderDraftLink(state, brief))
-
-    var marks = digestToMarks[brief.digest]
-    if (marks) {
-      marks.forEach(function (mark) {
-        var p = document.createElement('p')
-        td.appendChild(p)
-        p.className = 'mark'
-        p.appendChild(renderIntro(state, mark.publicKey, {
-          possessive: true,
-          plainText: true,
-          noIcon: true,
-          capitalize: true
-        }))
-        p.appendChild(document.createTextNode(' '))
-        p.appendChild(renderMarkLink(state, mark))
-      })
-    }
-    if (brief.notesCount) {
-      var p = document.createElement('p')
-      td.appendChild(p)
-      p.className = 'notesCount'
-      p.appendChild(renderNoteIcon())
-      p.appendChild(document.createTextNode(
-        '×' + brief.notesCount
-      ))
-    }
-
-    if (selectedMultiple && selected) {
-      var a = document.createElement('a')
-      a.className = 'button'
-      a.href = (
-        '/projects/' + state.discoveryKey +
-        '/drafts/new/' + Array.from(state.draftSelection).join(',')
-      )
-      a.appendChild(document.createTextNode('Combine these drafts.'))
-      td.appendChild(a)
-    }
-  })
-
-  return section
 }
 
 function renderShareSection (state) {
