@@ -184,7 +184,15 @@ function renderGraph (state, send) {
 
     var rect = document.createElementNS(SVG, 'rect')
     g.appendChild(rect)
-    rect.setAttributeNS(null, 'class', classnames({draft: true, selected}))
+    var time = moment(brief.timestamp)
+    var today = time.isAfter(moment().subtract(1, 'days'))
+    var thisWeek = time.isAfter(moment().subtract(1, 'days'))
+    rect.setAttributeNS(null, 'class', classnames({
+      draft: true,
+      selected,
+      today: today && !selected,
+      thisWeek: thisWeek && !today && !selected
+    }))
     rect.setAttributeNS(null, 'x', x)
     rect.setAttributeNS(null, 'y', y)
     rect.setAttributeNS(null, 'width', node.width)
