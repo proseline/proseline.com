@@ -256,7 +256,13 @@ function renderGraph (state, send) {
         .push(mark)
     })
 
-    if (marks.length !== 0) {
+    if (
+      marks.length >
+      (
+        Math.max(ourMarks.length, 1) +
+        Math.max(othersMarks.length, 1)
+      )
+    ) {
       var marksCount = document.createElementNS(SVG, 'text')
       a.appendChild(marksCount)
       marksCount.setAttributeNS(null, 'x', node.x + MARGIN)
