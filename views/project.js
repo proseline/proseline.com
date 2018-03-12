@@ -254,6 +254,7 @@ function renderGraph (state, send) {
       (mark.publicKey === state.identity.publicKey ? ourMarks : othersMarks)
         .push(mark)
     })
+
     if (marks.length !== 0) {
       var marksCount = document.createElementNS(SVG, 'text')
       a.appendChild(marksCount)
