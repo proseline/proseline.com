@@ -277,7 +277,7 @@ function renderGraph (state, send) {
       marksCount.appendChild(document.createTextNode(text))
     }
 
-    if (marks.length !== 0) {
+    if (othersMarks.length !== 0) {
       svg.appendChild(
         renderBookmark(
           node.x + MARGIN + (node.width / 2) - BOOKMARK_WIDTH - 10,
