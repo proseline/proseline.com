@@ -314,6 +314,8 @@ function renderGraph (state, send) {
         .join(' ')
       bookmark.setAttributeNS(null, 'd', commands)
       bookmark.setAttributeNS(null, 'fill', 'blue')
+      bookmark.setAttributeNS(null, 'stroke', 'black')
+      bookmark.setAttributeNS(null, 'stroke-width', 1)
     }
   })
 
