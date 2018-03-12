@@ -269,10 +269,7 @@ function plainTextIntro (state, publicKey) {
   if (publicKey === state.identity.publicKey) return 'you'
   var intro = state.intros[publicKey]
   if (intro) {
-    return (
-      intro.message.body.name +
-      ' (on ' + intro.message.body.device + ')'
-    )
+    return intro.message.body.name
   } else {
     return 'anonymous'
   }
