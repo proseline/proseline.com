@@ -229,7 +229,7 @@ function renderGraph (state, send) {
       notesRect.setAttributeNS(null, 'width', notesWidth)
       notesRect.setAttributeNS(null, 'height', notesWidth)
       notesRect.setAttributeNS(null, 'stroke', 'black')
-      notesRect.setAttributeNS(null, 'stroke-width', 1)
+      notesRect.setAttributeNS(null, 'stroke-width', 2)
       notesRect.setAttributeNS(null, 'fill', 'yellow')
 
       var notesCountFontSize = 14
@@ -337,7 +337,7 @@ function renderBookmark (x, y, color) {
   bookmark.setAttributeNS(null, 'd', commands)
   bookmark.setAttributeNS(null, 'fill', color)
   bookmark.setAttributeNS(null, 'stroke', 'black')
-  bookmark.setAttributeNS(null, 'stroke-width', 1)
+  bookmark.setAttributeNS(null, 'stroke-width', 2)
   return bookmark
 }
 
