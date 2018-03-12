@@ -1,3 +1,4 @@
+var classnames = require('classnames')
 var dagre = require('dagre')
 var identityLine = require('./partials/identity-line')
 var moment = require('moment')
@@ -152,6 +153,8 @@ function renderGraph (state, send) {
     edgesep: 10
   })
 
+  var selectedCount = state.draftSelection.size
+
   var MARGIN = 20
 
   // <svg>
@@ -174,20 +177,14 @@ function renderGraph (state, send) {
     var x = node.x + MARGIN - (node.width / 2)
     var y = node.y + MARGIN - (node.height / 2)
     var brief = node.brief
+    var selected = state.draftSelection.has(brief.digest)
 
     var g = document.createElementNS(SVG, 'g')
     svg.appendChild(g)
 
-    var a = document.createElementNS(SVG, 'a')
-    g.appendChild(a)
-    a.setAttributeNS(null, 'href', (
-      '/projects/' + state.discoveryKey +
-      '/drafts/' + brief.digest
-    ))
-
     var rect = document.createElementNS(SVG, 'rect')
-    a.appendChild(rect)
-    rect.setAttributeNS(null, 'class', 'draft')
+    g.appendChild(rect)
+    rect.setAttributeNS(null, 'class', classnames({draft: true, selected}))
     rect.setAttributeNS(null, 'x', x)
     rect.setAttributeNS(null, 'y', y)
     rect.setAttributeNS(null, 'width', node.width)
@@ -197,7 +194,7 @@ function renderGraph (state, send) {
     rect.setAttributeNS(null, 'stroke-width', 2)
 
     var author = document.createElementNS(SVG, 'text')
-    a.appendChild(author)
+    g.appendChild(author)
     author.setAttributeNS(null, 'x', node.x + MARGIN)
     author.setAttributeNS(null, 'y', node.y - 2 * (node.height / 6) + MARGIN)
     author.setAttributeNS(null, 'text-anchor', 'middle')
@@ -207,7 +204,7 @@ function renderGraph (state, send) {
     ))
 
     var timestamp = document.createElementNS(SVG, 'text')
-    a.appendChild(timestamp)
+    g.appendChild(timestamp)
     timestamp.setAttributeNS(null, 'class', 'relativeTimestamp')
     timestamp.setAttributeNS(null, 'x', node.x + MARGIN)
     timestamp.setAttributeNS(null, 'y', node.y - (node.height / 6) + MARGIN)
@@ -217,6 +214,55 @@ function renderGraph (state, send) {
       moment(brief.timestamp).fromNow()
     ))
 
+    // read
+
+    var readAnchor = document.createElementNS(SVG, 'a')
+    g.appendChild(readAnchor)
+    readAnchor.setAttributeNS(null, 'href', (
+      '/projects/' + state.discoveryKey +
+      '/drafts/' + brief.digest
+    ))
+
+    var readText = document.createElementNS(SVG, 'text')
+    readAnchor.appendChild(readText)
+    readText.appendChild(document.createTextNode('read'))
+    readText.setAttributeNS(null, 'x', node.x + MARGIN)
+    readText.setAttributeNS(null, 'y', node.y + MARGIN)
+    readText.setAttributeNS(null, 'text-anchor', 'middle')
+
+    // combine
+
+    if (selectedCount < 2 || selected) {
+      var combineAnchor = document.createElementNS(SVG, 'a')
+      g.appendChild(combineAnchor)
+
+      var combineText = document.createElementNS(SVG, 'text')
+      combineAnchor.appendChild(combineText)
+      combineText.appendChild(
+        document.createTextNode(selected ? 'deselect' : 'combine')
+      )
+      combineText.setAttributeNS(null, 'x', node.x + MARGIN)
+      combineText.setAttributeNS(null, 'y', node.y + (node.height / 6) + MARGIN)
+      combineText.setAttributeNS(null, 'text-anchor', 'middle')
+
+      if (selected) {
+        combineAnchor.addEventListener('click', function (event) {
+          send('deselect draft', brief.digest)
+        })
+      } else if (selectedCount === 0) {
+        combineAnchor.addEventListener('click', function (event) {
+          send('select draft', brief.digest)
+        })
+      } else {
+        combineAnchor.setAttributeNS(null, 'href', (
+          '/projects/' + state.discoveryKey +
+          '/drafts/new/' + Array.from(state.draftSelection)
+            .concat(brief.digest)
+            .join(',')
+        ))
+      }
+    }
+
     if (brief.notesCount && brief.notesCount !== 0) {
       var notesWidth = 36
       var noteOffset = 5
@@ -224,7 +270,7 @@ function renderGraph (state, send) {
       var notesY = node.y + MARGIN + (node.height / 2) - (notesWidth / 2)
 
       var notesRect = document.createElementNS(SVG, 'rect')
-      a.appendChild(notesRect)
+      g.appendChild(notesRect)
       notesRect.setAttributeNS(null, 'x', notesX)
       notesRect.setAttributeNS(null, 'y', notesY)
       notesRect.setAttributeNS(null, 'width', notesWidth)
@@ -236,7 +282,7 @@ function renderGraph (state, send) {
       var notesCountFontSize = 14
 
       var notesCount = document.createElementNS(SVG, 'text')
-      a.appendChild(notesCount)
+      svg.appendChild(notesCount)
       notesCount.setAttributeNS(null, 'x', notesX + (notesWidth / 2))
       notesCount.setAttributeNS(null, 'y', notesY + (notesWidth / 2) + (notesCountFontSize / 2))
       notesCount.setAttributeNS(null, 'text-anchor', 'middle')
@@ -264,7 +310,7 @@ function renderGraph (state, send) {
       )
     ) {
       var marksCount = document.createElementNS(SVG, 'text')
-      a.appendChild(marksCount)
+      g.appendChild(marksCount)
       marksCount.setAttributeNS(null, 'x', node.x + MARGIN)
       marksCount.setAttributeNS(null, 'y', node.y + 2 * (node.height / 6) + MARGIN)
       marksCount.setAttributeNS(null, 'text-anchor', 'middle')

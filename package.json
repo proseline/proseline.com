@@ -12,6 +12,7 @@
     "@fortawesome/fontawesome-free-regular": "^5.0.8",
     "@fortawesome/fontawesome-free-solid": "^5.0.8",
     "autosize": "^4.0.0",
+    "classnames": "^2.2.5",
     "clipboard": "^1.7.1",
     "dagre": "^0.8.2",
     "debug": "^3.1.0",
