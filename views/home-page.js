@@ -15,14 +15,12 @@ module.exports = function (state, send) {
     )
   } else {
     main.appendChild(renderDraftHeader(state))
-    main.appendChild(renderProjectsList(state.projects))
-    main.appendChild(renderCreateProject(send))
-    main.appendChild(renderBackup(send))
+    main.appendChild(renderProjectsList(state.projects, send))
   }
   return main
 }
 
-function renderProjectsList (projects) {
+function renderProjectsList (projects, send) {
   var section = renderSection('Projects')
 
   if (projects.length === 0) {
@@ -45,6 +43,10 @@ function renderProjectsList (projects) {
       })
     section.appendChild(ul)
   }
+
+  section.appendChild(renderCreateProject(send))
+  section.appendChild(renderBackup(send))
+
   return section
 }
 

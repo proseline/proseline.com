@@ -22,9 +22,13 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
     main.appendChild(renderDraftHeader(state))
     main.appendChild(renderDraft(state, send))
     main.appendChild(renderNotes(state, send))
-    main.appendChild(renderMarkDraft(state, send))
-    main.appendChild(renderNewDraft(state, send))
-    main.appendChild(renderDownload(send))
+
+    var buttonSection = renderSection('Actions')
+    main.appendChild(buttonSection)
+    buttonSection.appendChild(renderMarkDraft(state, send))
+    buttonSection.appendChild(renderNewDraft(state, send))
+    buttonSection.appendChild(renderDownload(send))
+
     main.appendChild(renderHistory(state, send))
   } else {
     main.appendChild(

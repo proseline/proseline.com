@@ -1,27 +1,25 @@
 @import 'normalize'
 
+html, body
+  height: 100%
+
 body
-  padding: 1rem
   font-size: 125%
 
-$header-height: 5rem
-$standard-padding: 1rem
+$standardPadding: 1rem
 
 body > main
+  min-height: 100%
   width: 100%
-  margin-top: $header-height
+  display: flex
+  flex-flow: column
 
 header
   border-bottom: 1px solid black
   background: white
   box-sizing: border-box
-  padding: $standard-padding
   width: 100%
-  height: $header-height
-  z-index: 2
-  position: fixed
-  top: 0
-  left: 0
+  margin: 0
   a
     display: inline-block
     padding: 1rem
@@ -31,6 +29,7 @@ header
     margin: 0
   form
     display: inline-block
+    padding: $standardPadding
   .saveDraftForm
     float: right
   .peers
@@ -61,21 +60,15 @@ button + button, a.button + a.button, button + a.button, a.button + button
   margin-left: 1rem
 
 section
-  padding: 1rem 0
+  padding: $standardPadding
 
 .editor
   box-sizing: border-box
-  display: block
-  position: fixed
-  top: $header-height + 2rem
   border: none
-  bottom: 0
-  overflow-y: scroll
-  overflow-x: auto
-  left: 0
   width: 100%
   padding: 1rem
-  z-index: 1
+  flex-direction: column
+  flex: 1
 
 .intro *
   margin: 0 0.5rem
@@ -109,7 +102,7 @@ textarea
     margin: 1rem 0
 
 .notesList ol
-  margin-left: 2 * $standard-padding
+  margin-left: 2 * $standardPadding
 
 .note, .noteForm
   position: relative

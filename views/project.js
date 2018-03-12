@@ -18,13 +18,19 @@ module.exports = withProject(function (state, send, discoveryKey) {
   main.appendChild(renderDraftHeader(state))
   var intro = state.intros[state.identity.publicKey]
   if (!intro) {
-    main.appendChild(identityLine(send))
+    var introSection = renderSection('Introduce Yourself')
+    main.appendChild(introSection)
+    introSection.appendChild(identityLine(send))
   } else {
     main.appendChild(renderWhatsNew(state))
     if (state.draftBriefs.length !== 0) {
-      main.appendChild(renderGraph(state, send))
+      var graphSection = renderSection('Project Map')
+      main.appendChild(graphSection)
+      graphSection.appendChild(renderGraph(state, send))
     }
-    main.appendChild(newDraft(state))
+    var newSection = renderSection('Start from Scratch')
+    main.appendChild(newSection)
+    newSection.appendChild(newDraft(state))
     if (state.draftSelection.size > 0) {
       main.appendChild(renderDeselect(send))
     }
@@ -71,11 +77,15 @@ function renderDeselect (send) {
 }
 
 function newDraft (state) {
+  var section = document.createElement('section')
+
   var a = document.createElement('a')
+  section.appendChild(a)
   a.className = 'button'
   a.href = '/projects/' + state.discoveryKey + '/drafts/new'
   a.appendChild(document.createTextNode('Start a new draft from scratch.'))
-  return a
+
+  return section
 }
 
 function inviteExplanation () {
@@ -226,7 +236,7 @@ function renderGraph (state, send) {
     timestamp.setAttributeNS(null, 'x', node.x)
     timestamp.setAttributeNS(null, 'y', node.y)
     timestamp.setAttributeNS(null, 'text-anchor', 'middle')
-    timestamp.setAttributeNS(null, 'font-size', '80%')
+    timestamp.setAttributeNS(null, 'font-size', '75%')
     timestamp.appendChild(document.createTextNode(
       moment(brief.timestamp).fromNow()
     ))
