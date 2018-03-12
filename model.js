@@ -267,7 +267,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           })
         },
         activity: function (done) {
-          db.activity(20, done)
+          db.activity(10, done)
         }
       }, function (error, data) {
         if (error) return done(error)
