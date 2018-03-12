@@ -151,7 +151,7 @@ function renderGraph (state, send) {
     edgesep: 10
   })
 
-  var MARGIN = 10
+  var MARGIN = 20
 
   // <svg>
   var svg = document.createElementNS(SVG, 'svg')
@@ -193,6 +193,7 @@ function renderGraph (state, send) {
     rect.setAttributeNS(null, 'height', node.height)
     rect.setAttributeNS(null, 'fill', 'white')
     rect.setAttributeNS(null, 'stroke', 'black')
+    rect.setAttributeNS(null, 'stroke-width', 2)
 
     var author = document.createElementNS(SVG, 'text')
     a.appendChild(author)
@@ -314,6 +315,7 @@ function renderGraph (state, send) {
     polyline.setAttributeNS(null, 'fill', 'none')
     polyline.setAttributeNS(null, 'stroke', 'black')
     polyline.setAttributeNS(null, 'stroke-width', 1)
+    polyline.setAttributeNS(null, 'stroke-dasharray', '5,5')
   })
 
   return svg
