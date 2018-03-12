@@ -295,6 +295,7 @@ function renderGraph (state, send) {
       notesCount.setAttributeNS(null, 'y', notesY + (notesWidth / 2) + (notesCountFontSize / 2))
       notesCount.setAttributeNS(null, 'text-anchor', 'middle')
       notesCount.setAttributeNS(null, 'font-size', notesCountFontSize)
+      notesCount.setAttributeNS(null, 'font-weight', 'bold')
       notesCount.appendChild(document.createTextNode(brief.notesCount))
     }
 
