@@ -186,17 +186,6 @@ function renderGraph (state, send) {
   arrowPath.setAttributeNS(null, 'd', 'M0,0 L0,6 L9,3 z')
   arrowPath.setAttributeNS(null, 'fill', 'black')
 
-  // Draft Drop Shadow
-  var shadowFilter = document.createElementNS(SVG, 'filter')
-  defs.appendChild(shadowFilter)
-  shadowFilter.setAttributeNS(null, 'id', 'shadow')
-
-  var shadowFE = document.createElementNS(SVG, 'feDropShadow')
-  shadowFilter.appendChild(shadowFE)
-  shadowFE.setAttributeNS(null, 'dx', 3)
-  shadowFE.setAttributeNS(null, 'dy', 3)
-  shadowFE.setAttributeNS(null, 'stdDeviation', 3)
-
   // Render nodes.
   graph.nodes().forEach(function (name) {
     var node = graph.node(name)
@@ -223,7 +212,6 @@ function renderGraph (state, send) {
     rect.setAttributeNS(null, 'height', node.height)
     rect.setAttributeNS(null, 'fill', 'white')
     rect.setAttributeNS(null, 'stroke', 'black')
-    rect.setAttributeNS(null, 'filter', 'url(#shadow)')
 
     var author = document.createElementNS(SVG, 'text')
     a.appendChild(author)
