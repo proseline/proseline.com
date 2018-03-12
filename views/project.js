@@ -151,10 +151,12 @@ function renderGraph (state, send) {
     edgesep: 10
   })
 
+  var MARGIN = 10
+
   // <svg>
   var svg = document.createElementNS(SVG, 'svg')
-  var boxWidth = graph.graph().width
-  var boxHeight = graph.graph().height
+  var boxWidth = graph.graph().width + (2 * MARGIN)
+  var boxHeight = graph.graph().height + (2 * MARGIN)
   svg.setAttributeNS(null, 'viewBox', '0 0 ' + boxWidth + ' ' + boxHeight)
   svg.setAttributeNS(null, 'height', boxHeight)
   svg.setAttributeNS(null, 'width', boxWidth)
@@ -164,16 +166,6 @@ function renderGraph (state, send) {
   var title = document.createElementNS(SVG, 'title')
   svg.appendChild(title)
   title.appendChild(document.createTextNode('Graph of Drafts'))
-
-  // Add SVG styles.
-  var style = document.createElementNS(SVG, 'style')
-  style.appendChild(document.createTextNode(`
-    a[href] {
-      cursor: pointer;
-      text-decoration: none;
-    }
-  `))
-  svg.appendChild(style)
 
   var defs = document.createElementNS(SVG, 'defs')
   svg.appendChild(defs)
@@ -197,8 +189,8 @@ function renderGraph (state, send) {
   // Render nodes.
   graph.nodes().forEach(function (name) {
     var node = graph.node(name)
-    var x = node.x - (node.width / 2)
-    var y = node.y - (node.height / 2)
+    var x = node.x + MARGIN - (node.width / 2)
+    var y = node.y + MARGIN - (node.height / 2)
     var brief = node.brief
 
     var g = document.createElementNS(SVG, 'g')
@@ -213,6 +205,7 @@ function renderGraph (state, send) {
 
     var rect = document.createElementNS(SVG, 'rect')
     a.appendChild(rect)
+    rect.setAttributeNS(null, 'class', 'draft')
     rect.setAttributeNS(null, 'x', x)
     rect.setAttributeNS(null, 'y', y)
     rect.setAttributeNS(null, 'width', node.width)
@@ -222,8 +215,8 @@ function renderGraph (state, send) {
 
     var author = document.createElementNS(SVG, 'text')
     a.appendChild(author)
-    author.setAttributeNS(null, 'x', node.x)
-    author.setAttributeNS(null, 'y', node.y - 2 * (node.height / 6))
+    author.setAttributeNS(null, 'x', node.x + MARGIN)
+    author.setAttributeNS(null, 'y', node.y - 2 * (node.height / 6) + MARGIN)
     author.setAttributeNS(null, 'text-anchor', 'middle')
     author.setAttributeNS(null, 'font-size', '100%')
     author.appendChild(document.createTextNode(
@@ -233,8 +226,8 @@ function renderGraph (state, send) {
     var timestamp = document.createElementNS(SVG, 'text')
     a.appendChild(timestamp)
     timestamp.setAttributeNS(null, 'class', 'relativeTimestamp')
-    timestamp.setAttributeNS(null, 'x', node.x)
-    timestamp.setAttributeNS(null, 'y', node.y - (node.height / 6))
+    timestamp.setAttributeNS(null, 'x', node.x + MARGIN)
+    timestamp.setAttributeNS(null, 'y', node.y - (node.height / 6) + MARGIN)
     timestamp.setAttributeNS(null, 'text-anchor', 'middle')
     timestamp.setAttributeNS(null, 'font-size', '75%')
     timestamp.appendChild(document.createTextNode(
@@ -244,8 +237,8 @@ function renderGraph (state, send) {
     if (brief.notesCount && brief.notesCount !== 0) {
       var notesCount = document.createElementNS(SVG, 'text')
       a.appendChild(notesCount)
-      notesCount.setAttributeNS(null, 'x', node.x)
-      notesCount.setAttributeNS(null, 'y', node.y + (node.height / 6))
+      notesCount.setAttributeNS(null, 'x', node.x + MARGIN)
+      notesCount.setAttributeNS(null, 'y', node.y + (node.height / 6) + MARGIN)
       notesCount.setAttributeNS(null, 'text-anchor', 'middle')
       notesCount.setAttributeNS(null, 'font-size', '80%')
       notesCount.appendChild(document.createTextNode(
@@ -260,8 +253,8 @@ function renderGraph (state, send) {
     if (marks.length !== 0) {
       var marksCount = document.createElementNS(SVG, 'text')
       a.appendChild(marksCount)
-      marksCount.setAttributeNS(null, 'x', node.x)
-      marksCount.setAttributeNS(null, 'y', node.y + 2 * (node.height / 6))
+      marksCount.setAttributeNS(null, 'x', node.x + MARGIN)
+      marksCount.setAttributeNS(null, 'y', node.y + 2 * (node.height / 6) + MARGIN)
       marksCount.setAttributeNS(null, 'text-anchor', 'middle')
       marksCount.setAttributeNS(null, 'font-size', '80%')
       var ourMarks = marks
@@ -292,7 +285,7 @@ function renderGraph (state, send) {
     svg.appendChild(polyline)
     var points = edge.points
       .map(function (point) {
-        return point.x + ' ' + point.y
+        return (point.x + MARGIN) + ' ' + (point.y + MARGIN)
       })
       .join(', ')
     polyline.setAttributeNS(null, 'points', points)
