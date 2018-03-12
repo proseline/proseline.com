@@ -219,7 +219,8 @@ function renderGraph (state, send) {
 
     if (brief.notesCount && brief.notesCount !== 0) {
       var notesWidth = 36
-      var notesX = node.x + MARGIN + (node.width / 2) - (notesWidth / 2)
+      var noteOffset = 5
+      var notesX = node.x + MARGIN + (node.width / 2) - notesWidth - noteOffset
       var notesY = node.y + MARGIN + (node.height / 2) - (notesWidth / 2)
 
       var notesRect = document.createElementNS(SVG, 'rect')
