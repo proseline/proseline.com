@@ -235,16 +235,29 @@ function renderGraph (state, send) {
     ))
 
     if (brief.notesCount && brief.notesCount !== 0) {
+      var notesWidth = 24
+      var notesX = node.x + MARGIN + (node.width / 2) - (notesWidth / 2)
+      var notesY = node.y + MARGIN + (node.height / 2) - (notesWidth / 2)
+
+      var notesRect = document.createElementNS(SVG, 'rect')
+      a.appendChild(notesRect)
+      notesRect.setAttributeNS(null, 'x', notesX)
+      notesRect.setAttributeNS(null, 'y', notesY)
+      notesRect.setAttributeNS(null, 'width', notesWidth)
+      notesRect.setAttributeNS(null, 'height', notesWidth)
+      notesRect.setAttributeNS(null, 'stroke', 'black')
+      notesRect.setAttributeNS(null, 'stroke-width', 1)
+      notesRect.setAttributeNS(null, 'fill', 'yellow')
+
+      var notesCountFontSize = 12
+
       var notesCount = document.createElementNS(SVG, 'text')
       a.appendChild(notesCount)
-      notesCount.setAttributeNS(null, 'x', node.x + MARGIN)
-      notesCount.setAttributeNS(null, 'y', node.y + (node.height / 6) + MARGIN)
+      notesCount.setAttributeNS(null, 'x', notesX + (notesWidth / 2))
+      notesCount.setAttributeNS(null, 'y', notesY + (notesWidth / 2) + (notesCountFontSize / 2))
       notesCount.setAttributeNS(null, 'text-anchor', 'middle')
-      notesCount.setAttributeNS(null, 'font-size', '80%')
-      notesCount.appendChild(document.createTextNode(
-        brief.notesCount + ' ' +
-        (brief.notesCount === 1 ? 'note' : 'notes')
-      ))
+      notesCount.setAttributeNS(null, 'font-size', notesCountFontSize)
+      notesCount.appendChild(document.createTextNode(brief.notesCount))
     }
 
     var marks = state.projectMarks.filter(function (mark) {
