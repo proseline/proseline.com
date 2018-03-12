@@ -167,25 +167,6 @@ function renderGraph (state, send) {
   svg.appendChild(title)
   title.appendChild(document.createTextNode('Graph of Drafts'))
 
-  var defs = document.createElementNS(SVG, 'defs')
-  svg.appendChild(defs)
-
-  // Arrow Marker
-  var arrowMarker = document.createElementNS(SVG, 'marker')
-  defs.appendChild(arrowMarker)
-  arrowMarker.setAttributeNS(null, 'id', 'arrow')
-  arrowMarker.setAttributeNS(null, 'markerWidth', 10)
-  arrowMarker.setAttributeNS(null, 'markerHeight', 10)
-  arrowMarker.setAttributeNS(null, 'refX', 0)
-  arrowMarker.setAttributeNS(null, 'refY', 3)
-  arrowMarker.setAttributeNS(null, 'orient', 'auto')
-  arrowMarker.setAttributeNS(null, 'markerUnits', 'strokeWidth')
-
-  var arrowPath = document.createElementNS(SVG, 'path')
-  arrowMarker.appendChild(arrowPath)
-  arrowPath.setAttributeNS(null, 'd', 'M0,0 L0,6 L9,3 z')
-  arrowPath.setAttributeNS(null, 'fill', 'black')
-
   // Render nodes.
   graph.nodes().forEach(function (name) {
     var node = graph.node(name)
@@ -333,7 +314,6 @@ function renderGraph (state, send) {
     polyline.setAttributeNS(null, 'fill', 'none')
     polyline.setAttributeNS(null, 'stroke', 'black')
     polyline.setAttributeNS(null, 'stroke-width', 1)
-    polyline.setAttributeNS(null, 'marker-end', 'url(#arrow)')
   })
 
   return svg
