@@ -128,6 +128,7 @@ var SVG = 'http://www.w3.org/2000/svg'
 
 var BRIEF_WIDTH = 85 * 1.5
 var BRIEF_HEIGHT = 110 * 1.5
+var BOOKMARK_WIDTH = 20
 
 function renderGraph (state, send) {
   var briefs = withoutOrphans(state.draftBriefs)
@@ -247,10 +248,12 @@ function renderGraph (state, send) {
       .filter(function (mark) {
         return mark.message.body.draft === brief.digest
       })
-    var ourMarks = marks
-      .filter(function (mark) {
-        return mark.publicKey === state.identity.publicKey
-      })
+    var othersMarks = []
+    var ourMarks = []
+    marks.forEach(function (mark) {
+      (mark.publicKey === state.identity.publicKey ? ourMarks : othersMarks)
+        .push(mark)
+    })
     if (marks.length !== 0) {
       var marksCount = document.createElementNS(SVG, 'text')
       a.appendChild(marksCount)
@@ -274,30 +277,23 @@ function renderGraph (state, send) {
     }
 
     if (marks.length !== 0) {
-      var bookmarkWidth = 20
-      var bookmarkHeight = 40
-      var bookmarkNotch = 10
-      var bookmarkOffset = 10
-      var bookmarkX = node.x + MARGIN + (node.width / 2) - bookmarkWidth - bookmarkOffset
-      var bookmarkY = node.y + MARGIN - (node.height / 2)
-      var bookmark = document.createElementNS(SVG, 'path')
-      svg.appendChild(bookmark)
-      var commands = [
-        ['M', bookmarkX, bookmarkY],
-        ['l', bookmarkWidth, 0],
-        ['l', 0, bookmarkHeight],
-        ['l', -(bookmarkWidth / 2), -bookmarkNotch],
-        ['l', -(bookmarkWidth / 2), +bookmarkNotch],
-        ['z']
-      ]
-        .map(function (element) {
-          return element[0] + element.slice(1).join(' ')
-        })
-        .join(' ')
-      bookmark.setAttributeNS(null, 'd', commands)
-      bookmark.setAttributeNS(null, 'fill', ourMarks.length === 0 ? 'blue' : 'red')
-      bookmark.setAttributeNS(null, 'stroke', 'black')
-      bookmark.setAttributeNS(null, 'stroke-width', 1)
+      svg.appendChild(
+        renderBookmark(
+          node.x + MARGIN + (node.width / 2) - BOOKMARK_WIDTH - 10,
+          node.y + MARGIN - (node.height / 2),
+          'blue'
+        )
+      )
+    }
+
+    if (ourMarks.length !== 0) {
+      svg.appendChild(
+        renderBookmark(
+          node.x + MARGIN + (node.width / 2) - BOOKMARK_WIDTH - 5,
+          node.y + MARGIN - (node.height / 2),
+          'red'
+        )
+      )
     }
   })
 
@@ -319,6 +315,29 @@ function renderGraph (state, send) {
   })
 
   return svg
+}
+
+function renderBookmark (x, y, color) {
+  var bookmarkHeight = 40
+  var bookmarkNotch = 10
+  var bookmark = document.createElementNS(SVG, 'path')
+  var commands = [
+    ['M', x, y],
+    ['l', BOOKMARK_WIDTH, 0],
+    ['l', 0, bookmarkHeight],
+    ['l', -(BOOKMARK_WIDTH / 2), -bookmarkNotch],
+    ['l', -(BOOKMARK_WIDTH / 2), +bookmarkNotch],
+    ['z']
+  ]
+    .map(function (element) {
+      return element[0] + element.slice(1).join(' ')
+    })
+    .join(' ')
+  bookmark.setAttributeNS(null, 'd', commands)
+  bookmark.setAttributeNS(null, 'fill', color)
+  bookmark.setAttributeNS(null, 'stroke', 'black')
+  bookmark.setAttributeNS(null, 'stroke-width', 1)
+  return bookmark
 }
 
 function plainTextIntro (state, publicKey) {
