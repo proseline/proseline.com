@@ -291,7 +291,7 @@ function renderGraph (state, send) {
       marksCount.appendChild(document.createTextNode(text))
     }
 
-    if (ourMarks.length !== 0) {
+    if (marks.length !== 0) {
       var bookmarkWidth = 20
       var bookmarkHeight = 40
       var bookmarkNotch = 10
