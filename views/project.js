@@ -272,9 +272,15 @@ function renderGraph (state, send) {
       notesCount.appendChild(document.createTextNode(brief.notesCount))
     }
 
-    var marks = state.projectMarks.filter(function (mark) {
-      return mark.message.body.draft === brief.digest
-    })
+    var marks = state.projectMarks
+      .sort(byTimestamp)
+      .filter(function (mark) {
+        return mark.message.body.draft === brief.digest
+      })
+    var ourMarks = marks
+      .filter(function (mark) {
+        return mark.publicKey === state.identity.publicKey
+      })
     if (marks.length !== 0) {
       var marksCount = document.createElementNS(SVG, 'text')
       a.appendChild(marksCount)
@@ -282,11 +288,6 @@ function renderGraph (state, send) {
       marksCount.setAttributeNS(null, 'y', node.y + 2 * (node.height / 6) + MARGIN)
       marksCount.setAttributeNS(null, 'text-anchor', 'middle')
       marksCount.setAttributeNS(null, 'font-size', '80%')
-      var ourMarks = marks
-        .filter(function (mark) {
-          return mark.publicKey === state.identity.publicKey
-        })
-        .sort(byTimestamp)
       if (ourMarks.length !== 0) {
         marksCount.setAttributeNS(null, 'font-weight', 'bold')
       }
@@ -300,6 +301,31 @@ function renderGraph (state, send) {
           (marks.length === 1 ? 'mark' : 'marks')
         )
       marksCount.appendChild(document.createTextNode(text))
+    }
+
+    if (ourMarks.length !== 0) {
+      var bookmarkWidth = 20
+      var bookmarkHeight = 40
+      var bookmarkNotch = 10
+      var bookmarkOffset = 10
+      var bookmarkX = node.x + MARGIN + (node.width / 2) - bookmarkWidth - bookmarkOffset
+      var bookmarkY = node.y + MARGIN - (node.height / 2)
+      var bookmark = document.createElementNS(SVG, 'path')
+      svg.appendChild(bookmark)
+      var commands = [
+        ['M', bookmarkX, bookmarkY],
+        ['l', bookmarkWidth, 0],
+        ['l', 0, bookmarkHeight],
+        ['l', -(bookmarkWidth / 2), -bookmarkNotch],
+        ['l', -(bookmarkWidth / 2), +bookmarkNotch],
+        ['z']
+      ]
+        .map(function (element) {
+          return element[0] + element.slice(1).join(' ')
+        })
+        .join(' ')
+      bookmark.setAttributeNS(null, 'd', commands)
+      bookmark.setAttributeNS(null, 'fill', 'blue')
     }
   })
 
@@ -324,7 +350,7 @@ function renderGraph (state, send) {
 }
 
 function plainTextIntro (state, publicKey) {
-  if (publicKey === state.identity.publicKey) return 'you'
+  if (publicKey === state.identity.publicKey) return 'You'
   var intro = state.intros[publicKey]
   if (intro) {
     return intro.message.body.name
