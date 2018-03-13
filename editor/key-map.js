@@ -17,6 +17,9 @@ module.exports = keymap({
   'Mod-a': commands.selectAll,
   'Esc': commands.selectParentNode,
   'Ctrl->': commands.wrapInBlockquote,
-  'Mod-Enter': commands.break,
-  'Enter': commands.enter
+  'Enter': commands.enter,
+  'Ctrl-Enter': commands.br,
+  'Ctrl-Shift-Enter': commands.hr,
+  'Shift-Ctrl-8': commands.ul,
+  'Shift-Ctrl-9': commands.ol
 })

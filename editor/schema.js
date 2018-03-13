@@ -18,7 +18,7 @@ module.exports = new Schema({
       content: `${BLOCK}+`,
       group: BLOCK
     }),
-    rule: {
+    hr: {
       group: BLOCK,
       parseDOM: [{tag: 'hr'}],
       toDOM: function () { return ['hr'] }
@@ -54,15 +54,15 @@ module.exports = new Schema({
       content: `paragraph ${BLOCK}*`,
       defining: true
     }),
+    text: {
+      group: INLINE,
+      toDOM: function (node) { return node.text }
+    },
     br: withTag('br', {
       inline: true,
       group: INLINE,
       selectable: false
-    }),
-    text: {
-      group: INLINE,
-      toDOM: function (node) { return node.text }
-    }
+    })
   },
   marks: {
     em: {

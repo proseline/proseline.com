@@ -3,17 +3,22 @@ var pmSchemaList = require('prosemirror-schema-list')
 var schema = require('./schema')
 
 var chainCommands = pmCommands.chainCommands
+var createParagraphNear = pmCommands.createParagraphNear
 var exitCode = pmCommands.exitCode
+var liftEmptyBlock = pmCommands.liftEmptyBlock
+var newlineInCode = pmCommands.newlineInCode
+var splitBlock = pmCommands.splitBlock
 var splitListItem = pmSchemaList.splitListItem
 var wrapIn = pmCommands.wrapIn
+var wrapInList = pmSchemaList.wrapInList
 
-exports.backspace = pmCommands.chainCommands(
+exports.backspace = chainCommands(
   pmCommands.deleteSelection,
   pmCommands.joinBackward,
   pmCommands.selectNodeBackward
 )
 
-exports.delete = pmCommands.chainCommands(
+exports.delete = chainCommands(
   pmCommands.deleteSelection,
   pmCommands.joinForward,
   pmCommands.selectNodeForward
@@ -30,16 +35,44 @@ exports.selectParentNode = pmCommands.selectParentNode
 
 exports.wrapInBlockquote = wrapIn(schema.nodes.blockquote)
 
-exports.break = chainCommands(
+exports.br = chainCommands(
   exitCode,
   function (state, dispatch) {
-    dispatch(
-      state.tr
-        .replaceSelectionWith(schema.nodes.br.create())
-        .scrollIntoView()
-    )
+    if (dispatch) {
+      dispatch(
+        state.tr
+          .replaceSelectionWith(schema.nodes.br.create())
+          .scrollIntoView()
+      )
+    }
     return true
   }
 )
 
-exports.enter = splitListItem
+exports.hr = function (state, dispatch) {
+  if (
+    !state.doc.canReplaceWith(
+      state.from, state.to,
+      schema.nodes.hr
+    )
+  ) return false
+  if (dispatch) {
+    dispatch(
+      state.tr
+        .replaceSelectionWith(schema.nodes.hr.create())
+        .scrollIntoView()
+    )
+  }
+  return true
+}
+
+exports.enter = chainCommands(
+  newlineInCode,
+  createParagraphNear,
+  liftEmptyBlock,
+  splitBlock,
+  splitListItem(schema.nodes.li)
+)
+
+exports.ol = wrapInList(schema.nodes.ul)
+exports.ul = wrapInList(schema.nodes.ol)
