@@ -47,6 +47,15 @@ module.exports = pmMenu.menuBar({
       })
     ],
     [
+      new MenuItem({
+        title: 'Rule',
+        label: 'Rule',
+        icon: icons.rule,
+        enable: commands.hr,
+        run: commands.hr
+      })
+    ],
+    [
       pmMenu.undoItem,
       pmMenu.redoItem
     ]

@@ -15,9 +15,7 @@ module.exports = function (parent) {
   return new EditorView(parent, {
     state: EditorState.create({
       doc: schema.node('doc', null, [
-        schema.node('paragraph', null, [
-          schema.text('...')
-        ])
+        schema.node('paragraph', null, [])
       ]),
       plugins: [
         menu,

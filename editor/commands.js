@@ -42,3 +42,28 @@ exports.br = chainCommands(
     return true
   }
 )
+
+exports.hr = function (state, dispatch) {
+  if (!canInsert(state, schema.nodes.hr)) return false
+  if (dispatch) {
+    dispatch(
+      state.tr
+        .replaceSelectionWith(schema.nodes.hr.create())
+        .scrollIntoView()
+    )
+  }
+  return true
+}
+
+function canInsert (state, type) {
+  var $from = state.selection.$from
+  var depth = $from.depth
+  while (depth > 0) {
+    depth--
+    var index = $from.index(depth)
+    if ($from.node(depth).canReplaceWith(index, index, type)) {
+      return true
+    }
+  }
+  return false
+}

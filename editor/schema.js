@@ -5,12 +5,18 @@ var Schema = pmModel.Schema
 module.exports = new Schema({
   nodes: {
     doc: {
-      content: 'paragraph+'
+      content: 'block+'
     },
     paragraph: {
+      group: 'block',
       content: 'inline*',
       parseDOM: [{tag: 'p'}],
       toDOM: function () { return ['p', 0] }
+    },
+    hr: {
+      group: 'block',
+      parseDOM: [{tag: 'hr'}],
+      toDOM: function () { return ['hr'] }
     },
     br: {
       inline: true,
