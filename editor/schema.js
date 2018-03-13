@@ -26,6 +26,20 @@ module.exports = new Schema({
         }),
       toDOM: function (node) { return ['h' + node.attrs.level, 0] }
     },
+    blockquote: {
+      group: 'block',
+      content: 'block*',
+      parseDOM: [{tag: 'blockquote'}],
+      toDOM: function () { return ['blockquote', 0] }
+    },
+    listing: {
+      group: 'block',
+      content: 'text*',
+      code: true,
+      defining: true,
+      parseDOM: [{tag: 'pre'}],
+      toDOM: function () { return ['pre', {}, ['code', 0]] }
+    },
     hr: {
       group: 'block',
       parseDOM: [{tag: 'hr'}],

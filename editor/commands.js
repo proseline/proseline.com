@@ -5,6 +5,7 @@ var schema = require('./schema')
 var chainCommands = pmCommands.chainCommands
 var exitCode = pmCommands.exitCode
 var setBlockType = pmCommands.setBlockType
+var lift = pmCommands.lift
 
 exports.backspace = chainCommands(
   pmCommands.deleteSelection,
@@ -74,3 +75,8 @@ eachHeadingLevel(function (level) {
   var name = 'h' + level
   exports[name] = setBlockType(schema.nodes.heading, {level})
 })
+
+exports.listing = setBlockType(schema.nodes.listing)
+exports.paragraph = setBlockType(schema.nodes.paragraph)
+
+exports.lift = lift

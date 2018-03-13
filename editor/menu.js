@@ -6,6 +6,7 @@ var schema = require('./schema')
 var Dropdown = pmMenu.Dropdown
 var MenuItem = pmMenu.MenuItem
 var icons = pmMenu.icons
+var wrapItem = pmMenu.wrapItem
 
 module.exports = pmMenu.menuBar({
   floating: true,
@@ -48,6 +49,7 @@ module.exports = pmMenu.menuBar({
         run: commands.code
       })
     ],
+    /*
     [
       new MenuItem({
         title: 'Rule',
@@ -55,19 +57,48 @@ module.exports = pmMenu.menuBar({
         icon: icons.rule,
         enable: commands.hr,
         run: commands.hr
+      })
+    ],
+    */
+    [
+      new MenuItem({
+        title: 'Paragraph',
+        label: 'Paragraph',
+        icon: icons.paragraph,
+        enable: commands.paragraph,
+        run: commands.paragraph
+      }),
+      wrapItem(schema.nodes.blockquote, {
+        title: 'Quote',
+        label: 'Quote',
+        icon: icons.blockquote
+      }),
+      new MenuItem({
+        title: 'Lift out of enclosing block',
+        run: commands.lift,
+        enable: function (state) {
+          return commands.lift(state)
+        },
+        icon: icons.lift
       }),
       new Dropdown(
         eachHeadingLevel(function (level) {
           var name = 'h' + level
           return new MenuItem({
             title: 'Heading ' + level,
-            label: name,
+            label: 'Level ' + level,
             enable: commands[name],
             run: commands[name]
           })
         }),
         {label: 'Headings'}
-      )
+      ),
+      new MenuItem({
+        title: 'Listing',
+        label: 'Listing',
+        enable: commands.listing,
+        run: commands.listing
+      })
     ],
     [
       pmMenu.undoItem,
