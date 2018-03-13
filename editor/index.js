@@ -11,12 +11,15 @@ var EditorState = pmState.EditorState
 var EditorView = pmView.EditorView
 var history = pmHistory.history
 
-module.exports = function (parent) {
+module.exports = function (parent, content) {
+  var doc = content
+    ? schema.nodeFromJSON(content)
+    : schema.node('doc', null, [
+      schema.node('paragraph', null, [])
+    ])
   return new EditorView(parent, {
     state: EditorState.create({
-      doc: schema.node('doc', null, [
-        schema.node('paragraph', null, [])
-      ]),
+      doc,
       plugins: [
         menu,
         history(),

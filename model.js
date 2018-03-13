@@ -484,7 +484,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var draft = {
       type: 'draft',
       parents: data.parents,
-      text: data.text.replace(/\r?\n/g, '\n'),
+      text: data.text,
       timestamp: new Date().toISOString()
     }
     var message = {

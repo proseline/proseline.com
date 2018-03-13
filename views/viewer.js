@@ -1,4 +1,5 @@
 var assert = require('assert')
+var initializeEditor = require('../editor')
 var renderDraftHeader = require('./partials/draft-header')
 var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
@@ -205,9 +206,11 @@ function renderDraft (state, send) {
     var inlineNotes = state.notesTree.filter(function (note) {
       return note.message.body.range
     })
-    article.appendChild(
-      renderText(draft.message.body.text, inlineNotes, state.textSelection)
-    )
+    var div = document.createElement('div')
+    article.appendChild(div)
+    div.className = 'editor'
+    initializeEditor(div, draft.message.body.text)
+
     Array.from(article.children).forEach(function (child) {
       var childRange = {
         start: parseInt(child.dataset.start),

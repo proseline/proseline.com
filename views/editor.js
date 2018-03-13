@@ -47,7 +47,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
       event.stopPropagation()
       send('save', {
         discoveryKey: discoveryKey,
-        text: editor.doc.toJSON(),
+        text: editor.state.doc.toJSON(),
         parents: parentDigests || []
       })
     })
@@ -64,7 +64,12 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     var div = document.createElement('div')
     main.appendChild(div)
     div.className = 'editor'
-    var editor = initializeEditor(div)
+    var content = false
+    if (parentDigests && parentDigests.length > 0) {
+      content = state.parents[0].message.body.text
+    }
+    // TODO: Diff starting point for merge drafts.
+    var editor = initializeEditor(div, content)
   }
   return main
 })

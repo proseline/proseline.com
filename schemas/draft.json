@@ -14,7 +14,7 @@
       "uniqueItems": true
     },
     "text": {
-      "type": "string"
+      "type": "object"
     },
     "timestamp": {
       "type": "string",
