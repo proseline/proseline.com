@@ -1,6 +1,7 @@
 var dropCursor = require('prosemirror-dropcursor').dropCursor
 var gapCursor = require('prosemirror-gapcursor').gapCursor
 var keyMap = require('./key-map')
+var menu = require('./menu')
 var pmHistory = require('prosemirror-history')
 var pmState = require('prosemirror-state')
 var pmView = require('prosemirror-view')
@@ -19,6 +20,7 @@ module.exports = function (parent) {
         ])
       ]),
       plugins: [
+        menu,
         history(),
         keyMap,
         dropCursor(),
