@@ -1,8 +1,10 @@
+var eachHeadingLevel = require('./each-heading-level')
 var pmCommands = require('prosemirror-commands')
 var schema = require('./schema')
 
 var chainCommands = pmCommands.chainCommands
 var exitCode = pmCommands.exitCode
+var setBlockType = pmCommands.setBlockType
 
 exports.backspace = chainCommands(
   pmCommands.deleteSelection,
@@ -67,3 +69,8 @@ function canInsert (state, type) {
   }
   return false
 }
+
+eachHeadingLevel(function (level) {
+  var name = 'h' + level
+  exports[name] = setBlockType(schema.nodes.heading, {level})
+})

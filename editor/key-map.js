@@ -1,4 +1,5 @@
 var commands = require('./commands')
+var eachHeadingLevel = require('./each-heading-level')
 var pmHistory = require('prosemirror-history')
 var pmKeyMap = require('prosemirror-keymap')
 
@@ -6,7 +7,7 @@ var keymap = pmKeyMap.keymap
 var redo = pmHistory.redo
 var undo = pmHistory.undo
 
-module.exports = keymap({
+var mappings = {
   'Mod-z': undo,
   'Mod-y': redo,
   'Mod-b': commands.strong,
@@ -18,4 +19,10 @@ module.exports = keymap({
   'Enter': commands.enter,
   'Ctrl-Enter': commands.br,
   'Shift-Enter': commands.hr
+}
+
+eachHeadingLevel(function (level) {
+  mappings['Ctrl-Shift-' + level] = commands['h' + level]
 })
+
+module.exports = keymap(mappings)

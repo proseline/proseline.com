@@ -1,7 +1,9 @@
 var commands = require('./commands')
+var eachHeadingLevel = require('./each-heading-level')
 var pmMenu = require('prosemirror-menu')
 var schema = require('./schema')
 
+var Dropdown = pmMenu.Dropdown
 var MenuItem = pmMenu.MenuItem
 var icons = pmMenu.icons
 
@@ -53,7 +55,19 @@ module.exports = pmMenu.menuBar({
         icon: icons.rule,
         enable: commands.hr,
         run: commands.hr
-      })
+      }),
+      new Dropdown(
+        eachHeadingLevel(function (level) {
+          var name = 'h' + level
+          return new MenuItem({
+            title: 'Heading ' + level,
+            label: name,
+            enable: commands[name],
+            run: commands[name]
+          })
+        }),
+        {label: 'Headings'}
+      )
     ],
     [
       pmMenu.undoItem,

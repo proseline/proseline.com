@@ -13,6 +13,19 @@ module.exports = new Schema({
       parseDOM: [{tag: 'p'}],
       toDOM: function () { return ['p', 0] }
     },
+    heading: {
+      group: 'block',
+      content: 'inline*',
+      attrs: {level: {default: 1}},
+      defining: true,
+      parseDOM: new Array(6)
+        .fill()
+        .map(function (index) {
+          var level = index + 1
+          return {tag: 'h' + level, attrs: {level}}
+        }),
+      toDOM: function (node) { return ['h' + node.attrs.level, 0] }
+    },
     hr: {
       group: 'block',
       parseDOM: [{tag: 'hr'}],
