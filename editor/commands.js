@@ -2,6 +2,7 @@ var pmCommands = require('prosemirror-commands')
 var schema = require('./schema')
 
 var chainCommands = pmCommands.chainCommands
+var exitCode = pmCommands.exitCode
 
 exports.backspace = chainCommands(
   pmCommands.deleteSelection,
@@ -26,4 +27,18 @@ exports.enter = chainCommands(
   pmCommands.createParagraphNear,
   pmCommands.liftEmptyBlock,
   pmCommands.splitBlock
+)
+
+exports.br = chainCommands(
+  exitCode,
+  function (state, dispatch) {
+    if (dispatch) {
+      dispatch(
+        state.tr
+          .replaceSelectionWith(schema.nodes.br.create())
+          .scrollIntoView()
+      )
+    }
+    return true
+  }
 )

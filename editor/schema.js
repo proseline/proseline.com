@@ -8,11 +8,21 @@ module.exports = new Schema({
       content: 'paragraph+'
     },
     paragraph: {
-      content: 'text*',
+      content: 'inline*',
       parseDOM: [{tag: 'p'}],
       toDOM: function () { return ['p', 0] }
     },
-    text: {}
+    br: {
+      inline: true,
+      group: 'inline',
+      selectable: false,
+      parseDOM: [{tag: 'br'}],
+      toDOM: function () { return ['br'] }
+    },
+    text: {
+      group: 'inline',
+      toDOM: function (node) { return node.text }
+    }
   },
   marks: {
     em: {
