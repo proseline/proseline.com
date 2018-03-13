@@ -8,7 +8,7 @@ module.exports = new Schema({
       content: 'paragraph+'
     },
     paragraph: {
-      content: 'text+',
+      content: 'text*',
       parseDOM: [{tag: 'p'}],
       toDOM: function () { return ['p', 0] }
     },
