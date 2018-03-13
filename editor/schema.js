@@ -2,67 +2,17 @@ var pmModel = require('prosemirror-model')
 
 var Schema = pmModel.Schema
 
-var BLOCK = 'block'
-var INLINE = 'inline'
-
 module.exports = new Schema({
   nodes: {
     doc: {
-      content: `${BLOCK}+`
+      content: 'paragraph+'
     },
-    paragraph: withTag('p', {
-      content: `${INLINE}+`,
-      group: BLOCK
-    }),
-    blockquote: withTag('blockquote', {
-      content: `${BLOCK}+`,
-      group: BLOCK
-    }),
-    hr: {
-      group: BLOCK,
-      parseDOM: [{tag: 'hr'}],
-      toDOM: function () { return ['hr'] }
-    },
-    heading: {
-      attrs: {level: {default: 1}},
-      content: `${INLINE}+`,
-      group: BLOCK,
-      defining: true,
-      parseDOM: new Array(6).map(function (_, index) {
-        return {tag: 'h' + index + 1, attrs: {level: index + 1}}
-      }),
-      toDOM: function (node) { return ['h' + node.attrs.level, 0] }
-    },
-    codeBlock: {
+    paragraph: {
       content: 'text+',
-      group: BLOCK,
-      code: true,
-      defining: true,
-      marks: '',
-      parseDOM: [{tag: 'pre'}],
-      toDOM: function () { return ['pre', {}, ['code', 0]] }
+      parseDOM: [{tag: 'p'}],
+      toDOM: function () { return ['p', 0] }
     },
-    ol: withTag('ol', {
-      content: 'li+',
-      group: BLOCK
-    }),
-    ul: withTag('ul', {
-      content: 'li+',
-      group: BLOCK
-    }),
-    li: withTag('li', {
-      content: `paragraph ${BLOCK}*`,
-      defining: true
-    }),
-    text: {
-      group: INLINE,
-      toDOM: function (node) { return node.text }
-    },
-    br: withTag('br', {
-      inline: true,
-      group: INLINE,
-      selectable: false
-    })
+    text: {}
   },
   marks: {
     em: {
@@ -73,28 +23,9 @@ module.exports = new Schema({
       parseDOM: [{tag: 'b'}, {tag: 'strong'}],
       toDOM: function () { return ['strong'] }
     },
-    link: {
-      attrs: {href: {}},
-      inclusive: false,
-      parseDOM: [
-        {
-          tag: 'a[href]',
-          getAttrs: function (dom) {
-            return {href: dom.getAttribute('href')}
-          }
-        }
-      ],
-      toDOM: function (node) { return ['a', {href: node.attrs.href}] }
-    },
     code: {
       parseDOM: [{tag: 'code'}],
       toDOM: function () { return ['code'] }
     }
   }
 })
-
-function withTag (tagName, spec) {
-  spec.parseDOM = [{tag: tagName}]
-  spec.toDOM = function () { return [tagName, {}, 0] }
-  return spec
-}

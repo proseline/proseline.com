@@ -15,11 +15,5 @@ module.exports = keymap({
   'Backspace': commands.backspace,
   'Delete': commands.delete,
   'Mod-a': commands.selectAll,
-  'Esc': commands.selectParentNode,
-  'Ctrl->': commands.wrapInBlockquote,
-  'Enter': commands.enter,
-  'Ctrl-Enter': commands.br,
-  'Ctrl-Shift-Enter': commands.hr,
-  'Shift-Ctrl-8': commands.ul,
-  'Shift-Ctrl-9': commands.ol
+  'Enter': commands.enter
 })

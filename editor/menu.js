@@ -4,17 +4,6 @@ var schema = require('./schema')
 
 var MenuItem = pmMenu.MenuItem
 var icons = pmMenu.icons
-var blockTypeItem = pmMenu.blockTypeItem
-var Dropdown = pmMenu.Dropdown
-
-var headingItems = []
-for (var level = 1; level <= 6; level++) {
-  headingItems.push(blockTypeItem(schema.nodes.heading, {
-    title: 'Heading ' + level,
-    label: 'H' + level,
-    attrs: {level: level}
-  }))
-}
 
 module.exports = pmMenu.menuBar({
   floating: true,
@@ -56,47 +45,6 @@ module.exports = pmMenu.menuBar({
         },
         run: commands.code
       })
-    ],
-    [
-      new MenuItem({
-        title: 'Bullet List',
-        label: 'Bullets',
-        icon: icons.bulletList,
-        active: commands.ul,
-        run: commands.ul
-      }),
-      new MenuItem({
-        title: 'Ordered List',
-        label: 'Ordered',
-        icon: icons.orderedList,
-        active: commands.ol,
-        run: commands.ol
-      }),
-      new MenuItem({
-        title: 'Blockquote',
-        label: 'Blockquote',
-        icon: icons.blockquote,
-        active: commands.blockquote,
-        run: commands.blockquote
-      }),
-      blockTypeItem(schema.nodes.paragraph, {
-        title: 'Paragraph',
-        label: 'Paragraph'
-      }),
-      blockTypeItem(schema.nodes.codeBlock, {
-        title: 'Code Block',
-        label: 'Code'
-      }),
-      new MenuItem({
-        title: 'Rule',
-        label: 'Rule',
-        icon: icons.hr,
-        active: commands.hr,
-        run: commands.hr
-      })
-    ],
-    [
-      new Dropdown(headingItems, {label: 'Heading'})
     ],
     [
       pmMenu.undoItem,
