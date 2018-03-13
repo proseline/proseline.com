@@ -1,5 +1,5 @@
 var assert = require('assert')
-var diff = require('diff/lib/diff/line').diffLines
+var initializeEditor = require('../editor')
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var withProject = require('./with-project')
@@ -47,7 +47,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
       event.stopPropagation()
       send('save', {
         discoveryKey: discoveryKey,
-        text: textarea.value,
+        text: editor.doc.toJSON(),
         parents: parentDigests || []
       })
     })
@@ -60,28 +60,11 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
 
     main.appendChild(renderDraftHeader(state, form))
 
-    // <textarea>
-    var textarea = document.createElement('textarea')
-    textarea.autofocus = true
-    textarea.spellcheck = true
-    textarea.className = 'editor'
-    if (parentDigests) {
-      if (parentDigests.length === 1) {
-        textarea.value = state.parents[0].message.body.text
-      } else {
-        var first = state.parents[0].message.body.text
-        var second = state.parents[1].message.body.text
-        textarea.value = diff(first, second)
-          .map(function (change) {
-            var text = change.value
-            if (change.added) return '[inserted:]' + text + '[end]'
-            else if (change.removed) return '[deleted:]' + text + '[end]'
-            else return text
-          })
-          .join('')
-      }
-    }
-    main.appendChild(textarea)
+    // Editor
+    var div = document.createElement('div')
+    main.appendChild(div)
+    div.className = 'editor'
+    var editor = initializeEditor(div)
   }
   return main
 })

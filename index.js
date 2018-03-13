@@ -249,7 +249,8 @@ function joinSwarms (done) {
     }
   })
   bus.on('peers', function (count) {
-    action('peers', count)
+    // TODO: Prevent clearing inputs on redraw.
+    // action('peers', count)
   })
   bus.on('update', function (discoveryKey) {
     if (
