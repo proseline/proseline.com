@@ -2,28 +2,31 @@ var pmModel = require('prosemirror-model')
 
 var Schema = pmModel.Schema
 
+var BLOCK = 'block'
+var INLINE = 'inline'
+
 module.exports = new Schema({
   nodes: {
     doc: {
-      content: 'block+'
+      content: `${BLOCK}+`
     },
     paragraph: withTag('p', {
-      content: 'inline+',
-      group: 'block'
+      content: `${INLINE}+`,
+      group: BLOCK
     }),
     blockquote: withTag('blockquote', {
-      content: 'block+',
-      group: 'block'
+      content: `${BLOCK}+`,
+      group: BLOCK
     }),
     rule: {
-      group: 'block',
+      group: BLOCK,
       parseDOM: [{tag: 'hr'}],
       toDOM: function () { return ['hr'] }
     },
     heading: {
       attrs: {level: {default: 1}},
-      content: 'inline+',
-      group: 'block',
+      content: `${INLINE}+`,
+      group: BLOCK,
       defining: true,
       parseDOM: new Array(6).map(function (_, index) {
         return {tag: 'h' + index + 1, attrs: {level: index + 1}}
@@ -31,32 +34,33 @@ module.exports = new Schema({
       toDOM: function (node) { return ['h' + node.attrs.level, 0] }
     },
     codeBlock: {
-      content: 'text',
-      group: 'block',
+      content: 'text+',
+      group: BLOCK,
       code: true,
       defining: true,
+      marks: '',
       parseDOM: [{tag: 'pre'}],
       toDOM: function () { return ['pre', {}, ['code', 0]] }
     },
     ol: withTag('ol', {
       content: 'li+',
-      group: 'block'
+      group: BLOCK
     }),
     ul: withTag('ul', {
       content: 'li+',
-      group: 'block'
+      group: BLOCK
     }),
     li: withTag('li', {
-      content: 'paragraph block*',
+      content: `paragraph ${BLOCK}*`,
       defining: true
     }),
-    br: withTag('hr', {
+    br: withTag('br', {
       inline: true,
-      groupi: 'inline',
+      group: INLINE,
       selectable: false
     }),
     text: {
-      group: 'inline',
+      group: INLINE,
       toDOM: function (node) { return node.text }
     }
   },
