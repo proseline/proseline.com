@@ -8,6 +8,9 @@ var MenuItem = pmMenu.MenuItem
 var icons = pmMenu.icons
 var wrapItem = pmMenu.wrapItem
 
+var PARAGRAPH_ICON = require('@fortawesome/fontawesome-free-solid/faParagraph').icon
+var CODE_ICON = require('@fortawesome/fontawesome-free-solid/faCode').icon
+
 module.exports = pmMenu.menuBar({
   floating: true,
   content: [
@@ -64,7 +67,7 @@ module.exports = pmMenu.menuBar({
       new MenuItem({
         title: 'Paragraph',
         label: 'Paragraph',
-        icon: icons.paragraph,
+        icon: faToMenuIcon(PARAGRAPH_ICON),
         enable: commands.paragraph,
         run: commands.paragraph
       }),
@@ -97,7 +100,8 @@ module.exports = pmMenu.menuBar({
         title: 'Listing',
         label: 'Listing',
         enable: commands.listing,
-        run: commands.listing
+        run: commands.listing,
+        icon: faToMenuIcon(CODE_ICON)
       })
     ],
     [
@@ -116,4 +120,12 @@ function isMarkActive (state, type) {
   var from = state.selection.from
   var to = state.selection.to
   return state.doc.rangeHasMark(from, to, type)
+}
+
+function faToMenuIcon (icon) {
+  return {
+    width: icon[0],
+    height: icon[1],
+    path: icon[4]
+  }
 }
