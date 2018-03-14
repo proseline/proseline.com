@@ -211,7 +211,7 @@ function renderDraft (state, send) {
     initializeEditor({
       element: div,
       content: draft.message.body.text,
-      noteForm: noteForm,
+      noteForm: renderNoteForm.bind(null, state, send),
       globalNotes: renderNotesList(state, send)
     })
 
@@ -236,7 +236,10 @@ function renderDraft (state, send) {
           var aside = document.createElement('aside')
           insertAfter(aside)
           aside.appendChild(renderNoteForm(
-            state, null, state.textSelection, send
+            state, send, {
+              parent: null,
+              range: state.textSelection
+            }
           ))
         }
       }
@@ -263,22 +266,6 @@ function renderDraft (state, send) {
   function endsInRange (position, range) {
     return position >= range.start && position <= range.end
   }
-}
-
-function noteForm (options) {
-  var form = document.createElement('form')
-  form.className = 'noteForm'
-
-  var textarea = document.createElement('textarea')
-  form.appendChild(textarea)
-  textarea.required = true
-  textarea.spellcheck = true
-
-  var button = document.createElement('button')
-  form.appendChild(button)
-  button.appendChild(document.createTextNode('Add your note.'))
-
-  return form
 }
 
 var SEPARATOR = '\n\n'
@@ -436,7 +423,7 @@ function renderNotesList (state, send) {
     })
     directLI.appendChild(button)
   } else {
-    directLI.appendChild(renderNoteForm(state, null, null, send))
+    directLI.appendChild(renderNoteForm(state, send))
   }
   ol.appendChild(directLI)
   return ol
@@ -472,7 +459,7 @@ function renderNote (state, note, send) {
   blockquote.appendChild(renderText(note.message.body.text))
   li.appendChild(blockquote)
   if (replyTo === note.digest) {
-    li.appendChild(renderNoteForm(state, note.digest, null, send))
+    li.appendChild(renderNoteForm(state, send, {parent: note.digest}))
   } else {
     // <button>
     var button = document.createElement('button')
@@ -492,17 +479,22 @@ function renderNote (state, note, send) {
   return li
 }
 
-function renderNoteForm (state, parent, range, send) {
+function renderNoteForm (state, send, options) {
+  options = options || {}
+  var parent = options.parent
+  var range = options.range
+  var selected = options.selected
   assert(typeof state, 'object')
-  assert(parent === null || typeof parent === 'string')
+  assert(!parent || typeof parent === 'string')
   assert(
-    range === null ||
+    !range ||
     (
       typeof range === 'object' &&
       range.hasOwnProperty('start') &&
       range.hasOwnProperty('end')
     )
   )
+  assert(!selected || typeof selected === 'string')
   assert.equal(typeof send, 'function')
   var form = document.createElement('form')
   form.className = 'noteForm'
@@ -515,16 +507,12 @@ function renderNoteForm (state, parent, range, send) {
       text: textarea.value
     })
   })
-  if (range) {
+  if (selected) {
     // <blockquote>
     var blockquote = document.createElement('blockquote')
     form.appendChild(blockquote)
-    blockquote.appendChild(renderQuoteIcon())
-    blockquote.appendChild(document.createTextNode(
-      state.draft.message.body.text.substring(
-        range.start, range.end
-      )
-    ))
+    // blockquote.appendChild(renderQuoteIcon())
+    blockquote.appendChild(document.createTextNode(selected))
   }
   // <textarea>
   var textarea = renderExpandingTextArea()

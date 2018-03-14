@@ -36,14 +36,14 @@ module.exports = function (options) {
     dropCursor(),
     gapCursor()
   ]
+  var ignore = {
+    stopEvent: function () { return true },
+    ignoreMutation: function () { return true }
+  }
   if (globalNotes) {
     var globalNotePlugin = new Plugin({
       props: {
         decorations: function (state) {
-          var ignore = {
-            stopEvent: function () { return true },
-            ignoreMutation: function () { return true }
-          }
           var decorations = []
           if (globalNotes) {
             decorations.push(
@@ -55,6 +55,30 @@ module.exports = function (options) {
       }
     })
     plugins.push(globalNotePlugin)
+  }
+  if (noteForm) {
+    var inlineNotePlugin = new Plugin({
+      props: {
+        decorations: function (state) {
+          var decorations = []
+          var selection = state.selection
+          if (!selection.empty) {
+            var $to = selection.$to
+            var $from = selection.$from
+            console.log($to.index())
+            decorations.push(
+              Decoration.widget(
+                $to.end(-1),
+                noteForm({range: {start: $from.pos, end: $to.pos}}),
+                ignore
+              )
+            )
+          }
+          return DecorationSet.create(state.doc, decorations)
+        }
+      }
+    })
+    plugins.push(inlineNotePlugin)
   }
   return new EditorView(element, {
     state: EditorState.create({doc, plugins})
