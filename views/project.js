@@ -32,9 +32,6 @@ module.exports = withProject(function (state, send, discoveryKey) {
     var newSection = renderSection('Start from Scratch')
     main.appendChild(newSection)
     newSection.appendChild(newDraft(state))
-    if (state.draftSelection.size > 0) {
-      main.appendChild(renderDeselect(send))
-    }
     main.appendChild(renderShareSection(state))
     main.appendChild(renderOrganizeSection(state, send))
     main.appendChild(renderRenameSection(state, send))
@@ -64,16 +61,6 @@ function renderDeleteButton (state, send) {
       send('delete project', state.discoveryKey)
     }
   })
-  return button
-}
-
-function renderDeselect (send) {
-  var button = document.createElement('button')
-  button.className = 'deselect'
-  button.addEventListener('click', function () {
-    send('deselect all drafts')
-  })
-  button.appendChild(document.createTextNode('Deselect all drafts.'))
   return button
 }
 
@@ -177,13 +164,15 @@ function renderGraph (state, send) {
     var x = node.x + MARGIN - (node.width / 2)
     var y = node.y + MARGIN - (node.height / 2)
     var brief = node.brief
-    var selected = state.draftSelection.has(brief.digest)
+    var digest = brief.digest
+    var selected = state.draftSelection.has(digest)
 
     var g = document.createElementNS(SVG, 'g')
     svg.appendChild(g)
 
     var rect = document.createElementNS(SVG, 'rect')
     g.appendChild(rect)
+    rect.setAttributeNS(null, 'id', 'rect-' + digest)
     var time = moment(brief.timestamp)
     var today = time.isAfter(moment().subtract(1, 'days'))
     var thisWeek = time.isAfter(moment().subtract(1, 'days'))
@@ -228,7 +217,7 @@ function renderGraph (state, send) {
     g.appendChild(readAnchor)
     readAnchor.setAttributeNS(null, 'href', (
       '/projects/' + state.discoveryKey +
-      '/drafts/' + brief.digest
+      '/drafts/' + digest
     ))
 
     var readText = document.createElementNS(SVG, 'text')
@@ -243,29 +232,29 @@ function renderGraph (state, send) {
     if (selectedCount < 2 || selected) {
       var combineAnchor = document.createElementNS(SVG, 'a')
       g.appendChild(combineAnchor)
+      var label = selected ? 'deselect' : 'combine'
+      combineAnchor.setAttributeNS(null, 'id', label + '-' + digest)
 
       var combineText = document.createElementNS(SVG, 'text')
       combineAnchor.appendChild(combineText)
-      combineText.appendChild(
-        document.createTextNode(selected ? 'deselect' : 'combine')
-      )
+      combineText.appendChild(document.createTextNode(label))
       combineText.setAttributeNS(null, 'x', node.x + MARGIN)
       combineText.setAttributeNS(null, 'y', node.y + (node.height / 6) + MARGIN)
       combineText.setAttributeNS(null, 'text-anchor', 'middle')
 
       if (selected) {
         combineAnchor.addEventListener('click', function (event) {
-          send('deselect draft', brief.digest)
+          send('deselect all drafts')
         })
       } else if (selectedCount === 0) {
         combineAnchor.addEventListener('click', function (event) {
-          send('select draft', brief.digest)
+          send('select draft', digest)
         })
       } else {
         combineAnchor.setAttributeNS(null, 'href', (
           '/projects/' + state.discoveryKey +
           '/drafts/new/' + Array.from(state.draftSelection)
-            .concat(brief.digest)
+            .concat(digest)
             .join(',')
         ))
       }
