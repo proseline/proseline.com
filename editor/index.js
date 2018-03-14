@@ -47,7 +47,7 @@ module.exports = function (options) {
           var decorations = []
           if (globalNotes) {
             decorations.push(
-              Decoration.widget(0, globalNotes, ignore)
+              Decoration.widget(state.doc.content.size, globalNotes, ignore)
             )
           }
           return DecorationSet.create(state.doc, decorations)
