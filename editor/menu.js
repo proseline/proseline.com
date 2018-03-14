@@ -9,6 +9,7 @@ var icons = pmMenu.icons
 var wrapItem = pmMenu.wrapItem
 
 module.exports = pmMenu.menuBar({
+  floating: true,
   content: [
     [
       new MenuItem({
