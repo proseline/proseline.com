@@ -22,7 +22,6 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
     }
     main.appendChild(renderDraftHeader(state))
     main.appendChild(renderDraft(state, send))
-    main.appendChild(renderNotes(state, send))
 
     var buttonSection = renderSection('Actions')
     main.appendChild(buttonSection)
@@ -209,7 +208,12 @@ function renderDraft (state, send) {
     var div = document.createElement('div')
     article.appendChild(div)
     div.className = 'editor'
-    initializeEditor(div, draft.message.body.text)
+    initializeEditor({
+      element: div,
+      content: draft.message.body.text,
+      noteForm: noteForm,
+      globalNotes: renderNotesList(state, send)
+    })
 
     Array.from(article.children).forEach(function (child) {
       var childRange = {
@@ -259,6 +263,22 @@ function renderDraft (state, send) {
   function endsInRange (position, range) {
     return position >= range.start && position <= range.end
   }
+}
+
+function noteForm (options) {
+  var form = document.createElement('form')
+  form.className = 'noteForm'
+
+  var textarea = document.createElement('textarea')
+  form.appendChild(textarea)
+  textarea.required = true
+  textarea.spellcheck = true
+
+  var button = document.createElement('button')
+  form.appendChild(button)
+  button.appendChild(document.createTextNode('Add your note.'))
+
+  return form
 }
 
 var SEPARATOR = '\n\n'
@@ -395,12 +415,6 @@ function renderDownload (send) {
   a.className = 'button'
   a.appendChild(document.createTextNode('Download this draft.'))
   return a
-}
-
-function renderNotes (state, send) {
-  var section = document.createElement('section')
-  section.appendChild(renderNotesList(state, send))
-  return section
 }
 
 function renderNotesList (state, send) {

@@ -94,12 +94,15 @@ textarea
   outline: none
   width: 100%
 
-.notesList, .notesList ol
-  list-style-type: none
-  margin: 0
-  padding: 0
-  blockquote
-    margin: 1rem 0
+.editor
+  .ProseMirror-widget
+    margin: 0
+  .notesList, .notesList ol
+    list-style-type: none
+    margin: 0 !important
+    padding: 0 !important
+    blockquote
+      margin: 1rem 0
 
 .notesList ol
   margin-left: 2 * $standardPadding
