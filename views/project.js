@@ -29,6 +29,7 @@ module.exports = withProject(function (state, send, discoveryKey) {
       main.appendChild(graphSection)
       graphSection.appendChild(renderGraph(state, send))
     }
+    // TODO: Move draft-from-scratch link into graph.
     var newSection = renderSection('Start from Scratch')
     main.appendChild(newSection)
     newSection.appendChild(newDraft(state))
