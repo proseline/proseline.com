@@ -74,67 +74,15 @@ function renderSaveForm (state, send, editor) {
 
 var SEPARATOR = '\n\n'
 
-function renderText (text, notes) {
-  notes = notes || []
+function renderText (text) {
   var fragment = document.createDocumentFragment()
-  var offset = 0
   text
     .split(SEPARATOR)
     .forEach(function (line) {
-      // Create <p>.
+      // <p>
       var p = document.createElement('p')
       fragment.appendChild(p)
-      p.dataset.start = offset
-      p.dataset.end = offset + line.length
-
-      var items = []
-      line
-        .split('')
-        .forEach(function (character, relativeIndex) {
-          var last = items.length ? items[items.length - 1] : false
-          var absoluteIndex = relativeIndex + offset
-          var inHighlighted = notes
-            .map(function (note) {
-              return note.message.body.range
-            })
-            .some(function (range) {
-              return (
-                range.start <= absoluteIndex &&
-                absoluteIndex < range.end
-              )
-            })
-          if (inHighlighted) {
-            if (last && last.marked) {
-              last.string = last.string + character
-            } else {
-              items.push({
-                string: character,
-                marked: true,
-                start: absoluteIndex
-              })
-            }
-          } else {
-            if (last && !last.marked) {
-              last.string = last.string + character
-            } else {
-              items.push({
-                string: character,
-                marked: false,
-                start: absoluteIndex
-              })
-            }
-          }
-        })
-      items.forEach(function (item) {
-        var child = document.createElement(
-          item.marked ? 'mark' : 'span'
-        )
-        child.appendChild(document.createTextNode(item.string))
-        child.dataset.start = item.start
-        p.appendChild(child)
-      })
-
-      offset += line.length + SEPARATOR.length
+      p.appendChild(document.createTextNode(line))
     })
   return fragment
 }
