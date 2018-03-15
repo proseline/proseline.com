@@ -517,7 +517,6 @@ function renderNoteForm (state, send, options) {
   // <textarea>
   var textarea = renderExpandingTextArea()
   textarea.required = true
-  if (range) textarea.autofocus = true
   form.appendChild(textarea)
   // <button>
   var button = document.createElement('button')

@@ -65,10 +65,9 @@ module.exports = function (options) {
           if (!selection.empty) {
             var $to = selection.$to
             var $from = selection.$from
-            console.log($to.index())
             decorations.push(
               Decoration.widget(
-                $to.end(-1),
+                $to.end(),
                 noteForm({range: {start: $from.pos, end: $to.pos}}),
                 ignore
               )
