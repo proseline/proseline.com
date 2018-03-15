@@ -21,12 +21,6 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
     }
     main.appendChild(renderDraftHeader(state))
     main.appendChild(renderDraft(state, send))
-
-    var buttonSection = renderSection('Actions')
-    main.appendChild(buttonSection)
-    buttonSection.appendChild(renderNewDraft(state, send))
-    buttonSection.appendChild(renderDownload(send))
-
     main.appendChild(renderHistory(state, send))
   } else {
     main.appendChild(
@@ -328,27 +322,6 @@ function renderMarkForm (state, send) {
   form.appendChild(button)
 
   return form
-}
-
-function renderNewDraft (state, send) {
-  var a = document.createElement('a')
-  a.className = 'button'
-  a.href = (
-    '/projects/' + state.discoveryKey +
-    '/drafts/new/' + state.draft.digest
-  )
-  a.appendChild(document.createTextNode('Start a new draft based on this one.'))
-  return a
-}
-
-function renderDownload (send) {
-  var a = document.createElement('a')
-  a.addEventListener('click', function () {
-    send('download')
-  })
-  a.className = 'button'
-  a.appendChild(document.createTextNode('Download this draft.'))
-  return a
 }
 
 function renderNote (state, send, note) {
