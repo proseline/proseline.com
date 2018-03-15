@@ -28,8 +28,10 @@ module.exports = function (options) {
   assert(!renderMarkForm || typeof renderMarkForm === 'function')
   var notes = options.notes
   assert(!notes || Array.isArray(notes))
+  var dirty = options.dirty
+  assert(!dirty || typeof dirty === 'function')
 
-  var doc = content
+  var originalDocument = content
     ? schema.nodeFromJSON(content)
     : schema.node('doc', null, [
       schema.node('paragraph', null, [])
@@ -50,6 +52,7 @@ module.exports = function (options) {
     var inlineNotePlugin = new Plugin({
       props: {
         decorations: function (state) {
+          if (modified.getState(state)) return
           var decorations = []
           var selection = state.selection
           if (!selection.empty) {
@@ -74,6 +77,7 @@ module.exports = function (options) {
     var notesPlugin = new Plugin({
       props: {
         decorations: function (state) {
+          if (modified.getState(state)) return
           var decorations = []
           notes.forEach(function (note) {
             var $start = state.doc.resolve(note.message.body.range.start)
@@ -105,6 +109,7 @@ module.exports = function (options) {
       new Plugin({
         props: {
           decorations: function (state) {
+            if (modified.getState(state)) return
             return DecorationSet.create(
               state.doc,
               [Decoration.widget(0, renderMarkForm(), ignore)]
@@ -115,7 +120,25 @@ module.exports = function (options) {
     )
   }
 
+  var modified = new Plugin({
+    state: {
+      init: function () { return false },
+      apply: function (tr, oldState, newState) {
+        var modified = !newState.doc.eq(originalDocument)
+        return oldState || modified
+      }
+    },
+    view: function (view) {
+      return {
+        update: function (view) {
+          dirty(modified.getState(view.state))
+        }
+      }
+    }
+  })
+  plugins.push(modified)
+
   return new EditorView(element, {
-    state: EditorState.create({doc, plugins})
+    state: EditorState.create({doc: originalDocument, plugins})
   })
 }

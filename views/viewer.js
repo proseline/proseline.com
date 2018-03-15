@@ -17,8 +17,24 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
         send('reload draft', {discoveryKey, digest})
       }))
     }
-    main.appendChild(renderDraftHeader(state))
-    main.appendChild(renderDraft(state, send))
+    var draft = state.draft
+    var div = document.createElement('div')
+    div.className = 'editor'
+    var editor = initializeEditor({
+      element: div,
+      content: draft.message.body.text,
+      renderNoteForm: renderNoteForm.bind(null, state, send),
+      renderNote: renderNote.bind(null, state, send),
+      notes: state.notesTree,
+      renderMarkForm: renderMarkForm.bind(null, state, send),
+      dirty: function (modified) {
+        if (!saveForm) return
+        saveForm.className = SAVE_FORM_CLASS + (modified ? '' : ' hidden')
+      }
+    })
+    var saveForm = renderSaveForm(state, send, editor)
+    main.appendChild(renderDraftHeader(state, saveForm))
+    main.appendChild(div)
   } else {
     main.appendChild(
       renderLoading(function () {
@@ -32,40 +48,28 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
   return main
 })
 
-function renderDraft (state, send) {
-  var draft = state.draft
-  var fragment = document.createDocumentFragment()
-  if (state.diff) {
-    state.diff.changes.forEach(function (change) {
-      var p = document.createElement('p')
-      var text = document.createTextNode(change.value)
-      if (change.added) {
-        var ins = document.createElement('ins')
-        ins.appendChild(text)
-        p.appendChild(ins)
-      } else if (change.removed) {
-        var del = document.createElement('del')
-        del.appendChild(text)
-        p.appendChild(del)
-      } else {
-        p.appendChild(text)
-      }
-      fragment.appendChild(p)
+var SAVE_FORM_CLASS = 'saveDraftForm'
+
+function renderSaveForm (state, send, editor) {
+  var form = document.createElement('form')
+  form.className = SAVE_FORM_CLASS + ' hidden'
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    send('save', {
+      discoveryKey: state.discoveryKey,
+      text: editor.state.doc.toJSON(),
+      parents: [state.draft.digest]
     })
-  } else {
-    var div = document.createElement('div')
-    fragment.appendChild(div)
-    div.className = 'editor'
-    initializeEditor({
-      element: div,
-      content: draft.message.body.text,
-      renderNoteForm: renderNoteForm.bind(null, state, send),
-      renderNote: renderNote.bind(null, state, send),
-      notes: state.notesTree,
-      renderMarkForm: renderMarkForm.bind(null, state, send)
-    })
-  }
-  return fragment
+  })
+
+  // Save Button
+  var save = document.createElement('button')
+  form.appendChild(save)
+  save.className = 'button'
+  save.appendChild(document.createTextNode('Save'))
+  return form
 }
 
 var SEPARATOR = '\n\n'
