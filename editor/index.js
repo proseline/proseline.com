@@ -20,10 +20,14 @@ module.exports = function (options) {
   var element = options.element
   assert(element instanceof Node)
   var content = options.content
-  var noteForm = options.noteForm
-  assert(!noteForm || typeof noteForm === 'function')
+  var renderNoteForm = options.renderNoteForm
+  assert(!renderNoteForm || typeof renderNoteForm === 'function')
+  var renderNote = options.renderNote
+  assert(!renderNote || typeof renderNote === 'function')
   var globalNotes = options.globalNotes
   assert(!globalNotes || globalNotes instanceof Node)
+  var inlineNotes = options.inlineNotes
+  assert(!inlineNotes || Array.isArray(inlineNotes))
   var doc = content
     ? schema.nodeFromJSON(content)
     : schema.node('doc', null, [
@@ -56,7 +60,7 @@ module.exports = function (options) {
     })
     plugins.push(globalNotePlugin)
   }
-  if (noteForm) {
+  if (renderNoteForm) {
     var inlineNotePlugin = new Plugin({
       props: {
         decorations: function (state) {
@@ -68,7 +72,7 @@ module.exports = function (options) {
             decorations.push(
               Decoration.widget(
                 $to.end(),
-                noteForm({range: {start: $from.pos, end: $to.pos}}),
+                renderNoteForm({range: {start: $from.pos, end: $to.pos}}),
                 ignore
               )
             )
@@ -78,6 +82,35 @@ module.exports = function (options) {
       }
     })
     plugins.push(inlineNotePlugin)
+  }
+  if (inlineNotes) {
+    var inlineNotesPlugin = new Plugin({
+      props: {
+        decorations: function (state) {
+          var decorations = []
+          inlineNotes.forEach(function (note) {
+            var $start = state.doc.resolve(note.message.body.range.start)
+            var $end = state.doc.resolve(note.message.body.range.end)
+            decorations.push(
+              Decoration.widget(
+                $end.end(),
+                renderNote(note),
+                ignore
+              )
+            )
+            decorations.push(
+              Decoration.inline(
+                $start.pos,
+                $end.pos,
+                {class: 'highlight'}
+              )
+            )
+          })
+          return DecorationSet.create(state.doc, decorations)
+        }
+      }
+    })
+    plugins.push(inlineNotesPlugin)
   }
   return new EditorView(element, {
     state: EditorState.create({doc, plugins})

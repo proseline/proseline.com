@@ -5,7 +5,6 @@ var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
 var renderLoading = require('./loading')
 var renderMark = require('./partials/mark')
-var renderQuoteIcon = require('./partials/quote-icon')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderRelativeTimestamp = require('./partials/relative-timestamp')
 var renderSection = require('./partials/section')
@@ -211,61 +210,13 @@ function renderDraft (state, send) {
     initializeEditor({
       element: div,
       content: draft.message.body.text,
-      noteForm: renderNoteForm.bind(null, state, send),
-      globalNotes: renderNotesList(state, send)
-    })
-
-    Array.from(article.children).forEach(function (child) {
-      var childRange = {
-        start: parseInt(child.dataset.start),
-        end: parseInt(child.dataset.end)
-      }
-      // Render existing notes.
-      var notesHere = inlineNotes.filter(function (note) {
-        return endsInRange(note.message.body.range.end, childRange)
-      })
-      if (notesHere.length !== 0) {
-        notesHere.reverse().forEach(function (note) {
-          insertAfter(renderInlineNotesList(state, send, note))
-        })
-      }
-      // Render the new-note form.
-      var textSelection = state.textSelection
-      if (textSelection) {
-        if (endsInRange(textSelection.end, childRange)) {
-          var aside = document.createElement('aside')
-          insertAfter(aside)
-          aside.appendChild(renderNoteForm(
-            state, send, {
-              parent: null,
-              range: state.textSelection
-            }
-          ))
-        }
-      }
-      function insertAfter (sibling) {
-        child.parentNode.insertBefore(sibling, child.nextSibling)
-      }
+      renderNoteForm: renderNoteForm.bind(null, state, send),
+      renderNote: renderNote.bind(null, state, send),
+      globalNotes: renderNotesList(state, send),
+      inlineNotes: inlineNotes
     })
   }
   return article
-
-  // TODO: Deduplicate renderInlineNotesList and renderNotesList.
-
-  function renderInlineNotesList (state, send, parent) {
-    var aside = document.createElement('aside')
-
-    var ol = document.createElement('ol')
-    aside.appendChild(ol)
-    ol.className = 'notesList'
-    ol.appendChild(renderNote(state, parent, send))
-
-    return aside
-  }
-
-  function endsInRange (position, range) {
-    return position >= range.start && position <= range.end
-  }
 }
 
 var SEPARATOR = '\n\n'
@@ -411,7 +362,7 @@ function renderNotesList (state, send) {
   ol.className = 'notesList'
   notes.forEach(function (note) {
     if (!note.message.body.range) {
-      ol.appendChild(renderNote(state, note, send))
+      ol.appendChild(renderNote(state, send, note))
     }
   })
   var directLI = document.createElement('li')
@@ -429,23 +380,11 @@ function renderNotesList (state, send) {
   return ol
 }
 
-function renderNote (state, note, send) {
-  var li = document.createElement('li')
-  li.className = 'note'
-  li.id = note.digest
+function renderNote (state, send, note) {
+  var aside = document.createElement('aside')
+  aside.className = 'note'
+  aside.id = note.digest
   var replyTo = state.replyTo
-  var range = note.message.body.range
-  if (range) {
-    // <blockquote>
-    var substring = document.createElement('blockquote')
-    substring.appendChild(renderQuoteIcon())
-    substring.appendChild(document.createTextNode(
-      state.draft.message.body.text.substring(
-        range.start, range.end
-      )
-    ))
-    li.appendChild(substring)
-  }
   // <p>
   var p = document.createElement('p')
   p.className = 'byline'
@@ -453,13 +392,13 @@ function renderNote (state, note, send) {
   p.appendChild(document.createTextNode(' '))
   p.appendChild(renderRelativeTimestamp(note.message.body.timestamp))
   p.appendChild(document.createTextNode(':'))
-  li.appendChild(p)
+  aside.appendChild(p)
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   blockquote.appendChild(renderText(note.message.body.text))
-  li.appendChild(blockquote)
+  aside.appendChild(blockquote)
   if (replyTo === note.digest) {
-    li.appendChild(renderNoteForm(state, send, {parent: note.digest}))
+    aside.appendChild(renderNoteForm(state, send, {parent: note.digest}))
   } else {
     // <button>
     var button = document.createElement('button')
@@ -467,16 +406,16 @@ function renderNote (state, note, send) {
       send('reply to', note.digest)
     })
     button.appendChild(document.createTextNode('Reply to this note.'))
-    li.appendChild(button)
+    aside.appendChild(button)
   }
   if (note.children.length !== 0) {
     var ol = document.createElement('ol')
     note.children.forEach(function (child) {
-      ol.appendChild(renderNote(state, child, send))
+      ol.appendChild(renderNote(state, send, child))
     })
-    li.appendChild(ol)
+    aside.appendChild(ol)
   }
-  return li
+  return aside
 }
 
 function renderNoteForm (state, send, options) {
