@@ -1,8 +1,10 @@
+var SVG = require('../svg')
 var classnames = require('classnames')
 var dagre = require('dagre')
 var identityLine = require('./partials/identity-line')
 var moment = require('moment')
 var renderActivity = require('./partials/activity')
+var renderBookmarkPath = require('./partials/bookmark-path')
 var renderDraftHeader = require('./partials/draft-header')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
@@ -112,8 +114,6 @@ function copyInvitation (state) {
   a.appendChild(document.createTextNode('Copy a link for joining this project.'))
   return a
 }
-
-var SVG = 'http://www.w3.org/2000/svg'
 
 var BRIEF_WIDTH = 85 * 1.5
 var BRIEF_HEIGHT = 110 * 1.5
@@ -331,20 +331,22 @@ function renderGraph (state, send) {
 
     if (othersMarks.length !== 0) {
       svg.appendChild(
-        renderBookmark(
+        renderBookmarkPath(
           node.x + MARGIN + (node.width / 2) - BOOKMARK_WIDTH - 10,
           node.y + MARGIN - (node.height / 2),
-          'blue'
+          'blue',
+          BOOKMARK_WIDTH
         )
       )
     }
 
     if (ourMarks.length !== 0) {
       svg.appendChild(
-        renderBookmark(
+        renderBookmarkPath(
           node.x + MARGIN + (node.width / 2) - BOOKMARK_WIDTH - 5,
           node.y + MARGIN - (node.height / 2),
-          'red'
+          'red',
+          BOOKMARK_WIDTH
         )
       )
     }
@@ -368,29 +370,6 @@ function renderGraph (state, send) {
   })
 
   return svg
-}
-
-function renderBookmark (x, y, color) {
-  var bookmarkHeight = 40
-  var bookmarkNotch = 10
-  var bookmark = document.createElementNS(SVG, 'path')
-  var commands = [
-    ['M', x, y],
-    ['l', BOOKMARK_WIDTH, 0],
-    ['l', 0, bookmarkHeight],
-    ['l', -(BOOKMARK_WIDTH / 2), -bookmarkNotch],
-    ['l', -(BOOKMARK_WIDTH / 2), +bookmarkNotch],
-    ['z']
-  ]
-    .map(function (element) {
-      return element[0] + element.slice(1).join(' ')
-    })
-    .join(' ')
-  bookmark.setAttributeNS(null, 'd', commands)
-  bookmark.setAttributeNS(null, 'fill', color)
-  bookmark.setAttributeNS(null, 'stroke', 'black')
-  bookmark.setAttributeNS(null, 'stroke-width', 2)
-  return bookmark
 }
 
 function plainTextIntro (state, publicKey) {

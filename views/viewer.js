@@ -1,5 +1,7 @@
+var SVG = require('../svg')
 var assert = require('assert')
 var initializeEditor = require('../editor')
+var renderBookmarkPath = require('./partials/bookmark-path')
 var renderDraftHeader = require('./partials/draft-header')
 var renderIntro = require('./partials/intro')
 var renderLoading = require('./loading')
@@ -35,6 +37,31 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
     var saveForm = renderSaveForm(state, send, editor)
     main.appendChild(renderDraftHeader(state, saveForm))
     main.appendChild(div)
+    if (state.projectMarks.filter(function (mark) {
+      return mark.message.body.draft === state.draft.digest
+    })) {
+      var bookmarkWidth = 50
+      var bookmarks = document.createElementNS(SVG, 'svg')
+      var marks = state.projectMarks.filter(function (mark) {
+        return mark.message.body.draft === state.draft.digest
+      })
+      var othersMarks = []
+      var ourMarks = []
+      marks.forEach(function (mark) {
+        (mark.publicKey === state.identity.publicKey ? ourMarks : othersMarks)
+          .push(mark)
+      })
+      bookmarks.setAttributeNS(null, 'class', 'bookmarks')
+      bookmarks.setAttributeNS(null, 'width', bookmarkWidth * 1.5)
+      bookmarks.setAttributeNS(null, 'height', bookmarkWidth * 2)
+      if (othersMarks.length !== 0) {
+        bookmarks.appendChild(renderBookmarkPath(0, 0, 'blue', bookmarkWidth))
+      }
+      if (ourMarks.length !== 0) {
+        bookmarks.appendChild(renderBookmarkPath(bookmarkWidth / 2, 0, 'red', bookmarkWidth))
+      }
+      main.appendChild(bookmarks)
+    }
   } else {
     main.appendChild(
       renderLoading(function () {
