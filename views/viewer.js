@@ -74,7 +74,7 @@ function renderSaveForm (state, send, editor) {
 
 var SEPARATOR = '\n\n'
 
-function renderText (text, notes, textSelection) {
+function renderText (text, notes) {
   notes = notes || []
   var fragment = document.createDocumentFragment()
   var offset = 0
