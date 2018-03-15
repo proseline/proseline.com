@@ -698,13 +698,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Downloads
 
+  // TODO: Download in a word processor format
   handler('download', function (_, state, reduce, done) {
     saveAs(
       new Blob(
-        [state.draft.message.body.text],
-        {type: 'text/plain;charset=utf-8'}
+        [JSON.stringify(state.draft.message.body.text)],
+        {type: 'application/json;charset=utf-8'}
       ),
-      'proseline.txt',
+      'proseline.json',
       true // Omit BOM.
     )
   })
