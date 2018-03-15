@@ -30,8 +30,14 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
       notes: state.notesTree,
       renderMarkForm: renderMarkForm.bind(null, state, send),
       dirty: function (modified) {
-        if (!saveForm) return
-        saveForm.className = SAVE_FORM_CLASS + (modified ? '' : ' hidden')
+        if (saveForm) {
+          saveForm.className = SAVE_FORM_CLASS + ' ' + (modified ? '' : 'hidden')
+        }
+        if (bookmarks) {
+          bookmarks.setAttributeNS(
+            null, 'class', BOOKMARKS_CLASS + ' ' + (modified ? 'hidden' : '')
+          )
+        }
       }
     })
     var saveForm = renderSaveForm(state, send, editor)
@@ -51,7 +57,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
         (mark.publicKey === state.identity.publicKey ? ourMarks : othersMarks)
           .push(mark)
       })
-      bookmarks.setAttributeNS(null, 'class', 'bookmarks')
+      bookmarks.setAttributeNS(null, 'class', BOOKMARKS_CLASS)
       bookmarks.setAttributeNS(null, 'width', bookmarkWidth * 1.5)
       bookmarks.setAttributeNS(null, 'height', bookmarkWidth * 2)
       if (othersMarks.length !== 0) {
@@ -76,6 +82,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
 })
 
 var SAVE_FORM_CLASS = 'saveDraftForm'
+var BOOKMARKS_CLASS = 'bookmarks'
 
 function renderSaveForm (state, send, editor) {
   // <form>
