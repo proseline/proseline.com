@@ -201,9 +201,6 @@ function renderDraft (state, send) {
       article.appendChild(p)
     })
   } else {
-    var inlineNotes = state.notesTree.filter(function (note) {
-      return note.message.body.range
-    })
     var div = document.createElement('div')
     article.appendChild(div)
     div.className = 'editor'
@@ -212,8 +209,7 @@ function renderDraft (state, send) {
       content: draft.message.body.text,
       renderNoteForm: renderNoteForm.bind(null, state, send),
       renderNote: renderNote.bind(null, state, send),
-      globalNotes: renderNotesList(state, send),
-      inlineNotes: inlineNotes
+      notes: state.notesTree
     })
   }
   return article
@@ -353,31 +349,6 @@ function renderDownload (send) {
   a.className = 'button'
   a.appendChild(document.createTextNode('Download this draft.'))
   return a
-}
-
-function renderNotesList (state, send) {
-  var notes = state.notesTree
-  var replyTo = state.replyTo
-  var ol = document.createElement('ol')
-  ol.className = 'notesList'
-  notes.forEach(function (note) {
-    if (!note.message.body.range) {
-      ol.appendChild(renderNote(state, send, note))
-    }
-  })
-  var directLI = document.createElement('li')
-  if (replyTo) {
-    var button = document.createElement('button')
-    button.appendChild(document.createTextNode('Add a note to the draft as a whole.'))
-    button.addEventListener('click', function () {
-      send('reply to', null)
-    })
-    directLI.appendChild(button)
-  } else {
-    directLI.appendChild(renderNoteForm(state, send))
-  }
-  ol.appendChild(directLI)
-  return ol
 }
 
 function renderNote (state, send, note) {

@@ -48,14 +48,6 @@
         "type",
         "draft",
         "text",
-        "timestamp"
-      ]
-    },
-    {
-      "required": [
-        "type",
-        "draft",
-        "text",
         "timestamp",
         "range"
       ]
