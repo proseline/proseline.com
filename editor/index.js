@@ -28,6 +28,7 @@ module.exports = function (options) {
   assert(!globalNotes || globalNotes instanceof Node)
   var inlineNotes = options.inlineNotes
   assert(!inlineNotes || Array.isArray(inlineNotes))
+
   var doc = content
     ? schema.nodeFromJSON(content)
     : schema.node('doc', null, [
@@ -44,6 +45,7 @@ module.exports = function (options) {
     stopEvent: function () { return true },
     ignoreMutation: function () { return true }
   }
+
   if (globalNotes) {
     var globalNotePlugin = new Plugin({
       props: {
@@ -60,6 +62,7 @@ module.exports = function (options) {
     })
     plugins.push(globalNotePlugin)
   }
+
   if (renderNoteForm) {
     var inlineNotePlugin = new Plugin({
       props: {
@@ -71,18 +74,19 @@ module.exports = function (options) {
             var $from = selection.$from
             decorations.push(
               Decoration.widget(
-                $to.end(),
+                $to.after(),
                 renderNoteForm({range: {start: $from.pos, end: $to.pos}}),
                 ignore
               )
             )
+            return DecorationSet.create(state.doc, decorations)
           }
-          return DecorationSet.create(state.doc, decorations)
         }
       }
     })
     plugins.push(inlineNotePlugin)
   }
+
   if (inlineNotes) {
     var inlineNotesPlugin = new Plugin({
       props: {
@@ -93,7 +97,7 @@ module.exports = function (options) {
             var $end = state.doc.resolve(note.message.body.range.end)
             decorations.push(
               Decoration.widget(
-                $end.end(),
+                $end.after(),
                 renderNote(note),
                 ignore
               )
@@ -112,6 +116,7 @@ module.exports = function (options) {
     })
     plugins.push(inlineNotesPlugin)
   }
+
   return new EditorView(element, {
     state: EditorState.create({doc, plugins})
   })

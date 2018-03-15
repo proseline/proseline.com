@@ -446,16 +446,10 @@ function renderNoteForm (state, send, options) {
       text: textarea.value
     })
   })
-  if (selected) {
-    // <blockquote>
-    var blockquote = document.createElement('blockquote')
-    form.appendChild(blockquote)
-    // blockquote.appendChild(renderQuoteIcon())
-    blockquote.appendChild(document.createTextNode(selected))
-  }
   // <textarea>
   var textarea = renderExpandingTextArea()
   textarea.required = true
+  textarea.autofocus = false
   form.appendChild(textarea)
   // <button>
   var button = document.createElement('button')

@@ -8,10 +8,8 @@ var pageBus = require('page-bus')
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
-var selectedRange = require('./utilities/selected-range')
 
 var debug = {
-  textSelection: require('debug')('proseline:text-selection'),
   instance: require('debug')('proseline:instance')
 }
 
@@ -326,11 +324,3 @@ function updateTimestamps () {
     }
   }
 }
-
-document.addEventListener('mouseup', function () {
-  var range = selectedRange('draftText')
-  if (range) {
-    debug.textSelection('range: %o', range)
-    action('select', range)
-  }
-})
