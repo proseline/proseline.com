@@ -274,7 +274,7 @@ function renderGraph (state, send) {
       notesRect.setAttributeNS(null, 'height', notesWidth)
       notesRect.setAttributeNS(null, 'stroke', 'black')
       notesRect.setAttributeNS(null, 'stroke-width', 2)
-      notesRect.setAttributeNS(null, 'fill', 'yellow')
+      notesRect.setAttributeNS(null, 'fill', '#ffffa5')
 
       var notesCountFontSize = 14
 
