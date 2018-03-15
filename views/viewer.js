@@ -4,10 +4,8 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderExpandingTextArea = require('./partials/expanding-textarea')
 var renderIntro = require('./partials/intro')
 var renderLoading = require('./loading')
-var renderMark = require('./partials/mark')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderRelativeTimestamp = require('./partials/relative-timestamp')
-var renderSection = require('./partials/section')
 var withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, digest) {
@@ -21,7 +19,6 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
     }
     main.appendChild(renderDraftHeader(state))
     main.appendChild(renderDraft(state, send))
-    main.appendChild(renderHistory(state, send))
   } else {
     main.appendChild(
       renderLoading(function () {
@@ -35,147 +32,9 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
   return main
 })
 
-function renderHistory (state, send) {
-  var section = renderSection('History')
-  section.appendChild(renderAuthor(state))
-  if (state.draft.message.body.parents.length !== 0) {
-    section.appendChild(renderParents(state, send))
-  }
-  if (state.children.length !== 0) {
-    section.appendChild(renderChildren(state, send))
-  }
-  section.appendChild(renderMarks(state, send))
-  return section
-}
-
-function renderAuthor (state) {
-  var p = document.createElement('p')
-  p.className = 'byline'
-  p.appendChild(renderIntro(state, state.draft.publicKey))
-  p.appendChild(document.createTextNode(' saved this draft '))
-  p.appendChild(renderRelativeTimestamp(state.draft.message.body.timestamp))
-  p.appendChild(document.createTextNode('.'))
-  return p
-}
-
-function renderMarks (state, send) {
-  var fragment = document.createDocumentFragment()
-  state.marks
-    .sort(function (a, b) {
-      return a.message.body.timestamp.localeCompare(
-        b.message.body.timestamp
-      )
-    })
-    .forEach(function (mark) {
-      fragment.appendChild(renderMark(mark, state, send))
-    })
-  return fragment
-}
-
-function renderParents (state, send) {
-  var parents = state.parents
-  var p = document.createElement('p')
-  p.appendChild(renderIntro(state, state.draft.publicKey))
-  p.appendChild(
-    document.createTextNode(' started this draft from ')
-  )
-  // TODO: Display multiple parents.
-  parents.forEach(function (parent, index) {
-    var a = document.createElement('a')
-    p.appendChild(a)
-    a.href = (
-      '/projects/' + state.discoveryKey +
-      '/drafts/' + parent.digest
-    )
-    a.appendChild(renderIntro(state, parent.publicKey, {
-      plainText: true
-    }))
-    a.appendChild(document.createTextNode(' '))
-    a.appendChild(renderRelativeTimestamp(parent.message.body.timestamp))
-    p.appendChild(document.createTextNode(' '))
-    var button = document.createElement('button')
-    p.appendChild(button)
-    if (
-      state.diff &&
-      state.diff.source === 'parents' &&
-      state.diff.index === index
-    ) {
-      button.id = 'stopDiffing'
-      button.appendChild(document.createTextNode('Stop Comparing'))
-      button.addEventListener('click', function () {
-        send('stop diffing')
-      })
-    } else {
-      button.id = 'diff' + parent.digest
-      button.appendChild(document.createTextNode('Compare'))
-      button.addEventListener('click', function () {
-        send('diff', {
-          source: 'parents',
-          index: index
-        })
-      })
-    }
-  })
-  p.appendChild(document.createTextNode('. '))
-  return p
-}
-
-function renderChildren (state, send) {
-  var children = state.children
-  var p = document.createElement('p')
-  var length = children.length
-  var lastIndex = length - 1
-  children.forEach(function (child, index) {
-    var a = document.createElement('a')
-    p.appendChild(a)
-    a.href = (
-      '/projects/' + state.discoveryKey +
-      '/drafts/' + child.digest
-    )
-    a.appendChild(renderIntro(state, child.publicKey, true))
-    a.appendChild(document.createTextNode(' '))
-    a.appendChild(renderRelativeTimestamp(child.message.body.timestamp))
-    p.appendChild(document.createTextNode(' '))
-    var button = document.createElement('button')
-    p.appendChild(button)
-    if (
-      state.diff &&
-      state.diff.source === 'children' &&
-      state.diff.index === index
-    ) {
-      button.id = 'stopDiffing'
-      button.appendChild(document.createTextNode('Stop Comparing'))
-      button.addEventListener('click', function () {
-        send('stop diffing')
-      })
-    } else {
-      button.id = 'diff' + child.digest
-      button.appendChild(document.createTextNode('Compare'))
-      button.addEventListener('click', function () {
-        send('diff', {
-          source: 'children',
-          index: index
-        })
-      })
-    }
-    if (length > 1) {
-      if (index === lastIndex - 1) {
-        p.appendChild(document.createTextNode(', and '))
-      } else {
-        p.appendChild(document.createTextNode(', '))
-      }
-    }
-  })
-  p.appendChild(document.createTextNode(
-    ' started from this draft.'
-  ))
-  return p
-}
-
 function renderDraft (state, send) {
   var draft = state.draft
-  var article = document.createElement('article')
-  article.className = 'draftText renderedText'
+  var fragment = document.createDocumentFragment()
   if (state.diff) {
     state.diff.changes.forEach(function (change) {
       var p = document.createElement('p')
@@ -191,11 +50,11 @@ function renderDraft (state, send) {
       } else {
         p.appendChild(text)
       }
-      article.appendChild(p)
+      fragment.appendChild(p)
     })
   } else {
     var div = document.createElement('div')
-    article.appendChild(div)
+    fragment.appendChild(div)
     div.className = 'editor'
     initializeEditor({
       element: div,
@@ -206,7 +65,7 @@ function renderDraft (state, send) {
       renderMarkForm: renderMarkForm.bind(null, state, send)
     })
   }
-  return article
+  return fragment
 }
 
 var SEPARATOR = '\n\n'
