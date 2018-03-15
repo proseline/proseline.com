@@ -24,7 +24,6 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
 
     var buttonSection = renderSection('Actions')
     main.appendChild(buttonSection)
-    buttonSection.appendChild(renderMarkDraft(state, send))
     buttonSection.appendChild(renderNewDraft(state, send))
     buttonSection.appendChild(renderDownload(send))
 
@@ -209,7 +208,8 @@ function renderDraft (state, send) {
       content: draft.message.body.text,
       renderNoteForm: renderNoteForm.bind(null, state, send),
       renderNote: renderNote.bind(null, state, send),
-      notes: state.notesTree
+      notes: state.notesTree,
+      renderMarkForm: renderMarkForm.bind(null, state, send)
     })
   }
   return article
@@ -282,7 +282,7 @@ function renderText (text, notes, textSelection) {
   return fragment
 }
 
-function renderMarkDraft (state, send) {
+function renderMarkForm (state, send) {
   var form = document.createElement('form')
   form.id = 'markDraft'
   form.addEventListener('submit', function (event) {

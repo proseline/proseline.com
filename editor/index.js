@@ -24,6 +24,8 @@ module.exports = function (options) {
   assert(!renderNoteForm || typeof renderNoteForm === 'function')
   var renderNote = options.renderNote
   assert(!renderNote || typeof renderNote === 'function')
+  var renderMarkForm = options.renderMarkForm
+  assert(!renderMarkForm || typeof renderMarkForm === 'function')
   var notes = options.notes
   assert(!notes || Array.isArray(notes))
 
@@ -96,6 +98,21 @@ module.exports = function (options) {
       }
     })
     plugins.push(notesPlugin)
+  }
+
+  if (renderMarkForm) {
+    plugins.push(
+      new Plugin({
+        props: {
+          decorations: function (state) {
+            return DecorationSet.create(
+              state.doc,
+              [Decoration.widget(0, renderMarkForm(), ignore)]
+            )
+          }
+        }
+      })
+    )
   }
 
   return new EditorView(element, {
