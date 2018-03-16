@@ -38,7 +38,10 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
             null, 'class', BOOKMARKS_CLASS + ' ' + (modified ? 'hidden' : '')
           )
         }
-      }
+      },
+      prior: state.parents.length !== 0
+        ? state.parents[0].message.body.text
+        : undefined
     })
     var saveForm = renderSaveForm(state, send, editor)
     main.appendChild(renderDraftHeader(state, saveForm))

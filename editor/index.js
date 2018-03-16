@@ -14,6 +14,7 @@ var DecorationSet = pmView.DecorationSet
 var EditorState = pmState.EditorState
 var EditorView = pmView.EditorView
 var Plugin = pmState.Plugin
+var PluginKey = pmState.PluginKey
 var history = pmHistory.history
 
 module.exports = function (options) {
@@ -30,6 +31,8 @@ module.exports = function (options) {
   assert(!notes || Array.isArray(notes))
   var dirty = options.dirty
   assert(!dirty || typeof dirty === 'function')
+  var prior = options.prior
+  assert(!prior || typeof prior === 'object')
 
   var originalDocument = content
     ? schema.nodeFromJSON(content)
@@ -121,6 +124,7 @@ module.exports = function (options) {
   }
 
   var modified = new Plugin({
+    key: new PluginKey('modified'),
     state: {
       init: function () { return false },
       apply: function (tr, oldState, newState) {
@@ -138,7 +142,52 @@ module.exports = function (options) {
   })
   plugins.push(modified)
 
+  if (prior) {
+    var comparisonDecorations = new Plugin({
+      state: {
+        init: function () {
+          return prior ? schema.nodeFromJSON(prior) : false
+        },
+        apply: function (tr, old) { return old }
+      }
+    })
+    plugins.push(comparisonDecorations)
+    var compareUI = new Plugin({
+      view: function (view) { return compareView(view, comparisonDecorations) }
+    })
+    plugins.push(compareUI)
+  }
+
   return new EditorView(element, {
     state: EditorState.create({doc: originalDocument, plugins})
   })
+}
+
+function compareView (view, comparisonPlugin) {
+  var section = document.createElement('section')
+  var button = document.createElement('button')
+  section.appendChild(button)
+  button.appendChild(document.createTextNode('Compare'))
+  button.addEventListener('click', function (event) {
+    event.preventDefault()
+    command(view.state, view.dispatch)
+  })
+  view.dom.appendChild(section)
+  update(view, null)
+
+  return {update, destroy}
+
+  function update (view, lastState) {
+  }
+
+  function destroy () {
+    section.remove()
+  }
+
+  function command (state, dispatch) {
+    if (dispatch) {
+      dispatch(state.tr.setMeta(comparisonPlugin, true))
+    }
+    return true
+  }
 }
