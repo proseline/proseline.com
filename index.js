@@ -148,6 +148,7 @@ function resetState () {
   Object.assign(globalState, initializer())
 }
 
+var renderComparison = require('./views/comparison')
 var renderEditor = require('./views/editor')
 var renderHomePage = require('./views/home-page')
 var renderLoading = require('./views/loading')
@@ -191,6 +192,10 @@ function render (state) {
     } else if (/^\/drafts\/new\/[a-f0-9]{64}(,[a-f0-9]{64})*$/.test(remainder)) {
       var parents = remainder.substr(12).split(',')
       return renderEditor(state, action, discoveryKey, parents)
+    // Comparison
+    } else if (/^\/drafts\/compare\/[a-f0-9]{64},[a-f0-9]{64}$/.test(remainder)) {
+      var drafts = remainder.substr(16).split(',')
+      return renderComparison(state, action, discoveryKey, drafts)
     // View Drafts
     } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
       var digest = remainder.substr(8, 64)

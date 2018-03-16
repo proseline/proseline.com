@@ -31,7 +31,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       secretKey: null,
       discoveryKey: null,
       title: null,
-      draftSelection: new Set(),
+      draftSelection: null,
       // Overview
       projects: null
     }
@@ -288,7 +288,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || [],
       activity: data.activity,
-      draftSelection: new Set()
+      draftSelection: null
     }
   })
 
@@ -297,7 +297,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       changed: false,
       discoveryKey: null,
       projects: null,
-      draftSelection: new Set()
+      draftSelection: null
     }
   })
 
@@ -321,6 +321,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         },
         children: function (done) {
           db.getChildren(digest, done)
+        },
+        comparing: function (done) {
+          if (data.comparing) {
+            db.getDraft(data.comparing, done)
+          } else done()
         }
       }, function (error, results) {
         if (error) return done(error)
@@ -363,7 +368,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       parentMarks: null,
       ownMarks: null,
       changes: null,
-      draftSelection: new Set()
+      draftSelection: null,
+      comparing: data.comparing
     }
   })
 
@@ -635,9 +641,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     done()
   })
 
-  reduction('select draft', function (digest, state) {
-    var draftSelection = state.draftSelection
-    draftSelection.add(digest)
+  reduction('select draft', function (draftSelection, state) {
     return {draftSelection}
   })
 
@@ -647,18 +651,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('deselect draft', function (digest, state) {
-    var draftSelection = state.draftSelection
-    draftSelection.delete(digest)
-    return {draftSelection}
-  })
-
-  handler('deselect all drafts', function (_, state, reduce, done) {
-    reduce('deselect all drafts')
-    done()
-  })
-
-  reduction('deselect all drafts', function () {
-    return {draftSelection: new Set()}
+    return {draftSelection: null}
   })
 
   // Change

@@ -1,4 +1,5 @@
 var SVG = require('../svg')
+var assert = require('assert')
 var classnames = require('classnames')
 var dagre = require('dagre')
 var identityLine = require('./partials/identity-line')
@@ -141,7 +142,7 @@ function renderGraph (state, send) {
     edgesep: 10
   })
 
-  var selectedCount = state.draftSelection.size
+  var draftSelection = state.draftSelection
 
   var MARGIN = 20
 
@@ -166,7 +167,7 @@ function renderGraph (state, send) {
     var y = node.y + MARGIN - (node.height / 2)
     var brief = node.brief
     var digest = brief.digest
-    var selected = state.draftSelection.has(digest)
+    var selected = state.draftSelection === digest
 
     var g = document.createElementNS(SVG, 'g')
     svg.appendChild(g)
@@ -212,53 +213,70 @@ function renderGraph (state, send) {
       moment(brief.timestamp).fromNow()
     ))
 
-    // read
+    var anchorX = node.x + MARGIN
+    var firstPosition = node.y + MARGIN
+    var secondPosition = node.y + (node.height / 6) + MARGIN
 
-    var readAnchor = document.createElementNS(SVG, 'a')
-    g.appendChild(readAnchor)
-    readAnchor.setAttributeNS(null, 'href', (
-      '/projects/' + state.discoveryKey +
-      '/drafts/' + digest
-    ))
-
-    var readText = document.createElementNS(SVG, 'text')
-    readAnchor.appendChild(readText)
-    readText.appendChild(document.createTextNode('read'))
-    readText.setAttributeNS(null, 'x', node.x + MARGIN)
-    readText.setAttributeNS(null, 'y', node.y + MARGIN)
-    readText.setAttributeNS(null, 'text-anchor', 'middle')
-
-    // combine
-
-    if (selectedCount < 2 || selected) {
-      var combineAnchor = document.createElementNS(SVG, 'a')
-      g.appendChild(combineAnchor)
-      var label = selected ? 'deselect' : 'combine'
-      combineAnchor.setAttributeNS(null, 'id', label + '-' + digest)
-
-      var combineText = document.createElementNS(SVG, 'text')
-      combineAnchor.appendChild(combineText)
-      combineText.appendChild(document.createTextNode(label))
-      combineText.setAttributeNS(null, 'x', node.x + MARGIN)
-      combineText.setAttributeNS(null, 'y', node.y + (node.height / 6) + MARGIN)
-      combineText.setAttributeNS(null, 'text-anchor', 'middle')
-
-      if (selected) {
-        combineAnchor.addEventListener('click', function (event) {
-          send('deselect all drafts')
+    if (selected || !draftSelection) {
+      g.appendChild(
+        renderSVGLink({
+          digest,
+          label: 'read',
+          x: anchorX,
+          y: firstPosition,
+          href: (
+            '/projects/' + state.discoveryKey +
+            '/drafts/' + digest
+          )
         })
-      } else if (selectedCount === 0) {
-        combineAnchor.addEventListener('click', function (event) {
-          send('select draft', digest)
+      )
+    }
+
+    if (selected) {
+      g.appendChild(
+        renderSVGLink({
+          digest,
+          label: 'deselect',
+          x: anchorX,
+          y: secondPosition,
+          onClick: function () { send('deselect draft') }
         })
-      } else {
-        combineAnchor.setAttributeNS(null, 'href', (
-          '/projects/' + state.discoveryKey +
-          '/drafts/new/' + Array.from(state.draftSelection)
-            .concat(digest)
-            .join(',')
-        ))
-      }
+      )
+    } else if (draftSelection) {
+      g.appendChild(
+        renderSVGLink({
+          digest,
+          label: 'combine',
+          x: anchorX,
+          y: firstPosition,
+          href: (
+            '/projects/' + state.discoveryKey +
+            '/drafts/new/' + state.draftSelection
+          )
+        })
+      )
+      g.appendChild(
+        renderSVGLink({
+          digest,
+          label: 'compare',
+          x: anchorX,
+          y: secondPosition,
+          href: (
+            '/projects/' + state.discoveryKey +
+            '/drafts/compare/' + state.draftSelection + ',' + digest
+          )
+        })
+      )
+    } else {
+      g.appendChild(
+        renderSVGLink({
+          digest,
+          label: 'select',
+          x: anchorX,
+          y: secondPosition,
+          onClick: function () { send('select draft', digest) }
+        })
+      )
     }
 
     if (brief.notesCount && brief.notesCount !== 0) {
@@ -370,6 +388,30 @@ function renderGraph (state, send) {
   })
 
   return svg
+}
+
+function renderSVGLink (options) {
+  assert.equal(typeof options.label, 'string')
+  assert.equal(typeof options.digest, 'string')
+  assert.equal(typeof options.x, 'number')
+  assert.equal(typeof options.y, 'number')
+
+  var anchor = document.createElementNS(SVG, 'a')
+  anchor.setAttributeNS(null, 'id', options.label + '-' + options.digest)
+  if (options.href) {
+    anchor.setAttributeNS(null, 'href', options.href)
+  } else if (options.onClick) {
+    anchor.addEventListener('click', options.onClick)
+  }
+
+  var text = document.createElementNS(SVG, 'text')
+  anchor.appendChild(text)
+  text.appendChild(document.createTextNode(options.label))
+  text.setAttributeNS(null, 'x', options.x)
+  text.setAttributeNS(null, 'y', options.y)
+  text.setAttributeNS(null, 'text-anchor', 'middle')
+
+  return anchor
 }
 
 function plainTextIntro (state, publicKey) {

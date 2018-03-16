@@ -25,7 +25,6 @@
     "from2-array": "0.0.4",
     "inherits": "^2.0.3",
     "is-sha-256-hex-digest": "^1.0.0",
-    "jsondiffpatch": "^0.3.7",
     "length-prefixed-stream": "^1.5.1",
     "moment": "^2.20.1",
     "multistream": "^2.1.0",
