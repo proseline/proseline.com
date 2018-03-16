@@ -54,6 +54,10 @@ module.exports = function (options) {
     stopEvent: function () { return true },
     ignoreMutation: function () { return true }
   }
+  var noninclusive = {
+    inclusiveStart: false,
+    inclusiveEnd: false
+  }
 
   if (renderNoteForm) {
     var inlineNotePlugin = new Plugin({
@@ -187,7 +191,8 @@ module.exports = function (options) {
                     Decoration.inline(
                       $position.pos,
                       $position.end(),
-                      {class: 'added'}
+                      {class: 'added'},
+                      noninclusive
                     )
                   )
                 }
@@ -197,7 +202,8 @@ module.exports = function (options) {
                   Decoration.inline(
                     $position.pos,
                     $position.end(),
-                    {class: 'added'}
+                    {class: 'added'},
+                    noninclusive
                   )
                 )
               }
