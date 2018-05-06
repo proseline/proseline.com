@@ -67,7 +67,7 @@
     "npm-run-all": "^4.1.2",
     "standard": "^10.0.3",
     "tape": "^4.9.0",
-    "uglify-js": "^3.1.10",
+    "uglify-js": "^3.3.23",
     "uglifyify": "^4.0.4",
     "unassertify": "^2.1.0",
     "watchify": "^3.9.0",
