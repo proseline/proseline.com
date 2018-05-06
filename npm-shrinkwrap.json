@@ -5730,9 +5730,9 @@
       "dev": true
     },
     "prosemirror-commands": {
-      "version": "1.0.5",
-      "resolved": "https://registry.npmjs.org/prosemirror-commands/-/prosemirror-commands-1.0.5.tgz",
-      "integrity": "sha512-5r/vfmtyilvjWJvbtumjxFXTuqsDUubB7Bhu7uuacxsLFsrbJfIzbeIHC6PxzH0zxOR5OqaaFSpdPmZ8fxmigQ==",
+      "version": "1.0.7",
+      "resolved": "https://registry.npmjs.org/prosemirror-commands/-/prosemirror-commands-1.0.7.tgz",
+      "integrity": "sha512-IR8yMSdw7XlKuF68tydAak1J9P/lLD5ohsrL7pzoLsJAJAQU7mVPDXtGbQrrm0mesddFjcc1zNo/cJQN3lRYnA==",
       "requires": {
         "prosemirror-model": "1.2.0",
         "prosemirror-state": "1.1.0",
@@ -5784,7 +5784,7 @@
       "integrity": "sha512-djpNSpZvI/HJHI5SNM1Pa9jyPIDIFP/F5Yn5ax6KQst98q7AyC62diYHrhnd+dLak816C5pJe5wEPXJN/aduxw==",
       "requires": {
         "crel": "3.1.0",
-        "prosemirror-commands": "1.0.5",
+        "prosemirror-commands": "1.0.7",
         "prosemirror-history": "1.0.2",
         "prosemirror-state": "1.1.0"
       }
