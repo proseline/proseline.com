@@ -6316,9 +6316,9 @@
       "integrity": "sha512-DEqnSRTDw/Tc3FXf49zedI638Z9onwUotBMiUFKmrO2sdFKIbXamXGQ3Axd4qgphxKB4kw/qP1w5kTxnfU1B9Q=="
     },
     "run-series": {
-      "version": "1.1.4",
-      "resolved": "https://registry.npmjs.org/run-series/-/run-series-1.1.4.tgz",
-      "integrity": "sha1-iac93F51ye+KtjIMChYA1qQRebk="
+      "version": "1.1.8",
+      "resolved": "https://registry.npmjs.org/run-series/-/run-series-1.1.8.tgz",
+      "integrity": "sha512-+GztYEPRpIsQoCSraWHDBs9WVy4eVME16zhOtDB4H9J4xN0XRhknnmLOl+4gRgZtu8dpp9N/utSPjKH/xmDzXg=="
     },
     "rx-lite": {
       "version": "3.1.2",
