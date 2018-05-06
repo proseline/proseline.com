@@ -43,7 +43,7 @@
     "pump": "^3.0.0",
     "pumpify": "^1.4.0",
     "rfc6902-json-diff": "^0.2.1",
-    "run-parallel": "^1.1.6",
+    "run-parallel": "^1.1.9",
     "run-series": "^1.1.4",
     "signalhub": "^4.9.0",
     "simple-get": "^2.7.0",

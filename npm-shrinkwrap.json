@@ -1869,7 +1869,7 @@
         "glob": "7.1.2",
         "ignore": "3.3.7",
         "pkg-config": "1.1.1",
-        "run-parallel": "1.1.6",
+        "run-parallel": "1.1.9",
         "uniq": "1.0.1"
       }
     },
@@ -4084,7 +4084,7 @@
         "fs-access": "1.0.1",
         "json-parse-errback": "2.0.1",
         "read-package-tree": "5.1.6",
-        "run-parallel": "1.1.6",
+        "run-parallel": "1.1.9",
         "semver": "5.4.1",
         "simple-concat": "1.0.0",
         "spdx-expression-validate": "1.0.2",
@@ -6311,9 +6311,9 @@
       }
     },
     "run-parallel": {
-      "version": "1.1.6",
-      "resolved": "https://registry.npmjs.org/run-parallel/-/run-parallel-1.1.6.tgz",
-      "integrity": "sha1-KQA8miFj4B4tLfyQV18sbB1hoDk="
+      "version": "1.1.9",
+      "resolved": "https://registry.npmjs.org/run-parallel/-/run-parallel-1.1.9.tgz",
+      "integrity": "sha512-DEqnSRTDw/Tc3FXf49zedI638Z9onwUotBMiUFKmrO2sdFKIbXamXGQ3Axd4qgphxKB4kw/qP1w5kTxnfU1B9Q=="
     },
     "run-series": {
       "version": "1.1.4",
