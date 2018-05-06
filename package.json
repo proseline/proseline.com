@@ -36,7 +36,7 @@
     "prosemirror-gapcursor": "^1.0.2",
     "prosemirror-history": "^1.0.2",
     "prosemirror-menu": "^1.0.4",
-    "prosemirror-model": "^1.2.0",
+    "prosemirror-model": "^1.4.4",
     "prosemirror-schema-list": "^1.0.0",
     "prosemirror-state": "^1.1.0",
     "prosemirror-view": "^1.2.0",
