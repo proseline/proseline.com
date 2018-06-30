@@ -5110,12 +5110,20 @@
       "dev": true
     },
     "length-prefixed-stream": {
-      "version": "1.5.1",
-      "resolved": "https://registry.npmjs.org/length-prefixed-stream/-/length-prefixed-stream-1.5.1.tgz",
-      "integrity": "sha1-mer1FnLd3vv92Ige57e33zXR7XM=",
+      "version": "1.6.0",
+      "resolved": "https://registry.npmjs.org/length-prefixed-stream/-/length-prefixed-stream-1.6.0.tgz",
+      "integrity": "sha512-gsJvrb5giDqil/ScQ7fEoplsI2Ch4DwnvnfTW2EGl9KBW6Ekzn8JSNESObqNAeZD8HkSjEMvc5XjhuB66fsSZQ==",
       "requires": {
+        "buffer-alloc-unsafe": "^1.0.0",
         "readable-stream": "^2.0.0",
         "varint": "^5.0.0"
+      },
+      "dependencies": {
+        "buffer-alloc-unsafe": {
+          "version": "1.1.0",
+          "resolved": "https://registry.npmjs.org/buffer-alloc-unsafe/-/buffer-alloc-unsafe-1.1.0.tgz",
+          "integrity": "sha512-TEM2iMIEQdJ2yjPJoSIsldnleVaAk1oW3DBVUykyOLsEsFmEc9kn+SFFPz+gl54KQNxlDnAwCXosOS9Okx2xAg=="
+        }
       }
     },
     "leven": {
