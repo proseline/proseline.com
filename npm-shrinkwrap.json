@@ -6704,12 +6704,23 @@
       }
     },
     "prosemirror-dropcursor": {
-      "version": "1.0.0",
-      "resolved": "https://registry.npmjs.org/prosemirror-dropcursor/-/prosemirror-dropcursor-1.0.0.tgz",
-      "integrity": "sha512-3KVq3UaSJTLm5ApXytLW5VnO12WOZVe/5epPzLPRvfNkeLwJ6MhFWKOjocctHbSmFGE1KORjotGPHSba2I8GOw==",
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/prosemirror-dropcursor/-/prosemirror-dropcursor-1.0.1.tgz",
+      "integrity": "sha512-zLY/Hb/75MS5WF1ESR9T2Y4JQmsBzHZcHHPfrc206ONoQj9NGMJQa9lYYlVBP83bMIF4YPfNIiVmpGXZRUyiBQ==",
       "requires": {
         "prosemirror-state": "^1.0.0",
-        "prosemirror-view": "^1.0.0"
+        "prosemirror-transform": "^1.1.0",
+        "prosemirror-view": "^1.1.0"
+      },
+      "dependencies": {
+        "prosemirror-transform": {
+          "version": "1.1.2",
+          "resolved": "https://registry.npmjs.org/prosemirror-transform/-/prosemirror-transform-1.1.2.tgz",
+          "integrity": "sha512-/3tB4GiK/coVIrRMfogchbAkPSu1SD7pz2dkPHMIxdJz5L/LYiRPL09gNW5qH+TxL6WM0FX6i4mM5dF6tCy0og==",
+          "requires": {
+            "prosemirror-model": "^1.0.0"
+          }
+        }
       }
     },
     "prosemirror-gapcursor": {

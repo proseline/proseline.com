@@ -32,7 +32,7 @@
     "nanoraf": "^3.0.1",
     "page-bus": "^3.0.1",
     "prosemirror-commands": "^1.0.7",
-    "prosemirror-dropcursor": "^1.0.0",
+    "prosemirror-dropcursor": "^1.0.1",
     "prosemirror-gapcursor": "^1.0.2",
     "prosemirror-history": "^1.0.2",
     "prosemirror-menu": "^1.0.4",
