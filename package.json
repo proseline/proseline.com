@@ -68,7 +68,7 @@
     "standard": "^10.0.3",
     "tape": "^4.9.1",
     "uglify-js": "^3.4.2",
-    "uglifyify": "^5.0.0",
+    "uglifyify": "^5.0.1",
     "unassertify": "^2.1.1",
     "watchify": "^3.11.0",
     "webdriverio": "^4.12.0"
