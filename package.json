@@ -55,7 +55,7 @@
     "ajv": "^6.5.1",
     "browserify": "^16.2.2",
     "browserify-header": "^0.9.4",
-    "chromedriver": "^2.38.3",
+    "chromedriver": "^2.40.0",
     "common-shakeify": "^0.4.5",
     "envify": "^4.1.0",
     "es2020": "^1.1.9",
