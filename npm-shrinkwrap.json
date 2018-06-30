@@ -2323,19 +2323,18 @@
       "dev": true
     },
     "domain-singleton": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/domain-singleton/-/domain-singleton-1.0.1.tgz",
-      "integrity": "sha512-i398xVQvs4XVZTuJaf4mVaAK7wCnJrdDLHz7bVpxGOBKz3Qux1kx0rw/fcv++ijVfEm6vVF4mFV+MGF9KqxxuQ==",
+      "version": "3.0.0",
+      "resolved": "https://registry.npmjs.org/domain-singleton/-/domain-singleton-3.0.0.tgz",
+      "integrity": "sha512-PmFRdj8oJnw1F7wUcEAuyD/grTQVwWw9R5kzviyQGgzxwzDnGnaMgpEHKLIGSaqJn2Qta5pgc92Q7cqevZJibw==",
       "requires": {
         "cuid": "^2.1.0",
-        "debug": "^3.1.0",
-        "page-bus": "^3.0.1"
+        "debug": "^3.1.0"
       },
       "dependencies": {
         "cuid": {
-          "version": "2.1.0",
-          "resolved": "https://registry.npmjs.org/cuid/-/cuid-2.1.0.tgz",
-          "integrity": "sha512-bXgtIl3CPO0kzfx46z3CPuOoyxEA32ljiLWG3TE60rpe3j99aoVK7p5EBQkHh4AyLBgXSbhJyEzo9SA1VKPRLA=="
+          "version": "2.1.1",
+          "resolved": "https://registry.npmjs.org/cuid/-/cuid-2.1.1.tgz",
+          "integrity": "sha512-rF0ShwHPLQi5X1aNbQUw3IsCTtA+a0FeZsmmfJsHZxuOBgBk4BAGDDb55K+GCQSzqrSDZH0vQ7OIs38DfDlkqA=="
         }
       }
     },
