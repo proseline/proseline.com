@@ -46,7 +46,7 @@
     "run-parallel": "^1.1.9",
     "run-series": "^1.1.8",
     "signalhub": "^4.9.0",
-    "simple-get": "^2.7.0",
+    "simple-get": "^3.0.2",
     "sodium-javascript": "^0.5.5",
     "through2": "^2.0.3",
     "webrtc-swarm": "^2.9.0"
