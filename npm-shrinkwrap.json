@@ -2363,9 +2363,9 @@
       }
     },
     "duplexify": {
-      "version": "3.5.3",
-      "resolved": "https://registry.npmjs.org/duplexify/-/duplexify-3.5.3.tgz",
-      "integrity": "sha512-g8ID9OroF9hKt2POf8YLayy+9594PzmM3scI00/uBXocX3TWNgoB67hjzkFe9ITAbQOne/lLdBxHXvYUM4ZgGA==",
+      "version": "3.6.0",
+      "resolved": "https://registry.npmjs.org/duplexify/-/duplexify-3.6.0.tgz",
+      "integrity": "sha512-fO3Di4tBKJpYTFHAxTU00BcfWMY9w24r/x21a6rZRbsD/ToUgGxsMbiGRmB7uVAXeGKXD9MwiLZa5E97EVgIRQ==",
       "requires": {
         "end-of-stream": "^1.0.0",
         "inherits": "^2.0.1",
