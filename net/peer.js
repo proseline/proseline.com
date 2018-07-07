@@ -32,6 +32,13 @@ function joinSwarm (project, database) {
     var swarm = webRTCSwarm(hub, options)
     swarm.on('peer', function (peer, id) {
       debug('peer: %o', id)
+      var alreadyConnected = swarms.some(function (swarm) {
+        return swarm.peers.has(id)
+      })
+      if (alreadyConnected) {
+        debug('already connected: %o', id)
+        return
+      }
       var replicationStream = replicate({
         secretKey: project.secretKey,
         discoveryKey: project.discoveryKey,
@@ -41,10 +48,15 @@ function joinSwarm (project, database) {
         }
       })
       replicationStream.pipe(peer).pipe(replicationStream)
+        .once('end', function () {
+          swarm.peers.delete(id)
+        })
+      swarm.peers.add(id)
     })
     swarms.push({
       project: project,
-      swarm: swarm
+      swarm: swarm,
+      peers: new Set()
     })
     debug('joined: %s', project.discoveryKey)
   })
