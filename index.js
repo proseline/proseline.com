@@ -2,6 +2,7 @@
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
+var databases = require('./db/databases')
 var domainSingleton = require('domain-singleton')
 var moment = require('moment')
 var pageBus = require('page-bus')
@@ -15,7 +16,7 @@ var debug = {
 
 runSeries([
   detectFeatures,
-  setupDatabase,
+  databases.setup,
   joinSwarms,
   launchApplication
 ], function (error) {
@@ -35,17 +36,6 @@ function detectFeatures (done) {
     }
     done()
   }
-}
-
-var ProjectDatabase = require('./db/project')
-var ProselineDatabase = require('./db/proseline')
-
-var databases = {
-  proseline: new ProselineDatabase()
-}
-
-function setupDatabase (done) {
-  databases.proseline.init(done)
 }
 
 var EventEmitter = require('events').EventEmitter
@@ -103,7 +93,7 @@ require('./model')(
       })
     }))
   },
-  withDatabase
+  databases.get
 )
 
 function reduce (event, data) {
@@ -112,23 +102,6 @@ function reduce (event, data) {
     'no listeners for ' + event
   )
   reductions.emit(event, data)
-}
-
-function withDatabase (id, callback) {
-  if (databases.hasOwnProperty(id)) {
-    callback(null, databases[id])
-  } else {
-    var db = new ProjectDatabase(id)
-    databases[id] = db
-    db.init(function (error) {
-      if (error) {
-        delete databases[id]
-        callback(error)
-      } else {
-        callback(null, db)
-      }
-    })
-  }
 }
 
 var timestampInterval
@@ -231,7 +204,7 @@ function joinSwarms (done) {
         runParallel(
           projects.map(function (project) {
             return function (done) {
-              withDatabase(project.discoveryKey, function (error, database) {
+              databases.get(project.discoveryKey, function (error, database) {
                 if (error) return done(error)
                 peer.joinSwarm(project, database)
                 done()

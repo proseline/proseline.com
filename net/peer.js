@@ -1,81 +1,72 @@
 var EventEmitter = require('events').EventEmitter
-var HUBS = require('./hubs')
-var assert = require('assert')
+var databases = require('../db/databases')
 var debug = require('debug')('proseline:peer')
+var inherits = require('inherits')
+var multiplex = require('multiplex')
 var replicate = require('./replicate')
-var signalhub = require('signalhub')
-var simpleGet = require('simple-get')
-var webRTCSwarm = require('webrtc-swarm')
+var runParallel = require('run-parallel')
 
-// TODO: tune maxPeers by last access time
+module.exports = Peer
 
-var events = new EventEmitter()
-
-module.exports = {joinSwarm, leaveSwarm, events, countPeers}
-
-var swarms = []
-
-function joinSwarm (project, database) {
-  assert.equal(typeof project, 'object')
-  assert(database)
-  var alreadyJoined = swarms.some(function (swarm) {
-    return swarm.project.discoveryKey === project.discoveryKey
-  })
-  if (alreadyJoined) return
-  simpleGet.concat({
-    url: 'https://iceservers.proseline.com/_servers',
-    timeout: 6000
-  }, function (error, response, data) {
-    var options = {maxPeers: 3}
-    if (!error) options.config = data
-    var hub = signalhub('proseline-' + project.discoveryKey, HUBS)
-    var swarm = webRTCSwarm(hub, options)
-    swarm.on('peer', function (peer, id) {
-      debug('peer: %o', id)
-      var alreadyConnected = swarms.some(function (swarm) {
-        return swarm.peers.has(id)
-      })
-      if (alreadyConnected) {
-        debug('already connected: %o', id)
-        return
+function Peer (id, transportStream) {
+  if (!(this instanceof Peer)) return new Peer(id)
+  var self = this
+  self.id = id
+  self.transportStream = transportStream
+  var plex = self.plex = multiplex()
+  plex.on('stream', function (sharedStream, discoveryKey) {
+    var proselineDatabase = databases.cache.proseline
+    proselineDatabase.getProject(discoveryKey, function (error, project) {
+      if (error) {
+        debug('unknown discovery key: %o', discoveryKey)
+        return sharedStream.destroy()
       }
-      var replicationStream = replicate({
-        secretKey: project.secretKey,
-        discoveryKey: project.discoveryKey,
-        database: database,
-        onUpdate: function (discoveryKey) {
-          events.emit('update', discoveryKey)
-        }
+      databases.get(discoveryKey, function (error, database) {
+        if (error) return console.error(error)
+        self.join(project, database, sharedStream)
       })
-      replicationStream.pipe(peer).pipe(replicationStream)
-        .once('end', function () {
-          swarm.peers.delete(id)
+    })
+  })
+}
+
+inherits(Peer, EventEmitter)
+
+Peer.prototype.joinProjects = function () {
+  var self = this
+  var proselineDB = databases.cache.proseline
+  proselineDB.listProjects(function (error, projects) {
+    if (error) return console.error(error)
+    runParallel(projects.map(function (project) {
+      return function (done) {
+        databases.get(project.discoveryKey, function (error, database) {
+          if (error) return console.error(error)
+          self.joinProject(project, database)
+          done()
         })
-      swarm.peers.add(id)
-    })
-    swarms.push({
-      project: project,
-      swarm: swarm,
-      peers: new Set()
-    })
-    debug('joined: %s', project.discoveryKey)
+      }
+    }))
   })
 }
 
-function leaveSwarm (discoveryKey) {
-  assert.equal(typeof discoveryKey, 'string')
-  var index = swarms.findIndex(function (swarm) {
-    return swarm.project.discoveryKey === discoveryKey
+Peer.prototype.joinProject = function (
+  project,
+  database,
+  sharedStream // optional
+) {
+  var self = this
+  var discoveryKey = project.discoveryKey
+  var replicationStream = replicate({
+    secretKey: project.secretKey,
+    discoveryKey,
+    database,
+    onUpdate: function (discoveryKey) {
+      self.emit('update', discoveryKey)
+    }
   })
-  if (index !== -1) {
-    swarms[index].swarm.close()
-    swarms.splice(index, 1)
-    debug('left: %s', discoveryKey)
+  if (!sharedStream) {
+    sharedStream = this.plex.createSharedStream(discoveryKey)
   }
-}
-
-function countPeers () {
-  return swarms.reduce(function (count, entry) {
-    return count + entry.swarm.peers.length
-  }, 0)
+  replicationStream
+    .pipe(sharedStream)
+    .pipe(replicationStream)
 }
