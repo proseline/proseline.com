@@ -1,4 +1,4 @@
-var Protocol = require('./protocol')
+var Protocol = require('proseline-protocol')
 var assert = require('assert')
 var debug = require('debug')('proseline:replicate')
 var flushWriteStream = require('flush-write-stream')
