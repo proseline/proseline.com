@@ -13,7 +13,18 @@ function Peer (id, transportStream) {
   var self = this
   self.id = id
   self.transportStream = transportStream
+  transportStream
+    .on('end', function () {
+      self.emit('done')
+    })
+    .on('error', function (error) {
+      console.error(error)
+      self.emit('done')
+    })
+
+  // Multiplex replication streams over the transport stream.
   var plex = self.plex = multiplex()
+  self._sharedStreams = new Map()
   plex.on('stream', function (sharedStream, discoveryKey) {
     var proselineDatabase = databases.cache.proseline
     proselineDatabase.getProject(discoveryKey, function (error, project) {
@@ -23,10 +34,24 @@ function Peer (id, transportStream) {
       }
       databases.get(discoveryKey, function (error, database) {
         if (error) return console.error(error)
-        self.join(project, database, sharedStream)
+        self.joinProject(project, database, sharedStream)
       })
     })
   })
+  plex.pipe(transportStream).pipe(plex)
+
+  // Add and remove replication streams as we join and leave projects.
+  databases.scache.proseline
+    .on('added project', function (project) {
+      var discoveryKey = project.discoveryKey
+      databases.get(discoveryKey, function (error, database) {
+        if (error) return console.error(error)
+        self.joinProject(project, database)
+      })
+    })
+    .on('deleted project', function (discoveryKey) {
+      self.leaveProject(discoveryKey)
+    })
 }
 
 inherits(Peer, EventEmitter)
@@ -66,7 +91,22 @@ Peer.prototype.joinProject = function (
   if (!sharedStream) {
     sharedStream = this.plex.createSharedStream(discoveryKey)
   }
+  self._sharedStreams.set(discoveryKey, sharedStream)
   replicationStream
     .pipe(sharedStream)
     .pipe(replicationStream)
+}
+
+Peer.prototype.leaveProject = function (discoveryKey) {
+  var self = this
+  var sharedStreams = self._sharedStreams
+  var sharedStream = sharedStreams.get(discoveryKey)
+  if (sharedStream) {
+    sharedStream.destroy()
+    sharedStreams.delete(discoveryKey)
+  }
+  if (self.sharedStreams.size === 0) {
+    self.emit('done')
+    self.transportStream.destroy()
+  }
 }

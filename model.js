@@ -186,11 +186,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }
     ], function (error) {
       if (error) return callback(error)
-      withIndexedDB(discoveryKey, function (error, db) {
-        if (error) return callback(error)
-        peer.joinSwarm(project, db)
-        callback(null, project)
-      })
+      callback(null, project)
     })
   }
 

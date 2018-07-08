@@ -1,4 +1,5 @@
 /* globals Element */
+var Client = require('./net/client')
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
@@ -6,8 +7,6 @@ var databases = require('./db/databases')
 var domainSingleton = require('domain-singleton')
 var moment = require('moment')
 var pageBus = require('page-bus')
-var peer = require('./net/peer')
-var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 
 var debug = {
@@ -17,7 +16,7 @@ var debug = {
 runSeries([
   detectFeatures,
   databases.setup,
-  joinSwarms,
+  network,
   launchApplication
 ], function (error) {
   if (error) throw error
@@ -192,34 +191,18 @@ function render (state) {
 
 var PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
 
-function joinSwarms (done) {
+function network (done) {
   var bus = pageBus()
   domainSingleton({
     bus,
     task: 'proseline-peer',
     onAppointed: function () {
       debug.instance('appointed peer')
-      databases.proseline.listProjects(function (error, projects) {
-        if (error) return console.error(error)
-        runParallel(
-          projects.map(function (project) {
-            return function (done) {
-              databases.get(project.discoveryKey, function (error, database) {
-                if (error) return done(error)
-                peer.joinSwarm(project, database)
-                done()
-              })
-            }
-          }),
-          function (error) {
-            if (error) console.error(error)
-          }
-        )
-      })
+      var client = new Client()
       setInterval(function () {
-        bus.emit('peers', peer.countPeers())
+        bus.emit('peers', client.countPeers())
       }, PEER_COUNT_UPDATE_INTERVAL)
-      peer.events.on('update', function (discoveryKey) {
+      client.on('update', function (discoveryKey) {
         bus.emit('update', discoveryKey)
       })
     }
