@@ -12,6 +12,7 @@ var through2 = require('through2')
 
 module.exports = Project
 
+// Project wraps IndexedDB databases storing project data.
 function Project (secretKey) {
   this._updateStreams = []
   Database.call(this, {

@@ -3,6 +3,8 @@ var IDBKeyRange = require('./idbkeyrange')
 var IndexedDB = require('./indexeddb')
 var inherits = require('inherits')
 
+// Database serves as base prototype for wrappers around IndexedDB
+// databases. Other database wrapper prototypes extend Database.
 module.exports = Database
 
 function Database (options) {

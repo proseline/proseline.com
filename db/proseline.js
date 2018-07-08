@@ -3,6 +3,9 @@ var inherits = require('inherits')
 
 // TODO: paid peer data storage
 
+// Proselines wraps a single IndexedDB database that stores
+// client-global data, including data about other IndexedDB
+// databases storing project data.
 module.exports = Proseline
 
 function Proseline () {

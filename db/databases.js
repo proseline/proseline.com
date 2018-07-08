@@ -2,18 +2,26 @@ var ProjectDatabase = require('./project')
 var ProselineDatabase = require('./proseline')
 var debug = require('debug')('proseline:databases')
 
+// Initialize the main proseline database immediately.
+// This database stores information on other project databases.
 var proseline = new ProselineDatabase()
 
+// A cache of Database instances, stored by name.
 var cache = {proseline}
 
-module.exports = {cache, proseline, setup, get}
+module.exports = {proseline, setup, get}
 
+// Export function to set up the main proseline database,
+// so that the application can ensure it's loaded before rendering.
 function setup (done) {
   debug('initializing "proseline"')
   cache.proseline.init(done)
 }
 
+// As each IndexedDB is requested, create a Database instance for it and
+// cache the instance.
 function get (id, callback) {
+  // If cached...
   if (cache.hasOwnProperty(id)) {
     var cached = cache[id]
     if (cached.ready) return callback(null, cached)
@@ -21,6 +29,7 @@ function get (id, callback) {
       callback(null, cached)
     })
   }
+  // Otherwise...
   var db = new ProjectDatabase(id)
   cache[id] = db
   debug('initializing "' + id + '"')
