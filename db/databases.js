@@ -2,11 +2,11 @@ var ProjectDatabase = require('./project')
 var ProselineDatabase = require('./proseline')
 var debug = require('debug')('proseline:databases')
 
-var cache = {
-  proseline: new ProselineDatabase()
-}
+var proseline = new ProselineDatabase()
 
-module.exports = {cache, setup, get}
+var cache = {proseline}
+
+module.exports = {cache, proseline, setup, get}
 
 function setup (done) {
   debug('initializing "proseline"')

@@ -21,7 +21,7 @@ function Client () {
   self._peers = new Set()
   self._swarms = new Set()
   self._joinSwarms()
-  databases.cache.proseline
+  databases.proseline
     .on('added project', function (project) {
       self._joinSwarm(project)
     })
@@ -34,7 +34,7 @@ inherits(Client, EventEmitter)
 
 Client.prototype._joinSwarms = function () {
   var self = this
-  var proselineDB = databases.cache.proseline
+  var proselineDB = databases.proseline
   proselineDB.listProjects(function (error, projects) {
     if (error) return debug(error)
     projects.forEach(function (project) {

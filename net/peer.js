@@ -26,7 +26,7 @@ function Peer (id, transportStream) {
   var plex = self.plex = multiplex()
   self._sharedStreams = new Map()
   plex.on('stream', function (sharedStream, discoveryKey) {
-    var proselineDatabase = databases.cache.proseline
+    var proselineDatabase = databases.proseline
     proselineDatabase.getProject(discoveryKey, function (error, project) {
       if (error) {
         debug('unknown discovery key: %o', discoveryKey)
@@ -41,7 +41,7 @@ function Peer (id, transportStream) {
   plex.pipe(transportStream).pipe(plex)
 
   // Add and remove replication streams as we join and leave projects.
-  databases.scache.proseline
+  databases.proseline
     .on('added project', function (project) {
       var discoveryKey = project.discoveryKey
       databases.get(discoveryKey, function (error, database) {
@@ -58,7 +58,7 @@ inherits(Peer, EventEmitter)
 
 Peer.prototype.joinProjects = function () {
   var self = this
-  var proselineDB = databases.cache.proseline
+  var proselineDB = databases.proseline
   proselineDB.listProjects(function (error, projects) {
     if (error) return console.error(error)
     runParallel(projects.map(function (project) {
