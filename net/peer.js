@@ -18,7 +18,7 @@ function Peer (id, transportStream) {
       self.emit('done')
     })
     .on('error', function (error) {
-      console.error(error)
+      debug(error)
       self.emit('done')
     })
 
