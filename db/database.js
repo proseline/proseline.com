@@ -8,6 +8,8 @@ module.exports = Database
 function Database (options) {
   this._name = options.name
   this._version = options.version
+  this._initialized = false
+  this.ready = false
 }
 
 inherits(Database, EventEmitter)
@@ -16,9 +18,12 @@ var prototype = Database.prototype
 
 prototype.init = function (callback) {
   var self = this
+  if (self._initialized) return
   var request = IndexedDB.open(this._name, this._version)
   request.onsuccess = function () {
     self._db = request.result
+    self.ready = true
+    self.emit('ready')
     callback()
   }
   request.onupgradeneeded = function (event) {

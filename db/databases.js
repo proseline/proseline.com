@@ -14,15 +14,25 @@ function setup (done) {
 }
 
 function get (id, callback) {
-  if (cache.hasOwnProperty(id)) return callback(null, cache[id])
+  if (cache.hasOwnProperty(id)) {
+    var cached = cache[id]
+    if (cached.ready) return callback(null, cached)
+    cached.once('ready', function () {
+      callback(null, cached)
+    })
+  }
   var db = new ProjectDatabase(id)
   cache[id] = db
   debug('initializing "' + id + '"')
+  var errored = false
+  db.once('ready', function () {
+    if (!errored) callback(null, db)
+  })
   db.init(function (error) {
     if (error) {
+      errored = true
       delete cache[id]
       return callback(error)
     }
-    callback(null, db)
   })
 }

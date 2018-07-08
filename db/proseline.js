@@ -25,8 +25,12 @@ prototype._upgrade = function (db, oldVersion, callback) {
 }
 
 prototype.putProject = function (project, callback) {
-  this._put('projects', project.discoveryKey, project, callback)
-  this.emit('added project', project)
+  var self = this
+  self._put('projects', project.discoveryKey, project, function (error) {
+    if (error) return callback(error)
+    self.emit('added project', project)
+    callback()
+  })
 }
 
 prototype.getProject = function (discoveryKey, callback) {
@@ -34,8 +38,12 @@ prototype.getProject = function (discoveryKey, callback) {
 }
 
 prototype.deleteProject = function (discoveryKey, callback) {
-  this._delete('projects', discoveryKey, callback)
-  this.emit('deleted project', discoveryKey)
+  var self = this
+  self._delete('projects', discoveryKey, function (error) {
+    if (error) return callback(error)
+    self.emit('deleted project', discoveryKey)
+    callback()
+  })
 }
 
 prototype.listProjects = function (callback) {
