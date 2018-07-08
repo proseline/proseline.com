@@ -11,6 +11,8 @@ var webRTCSwarm = require('webrtc-swarm')
 
 // TODO: tune maxPeers by last access time
 
+// TODO: Use websocket-stream for Super Peer.
+
 module.exports = Client
 
 function Client () {
