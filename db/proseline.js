@@ -1,4 +1,5 @@
 var Database = require('./database')
+var createIdentity = require('../crypto/create-identity')
 var inherits = require('inherits')
 
 // TODO: paid peer data storage
@@ -11,7 +12,7 @@ module.exports = Proseline
 function Proseline () {
   Database.call(this, {
     name: 'proseline',
-    version: 1
+    version: 2
   })
 }
 
@@ -23,7 +24,9 @@ prototype._upgrade = function (db, oldVersion, callback) {
   if (oldVersion < 1) {
     db.createObjectStore('projects')
   }
-
+  if (oldVersion < 2) {
+    db.createObjectStore('user')
+  }
   callback()
 }
 
@@ -51,4 +54,19 @@ prototype.deleteProject = function (discoveryKey, callback) {
 
 prototype.listProjects = function (callback) {
   this._listValues('projects', callback)
+}
+
+prototype.getUserIdentity = function (callback) {
+  var self = this
+  self._get('user', 'identity', function (error, identity) {
+    if (error) return callback(error)
+    if (identity !== undefined) {
+      return callback(null, identity)
+    }
+    identity = createIdentity()
+    self._put('user', 'identity', identity, function (error) {
+      if (error) return callback(error)
+      callback(null, identity)
+    })
+  })
 }
