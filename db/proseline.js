@@ -4,7 +4,7 @@ var inherits = require('inherits')
 
 // TODO: paid peer data storage
 
-// Proselines wraps a single IndexedDB database that stores
+// Proseline wraps a single IndexedDB database that stores
 // client-global data, including data about other IndexedDB
 // databases storing project data.
 module.exports = Proseline
@@ -22,13 +22,19 @@ var prototype = Proseline.prototype
 
 prototype._upgrade = function (db, oldVersion, callback) {
   if (oldVersion < 1) {
+    // The `projects` database holds information on projects the
+    // user is working on.
     db.createObjectStore('projects')
   }
   if (oldVersion < 2) {
+    // The `user` database holds the user's keypair for interacting
+    // with paid.proseline.com.
     db.createObjectStore('user')
   }
   callback()
 }
+
+// Projects
 
 prototype.putProject = function (project, callback) {
   var self = this
@@ -56,6 +62,10 @@ prototype.listProjects = function (callback) {
   this._listValues('projects', callback)
 }
 
+// User
+
+// Get the user keypair for signing messages to paid.proseline.com.
+// If the keypair doesn't exist yet, create it.
 prototype.getUserIdentity = function (callback) {
   var self = this
   self._get('user', 'identity', function (error, identity) {
