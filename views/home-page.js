@@ -1,6 +1,7 @@
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var renderSection = require('./partials/section')
+var renderSharing = require('./partials/sharing')
 
 // TODO: paid peer UI
 
@@ -16,6 +17,7 @@ module.exports = function (state, send) {
   } else {
     main.appendChild(renderDraftHeader(state))
     main.appendChild(renderProjectsList(state.projects, send))
+    main.appendChild(renderSubscriptionSection())
   }
   return main
 }
@@ -66,4 +68,23 @@ function renderBackup (send) {
   })
   button.appendChild(document.createTextNode('Backup projects.'))
   return button
+}
+
+function renderSubscriptionSection () {
+  var section = renderSection('Subscription')
+  section.appendChild(renderSharing())
+  var secondP = document.createElement('p')
+  section.appendChild(secondP)
+  secondP.appendChild(document.createTextNode(
+    'To share your work with others while you are not online,' +
+    'you can '
+  ))
+  var a = document.createElement('a')
+  secondP.appendChild(a)
+  a.href = '/subscription'
+  a.appendChild(document.createTextNode(
+    'subscribe to Proseline’s sharing service'
+  ))
+  secondP.appendChild(document.createTextNode('.'))
+  return section
 }

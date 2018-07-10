@@ -1,11 +1,13 @@
-/* globals Blob */
+/* globals Blob, fetch */
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
-var saveAs = require('file-saver').saveAs
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
+var saveAs = require('file-saver').saveAs
+var sign = require('./crypto/sign')
+var stringify = require('fast-json-stable-stringify')
 
 var hashHex = require('./crypto/hash-hex')
 var random = require('./crypto/random')
@@ -33,7 +35,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       title: null,
       draftSelection: null,
       // Overview
-      projects: null
+      projects: null,
+      // Subscription
+      subscription: null
     }
   })
 
@@ -211,6 +215,48 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {title: newTitle}
   })
 
+  // Subscriptions
+
+  handler('subscribe', function (data, state, reduce, done) {
+    // TODO: Subscribe API call
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.getUserIdentity(function (error, identity) {
+        if (error) return done(error)
+        var email = data.email
+        var token = data.token
+        var date = new Date().toISOString()
+        var message = {token, email, date}
+        var stringified = stringify(message)
+        var order = {
+          message: message,
+          publicKey: identity.publicKey,
+          signature: sign(stringified, identity.secretKey)
+        }
+        fetch('https://paid.proseline.com/subscribe', {
+          method: 'POST',
+          mode: 'cors',
+          cache: 'no-cache',
+          credentials: 'omit',
+          headers: {'Content-Type': 'application/json'},
+          referrer: 'no-referrer',
+          body: JSON.stringify(order)
+        })
+          .then(function (response) { return response.json() })
+          .then(function (result) {
+            var subscription = {email}
+            db.setSubscription(subscription, function (error) {
+              if (error) return done(error)
+              reduce('subscription', subscription)
+              // TODO: Tell Client to reconnect on subscribe.
+              done()
+            })
+          })
+          .catch(function (error) { done(error) })
+      })
+    })
+  })
+
   // Loading
 
   handler('load projects', function (_, state, reduce, done) {
@@ -367,6 +413,21 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draftSelection: null,
       comparing: data.comparing
     }
+  })
+
+  handler('load subscription', function (_, state, reduce, done) {
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.getSubscription(function (error, subscription) {
+        if (error) return done(error)
+        reduce('subscription', subscription || {})
+        done()
+      })
+    })
+  })
+
+  reduction('subscription', function (subscription, state) {
+    return {subscription: subscription}
   })
 
   handler('diff', function (data, state, reduce, done) {

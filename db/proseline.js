@@ -80,3 +80,11 @@ prototype.getUserIdentity = function (callback) {
     })
   })
 }
+
+prototype.getSubscription = function (callback) {
+  this._get('user', 'subscription', callback)
+}
+
+prototype.setSubscription = function (subscription, callback) {
+  this._set('user', 'subscription', subscription, callback)
+}

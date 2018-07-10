@@ -129,6 +129,7 @@ var renderMember = require('./views/member')
 var renderNotFound = require('./views/not-found')
 var renderProject = require('./views/project')
 var renderViewer = require('./views/viewer')
+var renderSubscription = require('./views/subscription')
 
 var pathOf = require('./utilities/path-of')
 
@@ -184,6 +185,8 @@ function render (state) {
     } else {
       return renderNotFound(state, action)
     }
+  } else if (path === '/subscription') {
+    return renderSubscription(state, action)
   } else {
     return renderNotFound(state, action)
   }
