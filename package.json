@@ -72,7 +72,7 @@
   "private": true,
   "scripts": {
     "build": "npm-run-all --parallel build:*",
-    "build:css": "node-sass --output-style compressed styles/styles.sass > build/styles.css",
+    "build:css": "node-sass --output-style compressed styles.sass > build/styles.css",
     "build:js": "browserify -p common-shakeify -p [ browserify-header --file header.js ] index.js | uglifyjs --comments '/license/' > build/browser.js",
     "outdated": "npm outdated | tee outdated.log",
     "chromedriver": "chromedriver --url-base=/wd/hub",
@@ -81,7 +81,7 @@
     "precommit": "lint-staged",
     "test": "tape test/*.test.js",
     "prewatch:css": "npm run build:css",
-    "watch:css": "node-sass --watch --source-map true --output build styles/styles.sass",
+    "watch:css": "node-sass --watch --source-map true --output build styles.sass",
     "watch:js": "watchify -p common-shakeify --ignore-transform uglifyify --ignore-transform unassertify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
   }
 }
