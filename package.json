@@ -3,7 +3,6 @@
     "transform": [
       "envify",
       "unassertify",
-      "es2020",
       "uglifyify"
     ]
   },
@@ -53,7 +52,6 @@
     "chromedriver": "^2.40.0",
     "common-shakeify": "^0.5.0",
     "envify": "^4.1.0",
-    "es2020": "^1.1.9",
     "exorcist": "^1.0.1",
     "husky": "^0.14.3",
     "licensee": "^4.5.0",
