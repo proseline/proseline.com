@@ -76,6 +76,7 @@
     "build": "npm-run-all --parallel build:*",
     "build:css": "node-sass --output-style compressed styles/styles.sass > build/styles.css",
     "build:js": "browserify -p common-shakeify -p [ browserify-header --file header.js ] index.js | uglifyjs --comments '/license/' > build/browser.js",
+    "outdated": "npm outdated | tee outdated.log",
     "chromedriver": "chromedriver --url-base=/wd/hub",
     "licenses": "licensee --production --errors-only | tee licenses.log",
     "lint": "standard",
