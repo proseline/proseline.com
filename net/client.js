@@ -8,6 +8,7 @@ var inherits = require('inherits')
 var signalhub = require('signalhub')
 var simpleGet = require('simple-get')
 var webRTCSwarm = require('webrtc-swarm')
+var websocketStream = require('websocket-stream')
 
 // TODO: tune maxPeers by last access time
 
@@ -30,6 +31,8 @@ function Client () {
     .on('deleted project', function (discoveryKey) {
       self._leaveSwarm(discoveryKey)
     })
+  self._persistentPeer = null
+  self._connectToPersistentPeer()
 }
 
 inherits(Client, EventEmitter)
@@ -110,4 +113,28 @@ Client.prototype._leaveSwarm = function (discoveryKey) {
 
 Client.prototype.countPeers = function () {
   return this._peers.length
+}
+
+Client.prototype._connectToPersistentPeer = function () {
+  var self = this
+  try {
+    self._persistentPeer = new Peer(
+      'paid.proseline.com',
+      websocketStream('ws://paid.proseline.com', {
+        perMessageDeflate: false
+      }),
+      true
+    )
+      .on('end', reconnect)
+      .on('error', reconnect)
+  } catch (error) {
+    reconnect()
+  }
+
+  function reconnect () {
+    self._persistentPeer = null
+    setTimeout(function () {
+      self._connectToPersistentPeer()
+    }, 5 * 60 * 1000)
+  }
 }

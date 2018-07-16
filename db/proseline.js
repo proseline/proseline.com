@@ -1,6 +1,9 @@
 var Database = require('./database')
 var createIdentity = require('../crypto/create-identity')
 var inherits = require('inherits')
+var multistream = require('multistream')
+var runParallel = require('run-parallel')
+var through2 = require('through2')
 
 // TODO: paid peer data storage
 
@@ -10,6 +13,7 @@ var inherits = require('inherits')
 module.exports = Proseline
 
 function Proseline () {
+  this._projectStreams = []
   Database.call(this, {
     name: 'proseline',
     version: 2
@@ -41,7 +45,7 @@ prototype.putProject = function (project, callback) {
   self._put('projects', project.discoveryKey, project, function (error) {
     if (error) return callback(error)
     self.emit('added project', project)
-    callback()
+    self._streamProject(project, callback)
   })
 }
 
@@ -87,4 +91,37 @@ prototype.getSubscription = function (callback) {
 
 prototype.setSubscription = function (subscription, callback) {
   this._set('user', 'subscription', subscription, callback)
+}
+
+prototype._streamProject = function (project, callback) {
+  runParallel(
+    this._projectStreams.map(function (stream) {
+      return function (done) {
+        stream.write(project, done)
+      }
+    }),
+    callback
+  )
+}
+
+// TODO: Consider simplifying to plain emitted events.
+prototype.createProjectStream = function () {
+  var self = this
+  return multistream.obj([
+    function currentProjects () {
+      var stream = through2.obj()
+      self.listProjects(function (error, projects) {
+        if (error) return stream.destroy(error)
+        projects.forEach(function (project) {
+          stream.write(project)
+        })
+      })
+      return stream
+    },
+    function newProjects () {
+      var stream = through2.obj()
+      self._projectStreams.push(stream)
+      return stream
+    }
+  ])
 }

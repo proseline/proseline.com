@@ -1,10 +1,16 @@
 var EventEmitter = require('events').EventEmitter
+var InvitationProtocol = require('proseline-protocol').Invitation
 var databases = require('../db/databases')
 var debug = require('debug')('proseline:peer')
+var flushWriteStream = require('flush-write-stream')
+var hashHex = require('../crypto/hash-hex')
 var inherits = require('inherits')
 var multiplex = require('multiplex')
 var replicate = require('./replicate')
 var runParallel = require('run-parallel')
+var runSeries = require('run-series')
+var sign = require('../crypto/sign')
+var stringify = require('fast-json-stable-stringify')
 
 module.exports = Peer
 
@@ -52,6 +58,80 @@ function Peer (id, transportStream, persistent) {
     .on('deleted project', function (discoveryKey) {
       self.leaveProject(discoveryKey)
     })
+
+  if (persistent) {
+    var protocol = new InvitationProtocol()
+
+    var proseline = databases.proseline
+
+    // On receiving an invitation, join the project.
+    protocol.on('invitation', function (invitation) {
+      debug('invited: %o', invitation)
+      var secretKey = invitation.message.secretKey
+      var discoveryKey = hashHex(secretKey)
+      var title = invitation.message.title
+      var project = {secretKey, discoveryKey, title}
+      // TODO: Deduplicate project join code in peer and model.
+      runSeries([
+        function indexProjectInProselineDB (done) {
+          proseline.putProject(project, done)
+        },
+        function createProjectDBAndIdentity (done) {
+          databases.get(discoveryKey, function (error, db) {
+            if (error) return done(error)
+            db.createIdentity(true, done)
+          })
+        }
+      ], function (error) {
+        if (error) return debug(error)
+      })
+    })
+
+    protocol.handshake(function (error) {
+      if (error) return debug(error)
+
+      // Create a stream of all existing and later-joined projects.
+      proseline.createProjectStream()
+        .pipe(flushWriteStream.obj(function (chunk, _, done) {
+          // Send an invitation to the problem to the persistent peer.
+          proseline.getUserIdentity(function (error, identity) {
+            if (error) return done(error)
+            var message = {secretKey: chunk.secretKey}
+            var stringified = stringify(message)
+            var envelope = {
+              message,
+              publicKey: identity.publicKey,
+              signature: sign(stringified, identity.secretKey)
+            }
+            debug('sending invitation: %o', chunk.discoveryKey)
+            protocol.invitation(envelope, function (error) {
+              if (error) return debug(error)
+            })
+          })
+        }))
+
+      // If we have a subscription, request invitations.
+      proseline.getSubscription(function (error, subscription) {
+        if (error) return debug(error)
+        if (!subscription) return
+        var email = subscription.email
+        proseline.getUserIdentity(function (error, identity) {
+          if (error) return debug(error)
+          var message = {email, date: new Date().toISOString()}
+          var stringified = stringify(message)
+          var envelope = {
+            message,
+            publicKey: identity.publicKey,
+            signature: sign(stringified, identity.secretKey)
+          }
+          debug('requesting invitations: %', subscription)
+          protocol.request(envelope, function (error) {
+            debug(error)
+          })
+        })
+      })
+    })
+  }
 }
 
 inherits(Peer, EventEmitter)
