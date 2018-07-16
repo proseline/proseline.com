@@ -12,7 +12,7 @@ REF=${1:-HEAD}
 	git clone -s "$GITDIR" "$TMPDIR"
 	cd "$TMPDIR"
 	npm install
-	NODE_ENV=production npm run build
+	NODE_ENV=production STRIPE_PUBLISHABLE_KEY=pk_test_qSIOnRX1RuPvoXtBLiMCRjGV npm run build
 	rsync $FLAGS $BUILD/* "node@proseline.com:$ROOT"
 )
 TAGNAME="deployed-$(date --iso-8601=seconds --utc | tr -d ':' | sed 's/+0000//')"
