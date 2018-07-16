@@ -8,7 +8,7 @@ var runParallel = require('run-parallel')
 
 module.exports = Peer
 
-function Peer (id, transportStream) {
+function Peer (id, transportStream, persistent) {
   if (!(this instanceof Peer)) return new Peer(id)
   var self = this
   self.id = id

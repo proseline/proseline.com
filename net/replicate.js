@@ -1,4 +1,4 @@
-var Protocol = require('proseline-protocol')
+var ReplicationProtocol = require('proseline-protocol').Replication
 var assert = require('assert')
 var debug = require('debug')('proseline:replicate')
 var flushWriteStream = require('flush-write-stream')
@@ -14,7 +14,7 @@ module.exports = function (options) {
   var database = options.database
   var onUpdate = options.onUpdate
 
-  var protocol = new Protocol(secretKey)
+  var protocol = new ReplicationProtocol(secretKey)
 
   // Store a list of envelopes that we've requested, so we can
   // check the list to avoid offering this peer envelopes we've
