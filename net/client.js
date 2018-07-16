@@ -120,7 +120,7 @@ Client.prototype._connectToPersistentPeer = function () {
   try {
     self._persistentPeer = new Peer(
       'paid.proseline.com',
-      websocketStream('ws://paid.proseline.com', {
+      websocketStream('wss://paid.proseline.com', {
         perMessageDeflate: false
       }),
       true
