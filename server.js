@@ -7,6 +7,9 @@ http.createServer()
     if (url === '/styles.css') {
       response.setHeader('Content-Type', 'text/css')
       send('build/styles.css')
+    } else if (url === '/normalize.css') {
+      response.setHeader('Content-Type', 'text/css')
+      send('build/normalize.css')
     } else if (url === '/styles.css.map') {
       send('build/styles.css.map')
     } else if (url === '/browser.js') {

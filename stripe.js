@@ -1,5 +1,3 @@
 /* globals Stripe */
 
-var PUBLIC = process.env.STRIPE_PUBLIC_KEY
-
-module.exports = Stripe(PUBLIC)
+module.exports = Stripe(process.env.STRIPE_PUBLISHABLE_KEY)

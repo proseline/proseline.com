@@ -430,6 +430,46 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return {subscription: subscription}
   })
 
+  handler(
+    'add device to subscription',
+    function (data, state, reduce, done) {
+      assert(data.hasOwnProperty('email'))
+      withIndexedDB('proseline', function (error, db) {
+        if (error) return done(error)
+        db.getUserIdentity(function (error, identity) {
+          if (error) return done(error)
+          var message = {
+            email: data.email,
+            date: new Date().toISOString()
+          }
+          var stringified = stringify(message)
+          var request = {
+            message,
+            publicKey: identity.publicKey,
+            signature: sign(stringified, identity.secretKey)
+          }
+          fetch('https://paid.proseline.com/add', {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'omit',
+            headers: {'Content-Type': 'application/json'},
+            referrer: 'no-referrer',
+            body: JSON.stringify(request)
+          })
+            .then(function (response) {
+              var status = response.status
+              if (status !== 200) {
+                return done(new Error('server responded ' + status))
+              }
+              done()
+            })
+            .catch(function (error) { done(error) })
+        })
+      })
+    }
+  )
+
   handler('diff', function (data, state, reduce, done) {
     reduce('diff', {
       source: data.source,

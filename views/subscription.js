@@ -130,6 +130,14 @@ function renderAddDeviceSection (send) {
 
   form.appendChild(renderEMailInput())
 
+  form.onsubmit = function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    var email = this.elements.email.value
+    send('add device to subscription', {email})
+    this.elements.email.value = ''
+  }
+
   var button = document.createElement('button')
   form.appendChild(button)
   button.type = 'submit'
