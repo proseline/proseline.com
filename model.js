@@ -788,30 +788,37 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('backup', function (_, state, reduce, done) {
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
-      db.listProjects(function (error, projects) {
-        if (error) return done(error)
-        runParallel(
-          projects.map(function (project) {
-            return function (done) {
-              withIndexedDB(project.discoveryKey, function (error, db) {
-                if (error) return done(error)
-                db.getDefaultIdentity(function (error, identity) {
-                  if (error) return done(error)
-                  done(null, {project, identity})
-                })
-              })
-            }
-          }),
-          function (error, results) {
+      runParallel({
+        projects: function (done) {
+          db.listProjects(function (error, projects) {
             if (error) return done(error)
-            saveAs(
-              new Blob(
-                [JSON.stringify(results)],
-                {type: 'application/json;charset=UTF-8'}
-              ),
-              'proseline.json'
-            )
-          }
+            runParallel(projects.map(function (project) {
+              return function (done) {
+                withIndexedDB(project.discoveryKey, function (error, db) {
+                  if (error) return done(error)
+                  db.getDefaultIdentity(function (error, identity) {
+                    if (error) return done(error)
+                    done(null, {project, identity})
+                  })
+                })
+              }
+            }), done)
+          })
+        },
+        userIdentity: function (done) {
+          db.getUserIdentity(done)
+        },
+        subscription: function (done) {
+          db.getSubscription(done)
+        }
+      }, function (error, results) {
+        if (error) return done(error)
+        saveAs(
+          new Blob(
+            [JSON.stringify(results)],
+            {type: 'application/json;charset=UTF-8'}
+          ),
+          'proseline-backup.json'
         )
       })
     })
