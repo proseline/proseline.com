@@ -90,7 +90,7 @@ prototype.getSubscription = function (callback) {
 }
 
 prototype.setSubscription = function (subscription, callback) {
-  this._set('user', 'subscription', subscription, callback)
+  this._put('user', 'subscription', subscription, callback)
 }
 
 prototype._streamProject = function (project, callback) {
