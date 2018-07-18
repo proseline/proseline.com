@@ -127,7 +127,7 @@ function Peer (id, transportStream, persistent) {
             publicKey: identity.publicKey,
             signature: sign(stringified, identity.secretKey)
           }
-          debug('requesting invitations: %', subscription)
+          debug('requesting invitations: %o', subscription)
           protocol.request(envelope, function (error) {
             debug(error)
           })
