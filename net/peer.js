@@ -81,6 +81,13 @@ function Peer (id, transportStream, persistent) {
             if (error) return done(error)
             db.createIdentity(true, done)
           })
+        },
+        function joinProject (done) {
+          if (self._sharedStreams.has(discoveryKey)) return done()
+          databases.get(discoveryKey, function (error, db) {
+            if (error) return done(error)
+            self.joinProject(project, db, done)
+          })
         }
       ], function (error) {
         if (error) return debug(error)
