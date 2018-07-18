@@ -88,10 +88,12 @@ function Peer (id, transportStream, persistent) {
     })
 
     protocol.once('handshake', function () {
+      debug('received handshake')
       // If we have a subscription...
       proseline.getSubscription(function (error, subscription) {
         if (error) return debug(error)
         if (!subscription) return
+        debug('streaming projects')
         // Create a stream of all existing and later-joined projects.
         proseline.createProjectStream()
           .pipe(flushWriteStream.obj(function (chunk, _, done) {
