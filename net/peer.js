@@ -134,6 +134,10 @@ function Peer (id, transportStream, persistent) {
         })
       })
     })
+
+    protocol
+      .pipe(plex.createSharedStream('invitation'))
+      .pipe(protocol)
   }
 }
 
