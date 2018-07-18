@@ -88,33 +88,33 @@ function Peer (id, transportStream, persistent) {
     })
 
     protocol.once('handshake', function () {
-      // Create a stream of all existing and later-joined projects.
-      proseline.createProjectStream()
-        .pipe(flushWriteStream.obj(function (chunk, _, done) {
-          // Send an invitation to the problem to the persistent peer.
-          proseline.getUserIdentity(function (error, identity) {
-            if (error) return done(error)
-            var message = {
-              secretKey: chunk.secretKey,
-              title: chunk.title || 'Untitled Project'
-            }
-            var stringified = stringify(message)
-            var envelope = {
-              message,
-              publicKey: identity.publicKey,
-              signature: sign(stringified, identity.secretKey)
-            }
-            debug('sending invitation: %o', chunk.discoveryKey)
-            protocol.invitation(envelope, function (error) {
-              if (error) return debug(error)
-            })
-          })
-        }))
-
-      // If we have a subscription, request invitations.
+      // If we have a subscription...
       proseline.getSubscription(function (error, subscription) {
         if (error) return debug(error)
         if (!subscription) return
+        // Create a stream of all existing and later-joined projects.
+        proseline.createProjectStream()
+          .pipe(flushWriteStream.obj(function (chunk, _, done) {
+            // Send an invitation to the problem to the persistent peer.
+            proseline.getUserIdentity(function (error, identity) {
+              if (error) return done(error)
+              var message = {
+                secretKey: chunk.secretKey,
+                title: chunk.title || 'Untitled Project'
+              }
+              var stringified = stringify(message)
+              var envelope = {
+                message,
+                publicKey: identity.publicKey,
+                signature: sign(stringified, identity.secretKey)
+              }
+              debug('sending invitation: %o', chunk.discoveryKey)
+              protocol.invitation(envelope, function (error) {
+                if (error) return debug(error)
+              })
+            })
+          }))
+        //  Request invitations.
         var email = subscription.email
         proseline.getUserIdentity(function (error, identity) {
           if (error) return debug(error)
