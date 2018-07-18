@@ -96,7 +96,10 @@ function Peer (id, transportStream, persistent) {
           // Send an invitation to the problem to the persistent peer.
           proseline.getUserIdentity(function (error, identity) {
             if (error) return done(error)
-            var message = {secretKey: chunk.secretKey}
+            var message = {
+              secretKey: chunk.secretKey,
+              title: chunk.title || 'Untitled Project'
+            }
             var stringified = stringify(message)
             var envelope = {
               message,
