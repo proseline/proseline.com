@@ -6392,9 +6392,9 @@
       }
     },
     "proseline-protocol": {
-      "version": "4.1.2",
-      "resolved": "https://registry.npmjs.org/proseline-protocol/-/proseline-protocol-4.1.2.tgz",
-      "integrity": "sha512-HoFQKNXiClTtlcTsI2OynzA3zM8gymLk13Z2WzA/8p0hkiaXYAfgvVgbjdcOIcez5Ezqmt+uZ59BvQiE1k+DWg==",
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/proseline-protocol/-/proseline-protocol-5.0.0.tgz",
+      "integrity": "sha512-xbYQjfNYbapDdnyIUBovCmTAkt2JMKyvNpNbH/IWhGhJYVS1IIIrBc3KOnHBa/Xj2qidE1DAUJUWPpLw+HUDiA==",
       "requires": {
         "ajv": "^6.5.2",
         "debug": "^3.1.0",
