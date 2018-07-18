@@ -87,9 +87,7 @@ function Peer (id, transportStream, persistent) {
       })
     })
 
-    protocol.handshake(function (error) {
-      if (error) return debug(error)
-
+    protocol.once('handshake', function () {
       // Create a stream of all existing and later-joined projects.
       proseline.createProjectStream()
         .pipe(flushWriteStream.obj(function (chunk, _, done) {
@@ -138,6 +136,9 @@ function Peer (id, transportStream, persistent) {
     protocol
       .pipe(plex.createSharedStream('invitation'))
       .pipe(protocol)
+
+    // Extend our handshake.
+    protocol.handshake(function () { /* noop */ })
   }
 }
 
