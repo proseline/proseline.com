@@ -438,8 +438,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         if (error) return done(error)
         db.getUserIdentity(function (error, identity) {
           if (error) return done(error)
+          var email = data.email
           var message = {
-            email: data.email,
+            email,
             name: data.name,
             date: new Date().toISOString()
           }
@@ -463,7 +464,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
               if (status !== 200) {
                 return done(new Error('server responded ' + status))
               }
-              done()
+              return response.json()
+            })
+            .then(function (body) {
+              if (body.error) return done(body.error)
+              var subscription = {email}
+              db.setSubscription({email}, function (error) {
+                if (error) return done(error)
+                reduce('subscription', subscription)
+                // TODO: Tell Client to reconnect on subscribe.
+                done()
+              })
             })
             .catch(function (error) { done(error) })
         })
