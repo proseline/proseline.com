@@ -440,6 +440,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           if (error) return done(error)
           var message = {
             email: data.email,
+            name: data.name,
             date: new Date().toISOString()
           }
           var stringified = stringify(message)

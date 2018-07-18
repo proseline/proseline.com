@@ -129,12 +129,14 @@ function renderAddDeviceSection (send) {
   section.appendChild(form)
 
   form.appendChild(renderEMailInput())
+  form.appendChild(renderDeviceNameInput())
 
   form.onsubmit = function (event) {
     event.preventDefault()
     event.stopPropagation()
     var email = this.elements.email.value
-    send('add device to subscription', {email})
+    var name = this.elements.name.value
+    send('add device to subscription', {email, name})
     this.elements.email.value = ''
   }
 
@@ -165,5 +167,21 @@ function renderEMailInput (id) {
   input.name = 'email'
   input.id = id
 
-  return input
+  return label
+}
+
+function renderDeviceNameInput () {
+  var label = document.createElement('label')
+  label.appendChild(document.createTextNode('Name for this Device:'))
+
+  var input = document.createElement('input')
+  label.appendChild(input)
+  input.type = 'text'
+  input.required = true
+  input.placeholder = 'laptop'
+  input.minlength = 3
+  input.maxlength = 32
+  input.name = 'name'
+
+  return label
 }
