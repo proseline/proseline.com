@@ -129,7 +129,7 @@ function Peer (id, transportStream, persistent) {
           }
           debug('requesting invitations: %o', subscription)
           protocol.request(envelope, function (error) {
-            debug(error)
+            if (error) return debug(error)
           })
         })
       })
