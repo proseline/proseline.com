@@ -177,6 +177,7 @@ Peer.prototype.joinProject = function (
 ) {
   var self = this
   var discoveryKey = project.discoveryKey
+  if (self._sharedStreams.has(discoveryKey)) return
   var replicationStream = replicate({
     secretKey: project.secretKey,
     discoveryKey,
