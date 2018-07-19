@@ -69,7 +69,7 @@ function Peer (id, transportStream, persistent) {
       debug('invited: %o', invitation)
       var secretKey = invitation.message.secretKey
       var discoveryKey = hashHex(secretKey)
-      var title = invitation.message.title
+      var title = invitation.message.title || 'Untitled Project'
       var project = {secretKey, discoveryKey, title}
       // TODO: Deduplicate project join code in peer and model.
       runSeries([
