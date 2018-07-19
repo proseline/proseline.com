@@ -35,6 +35,10 @@ function Peer (id, transportStream, persistent) {
     var proselineDatabase = databases.proseline
     proselineDatabase.getProject(discoveryKey, function (error, project) {
       if (error) {
+        debug(error)
+        return sharedStream.destroy()
+      }
+      if (!project) {
         debug('unknown discovery key: %o', discoveryKey)
         return sharedStream.destroy()
       }
