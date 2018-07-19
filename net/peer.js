@@ -142,6 +142,10 @@ function Peer (id, transportStream, persistent) {
       })
     })
 
+    protocol.on('invalid', function (body) {
+      debug('invalid message: %o', body)
+    })
+
     protocol
       .pipe(plex.createSharedStream('invitation'))
       .pipe(protocol)

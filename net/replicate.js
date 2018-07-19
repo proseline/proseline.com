@@ -98,6 +98,10 @@ module.exports = function (options) {
     onUpdate(envelope.project)
   })
 
+  protocol.on('invalid', function (body) {
+    debug('invalid message: %o', body)
+  })
+
   // Extend our handshake.
   protocol.handshake(function (error) {
     if (error) return debug(error)
