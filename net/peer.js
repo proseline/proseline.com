@@ -197,10 +197,18 @@ Peer.prototype.joinProject = function (
   if (!sharedStream) {
     sharedStream = this.plex.createSharedStream(discoveryKey)
   }
-  self._sharedStreams.set(discoveryKey, sharedStream)
+  self._addSharedStream(discoveryKey, sharedStream)
   replicationStream
     .pipe(sharedStream)
     .pipe(replicationStream)
+}
+
+Peer.prototype._addSharedStream = function (discoveryKey, stream) {
+  var self = this
+  self._sharedStreams.set(discoveryKey, stream)
+  stream.once('close', function () {
+    self._sharedStreams.delete(discoveryKey)
+  })
 }
 
 Peer.prototype.leaveProject = function (discoveryKey) {
