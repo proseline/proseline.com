@@ -99,7 +99,9 @@ module.exports = function (options) {
   })
 
   // Extend our handshake.
-  protocol.handshake(function () { /* noop */ })
+  protocol.handshake(function (error) {
+    if (error) return debug(error)
+  })
 
   return protocol
 }
