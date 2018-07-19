@@ -13,7 +13,7 @@ module.exports = function (state, activity) {
     var body = envelope.message.body
     var type = body.type
     var li = document.createElement('li')
-    var a
+    var a, brief
     ol.appendChild(li)
     if (type === 'draft') {
       li.appendChild(renderIntro(state, envelope.publicKey, {
@@ -48,21 +48,25 @@ module.exports = function (state, activity) {
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
+      brief = state.draftBriefs.find(function (brief) {
+        return brief.digest === body.draft
+      })
+      if (!brief) return
       li.appendChild(renderIntro(state, envelope.publicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(' put '))
       li.appendChild(renderMarkLink(state, envelope))
       li.appendChild(document.createTextNode(' on '))
-      li.appendChild(
-        renderDraftLink(state, state.draftBriefs.find(function (brief) {
-          return brief.digest === body.draft
-        }))
-      )
+      li.appendChild(renderDraftLink(state, brief))
       li.appendChild(document.createTextNode(' '))
       li.appendChild(renderRelativeTimestamp(envelope.message.body.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
+      brief = state.draftBriefs.find(function (brief) {
+        return brief.digest === body.draft
+      })
+      if (!brief) return
       li.appendChild(renderIntro(state, envelope.publicKey, {
         capitalize: true
       }))
@@ -79,11 +83,7 @@ module.exports = function (state, activity) {
         document.createTextNode(body.parent ? 'reply' : 'note')
       )
       li.appendChild(document.createTextNode(' to '))
-      li.appendChild(
-        renderDraftLink(state, state.draftBriefs.find(function (brief) {
-          return brief.digest === body.draft
-        }))
-      )
+      li.appendChild(renderDraftLink(state, brief))
       li.appendChild(document.createTextNode(' '))
       li.appendChild(renderRelativeTimestamp(body.timestamp))
       li.appendChild(document.createTextNode('.'))
