@@ -2,8 +2,7 @@
   "browserify": {
     "transform": [
       "envify",
-      "unassertify",
-      "uglifyify"
+      "unassertify"
     ]
   },
   "dependencies": {
@@ -61,8 +60,6 @@
     "npm-run-all": "^4.1.3",
     "standard": "^11.0.1",
     "tape": "^4.9.1",
-    "uglify-es": "^3.3.9",
-    "uglifyify": "^5.0.1",
     "unassertify": "^2.1.1",
     "watchify": "^3.11.0",
     "webdriverio": "^4.13.1"
@@ -74,7 +71,7 @@
   "scripts": {
     "build": "npm-run-all --parallel build:*",
     "build:css": "node-sass --output-style compressed styles.sass > build/styles.css",
-    "build:js": "browserify -p common-shakeify -p [ browserify-header --file header.js ] index.js | uglifyjs --comments '/license/' > build/browser.js",
+    "build:js": "browserify -p common-shakeify -p [ browserify-header --file header.js ] index.js -o build/browser.js",
     "outdated": "npm outdated | tee outdated.log",
     "chromedriver": "chromedriver --url-base=/wd/hub",
     "licenses": "licensee --production --errors-only | tee licenses.log",
@@ -83,6 +80,6 @@
     "test": "tape test/*.test.js",
     "prewatch:css": "npm run build:css",
     "watch:css": "node-sass --watch --source-map true --output build styles.sass",
-    "watch:js": "watchify -p common-shakeify --ignore-transform uglifyify --ignore-transform unassertify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
+    "watch:js": "watchify -p common-shakeify --ignore-transform unassertify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
   }
 }
