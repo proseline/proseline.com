@@ -142,8 +142,8 @@ function render (state) {
   if (path === '' || path === '/') {
     return renderHomePage(state, action)
   // Join Link
-  } else if (/^\/join\/[a-f0-9]{64}$/.test(path)) {
-    var secretKey = path.substr(6, 64)
+  } else if (path === '/join' && window.location.hash) {
+    var secretKey = window.location.hash.substring(1)
     main = document.createElement('main')
     main.appendChild(
       renderLoading(function () {

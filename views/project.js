@@ -95,7 +95,7 @@ function inviteExplanation () {
 function inviteViaEMail (state) {
   var a = document.createElement('a')
   a.className = 'button'
-  var url = 'https://proseline.com/join/' + state.secretKey
+  var url = 'https://proseline.com/join#' + state.secretKey
   a.href = (
     'mailto:' +
     '?subject=' + encodeURIComponent('Proseline Project') +
@@ -110,7 +110,7 @@ function inviteViaEMail (state) {
 function copyInvitation (state) {
   var a = document.createElement('a')
   a.className = 'clipboard button'
-  var url = 'https://proseline.com/join/' + state.secretKey
+  var url = 'https://proseline.com/join#' + state.secretKey
   a.setAttribute('data-clipboard-text', url)
   a.appendChild(document.createTextNode('Copy a link for joining this project.'))
   return a
