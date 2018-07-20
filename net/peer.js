@@ -2,6 +2,7 @@ var EventEmitter = require('events').EventEmitter
 var InvitationProtocol = require('proseline-protocol').Invitation
 var databases = require('../db/databases')
 var debug = require('debug')
+var duplexify = require('duplexify')
 var flushWriteStream = require('flush-write-stream')
 var hashHex = require('../crypto/hash-hex')
 var inherits = require('inherits')
@@ -33,13 +34,16 @@ function Peer (id, transportStream, persistent) {
 
   // Multiplex replication streams over the transport stream.
   var plex = self.plex = multiplex()
+  self._sharedStreams = new Map()
   plex.on('error', function (error) {
     log(error)
   })
 
-  self._sharedStreams = new Map()
-  plex.on('stream', function (_, discoveryKey) {
-    var sharedStream = plex.createSharedStream(discoveryKey)
+  plex.on('stream', function (receiveStream, discoveryKey) {
+    var sharedStream = duplexify(
+      plex.createStream(discoveryKey),
+      receiveStream
+    )
     var proselineDatabase = databases.proseline
     var log = debug(DEBUG_NAMESPACE + 'replication:' + discoveryKey)
     proselineDatabase.getProject(discoveryKey, function (error, project) {

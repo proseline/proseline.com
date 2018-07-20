@@ -28,15 +28,17 @@ module.exports = function (options) {
     log('received handshake')
     database.createOfferStream()
       .pipe(flushWriteStream.obj(function (chunk, _, done) {
+        var publicKey = chunk.publicKey
+        var index = chunk.index
         var requestIndex = requestedFromPeer
           .findIndex(function (request) {
             return (
-              request.publicKey === chunk.publicKey &&
-              request.index === chunk.index
+              request.publicKey === publicKey &&
+              request.index === index
             )
           })
         if (requestIndex === -1) {
-          log('sending offer: %s#%d', chunk.publicKey, chunk.message.index)
+          log('sending offer: %s#%d', publicKey, index)
           return protocol.offer(chunk, done)
         }
         requestedFromPeer.splice(requestIndex, 1)
@@ -46,9 +48,9 @@ module.exports = function (options) {
 
   // When our peer requests an envelope...
   protocol.on('request', function (request) {
-    log('received request: %o', request)
     var publicKey = request.publicKey
     var index = request.index
+    log('received request: %s#%d', publicKey, index)
     database.getEnvelope(publicKey, index, function (error, envelope) {
       if (error) return log(error)
       if (envelope === undefined) return
@@ -67,7 +69,7 @@ module.exports = function (options) {
     database.getLogHead(publicKey, function (error, head) {
       if (error) return log(error)
       if (head === undefined) head = 0
-      for (var index = head; index <= offeredIndex; index++) {
+      for (var index = head + 1; index <= offeredIndex; index++) {
         log('sending request: %s#%d', publicKey, index)
         protocol.request({publicKey, index}, function (error) {
           if (error) return log(error)
