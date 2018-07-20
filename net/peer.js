@@ -33,6 +33,10 @@ function Peer (id, transportStream, persistent) {
 
   // Multiplex replication streams over the transport stream.
   var plex = self.plex = multiplex()
+  plex.on('error', function (error) {
+    log(error)
+  })
+
   self._sharedStreams = new Map()
   plex.on('stream', function (sharedStream, discoveryKey) {
     var proselineDatabase = databases.proseline
