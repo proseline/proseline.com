@@ -38,7 +38,8 @@ function Peer (id, transportStream, persistent) {
   })
 
   self._sharedStreams = new Map()
-  plex.on('stream', function (sharedStream, discoveryKey) {
+  plex.on('stream', function (_, discoveryKey) {
+    var sharedStream = plex.createSharedStream(discoveryKey)
     var proselineDatabase = databases.proseline
     var log = debug(DEBUG_NAMESPACE + 'replication:' + discoveryKey)
     proselineDatabase.getProject(discoveryKey, function (error, project) {
@@ -163,7 +164,11 @@ function Peer (id, transportStream, persistent) {
       .pipe(protocol)
 
     // Extend our handshake.
-    protocol.handshake(function () { /* noop */ })
+    log('sending handshake')
+    protocol.handshake(function (error) {
+      if (error) return log(error)
+      log('sent handshake')
+    })
   }
 }
 
@@ -203,7 +208,7 @@ Peer.prototype.joinProject = function (
     }
   })
   if (!sharedStream) {
-    sharedStream = this.plex.createSharedStream(discoveryKey)
+    sharedStream = self.plex.createSharedStream(discoveryKey)
   }
   self._addSharedStream(discoveryKey, sharedStream)
   replicationStream
