@@ -1,7 +1,7 @@
 var EventEmitter = require('events').EventEmitter
 var InvitationProtocol = require('proseline-protocol').Invitation
 var databases = require('../db/databases')
-var debug = require('debug')('proseline:peer')
+var debug = require('debug')
 var flushWriteStream = require('flush-write-stream')
 var hashHex = require('../crypto/hash-hex')
 var inherits = require('inherits')
@@ -12,10 +12,13 @@ var runSeries = require('run-series')
 var sign = require('../crypto/sign')
 var stringify = require('fast-json-stable-stringify')
 
+var DEBUG_NAMESPACE = 'proseline:peer:'
+
 module.exports = Peer
 
 function Peer (id, transportStream, persistent) {
   if (!(this instanceof Peer)) return new Peer(id)
+  var log = debug(DEBUG_NAMESPACE + id)
   var self = this
   self.id = id
   self.transportStream = transportStream
@@ -24,7 +27,7 @@ function Peer (id, transportStream, persistent) {
       self.emit('done')
     })
     .on('error', function (error) {
-      debug(error)
+      log(error)
       self.emit('done')
     })
 
@@ -33,13 +36,14 @@ function Peer (id, transportStream, persistent) {
   self._sharedStreams = new Map()
   plex.on('stream', function (sharedStream, discoveryKey) {
     var proselineDatabase = databases.proseline
+    var log = debug(DEBUG_NAMESPACE + 'replication:' + discoveryKey)
     proselineDatabase.getProject(discoveryKey, function (error, project) {
       if (error) {
-        debug(error)
+        log(error)
         return sharedStream.destroy()
       }
       if (!project) {
-        debug('unknown discovery key: %o', discoveryKey)
+        log('unknown discovery key: %o', discoveryKey)
         return sharedStream.destroy()
       }
       databases.get(discoveryKey, function (error, database) {
@@ -70,7 +74,7 @@ function Peer (id, transportStream, persistent) {
 
     // On receiving an invitation, join the project.
     protocol.on('invitation', function (invitation) {
-      debug('invited: %o', invitation)
+      log('invited: %o', invitation)
       var secretKey = invitation.message.secretKey
       var discoveryKey = hashHex(secretKey)
       var title = invitation.message.title || 'Untitled Project'
@@ -94,17 +98,17 @@ function Peer (id, transportStream, persistent) {
           })
         }
       ], function (error) {
-        if (error) return debug(error)
+        if (error) return log(error)
       })
     })
 
     protocol.once('handshake', function () {
-      debug('received handshake')
+      log('received handshake')
       // If we have a subscription...
       proseline.getSubscription(function (error, subscription) {
-        if (error) return debug(error)
+        if (error) return log(error)
         if (!subscription) return
-        debug('streaming projects')
+        log('streaming projects')
         // Create a stream of all existing and later-joined projects.
         proseline.createProjectStream()
           .pipe(flushWriteStream.obj(function (chunk, _, done) {
@@ -121,16 +125,16 @@ function Peer (id, transportStream, persistent) {
                 publicKey: identity.publicKey,
                 signature: sign(stringified, identity.secretKey)
               }
-              debug('sending invitation: %o', chunk.discoveryKey)
+              log('sending invitation: %o', chunk.discoveryKey)
               protocol.invitation(envelope, function (error) {
-                if (error) return debug(error)
+                if (error) return log(error)
               })
             })
           }))
         //  Request invitations.
         var email = subscription.email
         proseline.getUserIdentity(function (error, identity) {
-          if (error) return debug(error)
+          if (error) return log(error)
           var message = {email, date: new Date().toISOString()}
           var stringified = stringify(message)
           var envelope = {
@@ -138,16 +142,16 @@ function Peer (id, transportStream, persistent) {
             publicKey: identity.publicKey,
             signature: sign(stringified, identity.secretKey)
           }
-          debug('requesting invitations: %o', subscription)
+          log('requesting invitations: %o', subscription)
           protocol.request(envelope, function (error) {
-            if (error) return debug(error)
+            if (error) return log(error)
           })
         })
       })
     })
 
     protocol.on('invalid', function (body) {
-      debug('invalid message: %o', body)
+      log('invalid message: %o', body)
     })
 
     protocol

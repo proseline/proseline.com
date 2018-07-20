@@ -1,8 +1,10 @@
 var ReplicationProtocol = require('proseline-protocol').Replication
 var assert = require('assert')
-var debug = require('debug')('proseline:replicate')
+var debug = require('debug')
 var flushWriteStream = require('flush-write-stream')
 var validate = require('../schemas/validate')
+
+var DEBUG_NAMESPACE = 'proseline:replicate:'
 
 module.exports = function (options) {
   assert.equal(typeof options.secretKey, 'string')
@@ -13,6 +15,7 @@ module.exports = function (options) {
   var discoveryKey = options.discoveryKey
   var database = options.database
   var onUpdate = options.onUpdate
+  var log = debug(DEBUG_NAMESPACE + discoveryKey)
 
   var protocol = new ReplicationProtocol(secretKey)
 
@@ -22,6 +25,7 @@ module.exports = function (options) {
   var requestedFromPeer = []
 
   protocol.once('handshake', function () {
+    log('received handshake')
     database.createOfferStream()
       .pipe(flushWriteStream.obj(function (chunk, _, done) {
         var requestIndex = requestedFromPeer
@@ -32,6 +36,7 @@ module.exports = function (options) {
             )
           })
         if (requestIndex === -1) {
+          log('sending offer: %s#%d', chunk.publicKey, chunk.message.index)
           return protocol.offer(chunk, done)
         }
         requestedFromPeer.splice(requestIndex, 1)
@@ -41,12 +46,13 @@ module.exports = function (options) {
 
   // When our peer requests an envelope...
   protocol.on('request', function (request) {
-    debug('requested: %o', request)
+    log('received request: %o', request)
     var publicKey = request.publicKey
     var index = request.index
     database.getEnvelope(publicKey, index, function (error, envelope) {
-      if (error) return debug(error)
+      if (error) return log(error)
       if (envelope === undefined) return
+      log('sending envelope: %s#%d', envelope.publicKey, envelope.message.index)
       protocol.envelope(envelope)
     })
   })
@@ -55,21 +61,17 @@ module.exports = function (options) {
 
   // When our peer offers envelopes...
   protocol.on('offer', function (offer) {
-    debug('offered: %o', offer)
+    log('received offer: %o', offer)
     var publicKey = offer.publicKey
     var offeredIndex = offer.index
     database.getLogHead(publicKey, function (error, head) {
-      if (error) return debug(error)
-      if (head === undefined) head = -1
-      var index = head + 1
-      requestNextEnvelope()
-      function requestNextEnvelope () {
-        if (index > offeredIndex) return
+      if (error) return log(error)
+      if (head === undefined) head = 0
+      for (var index = head; index <= offeredIndex; index++) {
+        log('sending request: %s#%d', publicKey, index)
         protocol.request({publicKey, index}, function (error) {
-          if (error) return debug(error)
+          if (error) return log(error)
           requestedFromPeer.push({publicKey, index})
-          index++
-          requestNextEnvelope()
         })
       }
     })
@@ -77,34 +79,37 @@ module.exports = function (options) {
 
   // When our peer sends an envelope...
   protocol.on('envelope', function (envelope) {
-    debug('sent envelope: %o', envelope)
+    log('received envelope: %s#%d', envelope.publicKey, envelope.message.index)
     // Validate envelope schema and signature.
     if (!validate.envelope(envelope)) {
-      return debug('invalid envelope')
+      return log('invalid envelope: %O', envelope)
     }
     // Validate body.
     if (!validate.body(envelope.message.body)) {
-      return debug('invalid body')
+      return log('invalid body: %O', envelope.message.body)
     }
     // Ensure body is for this project.
     if (envelope.message.project !== discoveryKey) {
-      return debug('project mismatch')
+      return log('project mismatch')
     }
     // Write to our database.
+    log('putting envelope: %s#%d', envelope.publicKey, envelope.message.index)
     database.putEnvelope(envelope, function (error) {
-      if (error) return debug(error)
+      if (error) return log(error)
     })
     // Call back about the update.
     onUpdate(envelope.project)
   })
 
   protocol.on('invalid', function (body) {
-    debug('invalid message: %o', body)
+    log('received invalid message: %O', body)
   })
 
   // Extend our handshake.
+  log('sending handshake')
   protocol.handshake(function (error) {
-    if (error) return debug(error)
+    if (error) return log(error)
+    log('sent handshake')
   })
 
   return protocol
