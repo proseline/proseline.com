@@ -236,7 +236,7 @@ Peer.prototype.leaveProject = function (discoveryKey) {
     sharedStream.destroy()
     sharedStreams.delete(discoveryKey)
   }
-  if (self.sharedStreams.size === 0) {
+  if (self._sharedStreams.size === 0) {
     self.emit('done')
     self.transportStream.destroy()
   }
