@@ -4,14 +4,11 @@ var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var databases = require('./db/databases')
+var debug = require('debug')('proseline:instance')
 var domainSingleton = require('domain-singleton')
 var moment = require('moment')
 var pageBus = require('./page-bus')
 var runSeries = require('run-series')
-
-var debug = {
-  instance: require('debug')('proseline:instance')
-}
 
 runSeries([
   detectFeatures,
@@ -51,7 +48,7 @@ var actions = new EventEmitter()
     window.alert(error.toString())
   })
 
-function action (/* variadic */) {
+function send (/* variadic */) {
   assert(
     actions.listenerCount(arguments[0]) > 0,
     'no listeners for action ' + arguments[0]
@@ -87,7 +84,7 @@ require('./model')(
     )
     actions.on(name, nanoraf(function (data) {
       listener(data, globalState, reduce, function (error) {
-        if (error) return action('error', error)
+        if (error) return send('error', error)
         update()
       })
     }))
@@ -140,16 +137,16 @@ function render (state) {
   var main
   // Home
   if (path === '' || path === '/') {
-    return renderHomePage(state, action)
+    return renderHomePage(state, send)
   // Join Link
   } else if (path === '/join' && window.location.hash) {
     var re = /^#([a-f0-9]{64}):([a-f0-9]{64})$/
     var match = re.exec(window.location.hash)
-    if (!match) return renderNotFound(state, action)
+    if (!match) return renderNotFound(state, send)
     main = document.createElement('main')
     main.appendChild(
       renderLoading(function () {
-        action('join project', {
+        send('join project', {
           replicationKey: match[1],
           writeSeed: match[2]
         })
@@ -162,38 +159,38 @@ function render (state) {
     var remainder = path.substr(74)
     var publicKey
     if (remainder === '' || remainder === '/') {
-      return renderProject(state, action, discoveryKey)
+      return renderProject(state, send, discoveryKey)
     // New Draft
     } else if (remainder === '/drafts/new') {
-      return renderEditor(state, action, discoveryKey)
+      return renderEditor(state, send, discoveryKey)
     // New Draft with Parents
     } else if (/^\/drafts\/new\/[a-f0-9]{64}(,[a-f0-9]{64})*$/.test(remainder)) {
       var parents = remainder.substr(12).split(',')
-      return renderEditor(state, action, discoveryKey, parents)
+      return renderEditor(state, send, discoveryKey, parents)
     // Comparison
     } else if (/^\/drafts\/compare\/[a-f0-9]{64},[a-f0-9]{64}$/.test(remainder)) {
       var drafts = remainder.substr(16).split(',')
-      return renderComparison(state, action, discoveryKey, drafts)
+      return renderComparison(state, send, discoveryKey, drafts)
     // View Drafts
     } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
       var digest = remainder.substr(8, 64)
-      return renderViewer(state, action, discoveryKey, digest)
+      return renderViewer(state, send, discoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
       publicKey = remainder.substr(7, 64)
       var identifier = remainder.substr(7 + 64 + 1, 8)
-      return renderMark(state, action, discoveryKey, publicKey, identifier)
+      return renderMark(state, send, discoveryKey, publicKey, identifier)
     // Member Activity
     } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
       publicKey = remainder.substr(9, 64)
-      return renderMember(state, action, discoveryKey, publicKey)
+      return renderMember(state, send, discoveryKey, publicKey)
     } else {
-      return renderNotFound(state, action)
+      return renderNotFound(state, send)
     }
   } else if (path === '/subscription') {
-    return renderSubscription(state, action)
+    return renderSubscription(state, send)
   } else {
-    return renderNotFound(state, action)
+    return renderNotFound(state, send)
   }
 }
 
@@ -204,7 +201,7 @@ function network (done) {
     bus: pageBus,
     task: 'proseline-peer',
     onAppointed: function () {
-      debug.instance('appointed peer')
+      debug('appointed peer')
       var client = new Client()
       setInterval(function () {
         pageBus.emit('peers', client.countPeers())
@@ -213,19 +210,19 @@ function network (done) {
   })
   pageBus.on('peers', function (count) {
     // TODO: Prevent clearing inputs on redraw.
-    // action('peers', count)
+    // send('peers', count)
   })
   pageBus.on('envelope', function (envelope) {
     var discoveryKey = envelope.message.project
     var publicKey = envelope.publicKey
     if (globalState.discoveryKey) {
       databases.get(discoveryKey, function (error, database) {
-        if (error) return debug.instance(error)
+        if (error) return debug(error)
         database.getDefaultIdentity(function (error, identity) {
-          if (error) return debug.instance(error)
+          if (error) return debug(error)
           // If we created this envelope, don't show an update.
           if (identity.publicKey === publicKey) return
-          return action('changed')
+          return send('changed')
         })
       })
     }
@@ -234,7 +231,7 @@ function network (done) {
       !globalState.projects.some(function (project) {
         return project.discoveryKey === discoveryKey
       })
-    ) return action('changed')
+    ) return send('changed')
   })
   done()
 }
