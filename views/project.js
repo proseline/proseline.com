@@ -118,14 +118,18 @@ function copyInvitation (state) {
 
 function persistent (state, send) {
   if (state.persistent) {
-    return document.createTextNode(
+    var p = document.createElement('p')
+    p.appendChild(document.createTextNode(
       'You are sharing this project through your subscription.'
-    )
+    ))
+    return p
   }
   var button = document.createElement('button')
-  button.onclick = function () { send('persist') }
+  button.onclick = function () {
+    send('persist')
+  }
   button.appendChild(document.createTextNode(
-    'Share through your subscription.'
+    'Share this project through your subscription.'
   ))
   return button
 }
