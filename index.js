@@ -201,7 +201,7 @@ var PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
 
 function network (done) {
   domainSingleton({
-    pageBus,
+    bus: pageBus,
     task: 'proseline-peer',
     onAppointed: function () {
       debug.instance('appointed peer')
@@ -209,16 +209,14 @@ function network (done) {
       setInterval(function () {
         pageBus.emit('peers', client.countPeers())
       }, PEER_COUNT_UPDATE_INTERVAL)
-      client.on('update', function (discoveryKey) {
-        pageBus.emit('update', discoveryKey)
-      })
     }
   })
   pageBus.on('peers', function (count) {
     // TODO: Prevent clearing inputs on redraw.
     // action('peers', count)
   })
-  pageBus.on('update', function (discoveryKey) {
+  pageBus.on('envelope', function (envelope) {
+    var discoveryKey = envelope.message.project
     if (
       globalState.discoveryKey === discoveryKey &&
       // Don't render updates while introducing.

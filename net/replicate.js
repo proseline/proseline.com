@@ -1,6 +1,7 @@
 var ReplicationProtocol = require('proseline-protocol').Replication
 var assert = require('assert')
 var debug = require('debug')
+var pageBus = require('../page-bus')
 
 var DEBUG_NAMESPACE = 'proseline:replicate:'
 
@@ -10,13 +11,11 @@ module.exports = function (options) {
   assert.equal(typeof options.publicKey, 'string')
   assert.equal(typeof options.secretKey, 'string')
   assert(options.database)
-  assert(typeof options.onUpdate, 'function')
   var replicationKey = options.replicationKey
   var discoveryKey = options.discoveryKey
   var publicKey = options.publicKey
   var secretKey = options.secretKey
   var database = options.database
-  var onUpdate = options.onUpdate
 
   var log = debug(DEBUG_NAMESPACE + discoveryKey)
 
@@ -103,8 +102,7 @@ module.exports = function (options) {
     database.putEnvelope(envelope, function (error) {
       if (error) return log(error)
       log('put envelope: %s', id)
-      // Call back about the update.
-      onUpdate(envelope.project)
+      pageBus.emit('envelope', envelope)
     })
   })
 

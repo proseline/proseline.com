@@ -3,6 +3,7 @@ var createIdentity = require('../crypto/create-identity')
 var inherits = require('inherits')
 
 // TODO: paid peer data storage
+var pageBus = require('../page-bus')
 
 // Proseline wraps a single IndexedDB database that stores
 // client-global data, including data about other IndexedDB
@@ -41,8 +42,7 @@ prototype.putProject = function (project, callback) {
   var self = this
   self._put('projects', project.discoveryKey, project, function (error) {
     if (error) return callback(error)
-    self.emit('added project', project)
-    self._emitProjectEvent(project)
+    pageBus.emit('added project', project.discoveryKey)
     callback()
   })
 }
@@ -51,7 +51,7 @@ prototype.overwriteProject = function (project, callback) {
   var self = this
   self._put('projects', project.discoveryKey, project, function (error) {
     if (error) return callback(error)
-    self._emitProjectEvent(project)
+    pageBus.emit('overwrote project', project.discoverKey)
     callback()
   })
 }
@@ -64,7 +64,7 @@ prototype.deleteProject = function (discoveryKey, callback) {
   var self = this
   self._delete('projects', discoveryKey, function (error) {
     if (error) return callback(error)
-    self.emit('deleted project', discoveryKey)
+    pageBus.emit('deleted project', discoveryKey)
     callback()
   })
 }
@@ -103,8 +103,4 @@ prototype.getSubscription = function (callback) {
 
 prototype.setSubscription = function (subscription, callback) {
   this._put('user', 'subscription', subscription, callback)
-}
-
-prototype._emitProjectEvent = function (project) {
-  this.emit('project', project)
 }

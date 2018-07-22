@@ -8,6 +8,7 @@ var hashHex = require('../crypto/hash-hex')
 var inherits = require('inherits')
 var keyPairFromSeed = require('../crypto/key-pair-from-seed')
 var multiplex = require('multiplex')
+var pageBus = require('../page-bus')
 var replicate = require('./replicate')
 var runSeries = require('run-series')
 var sign = require('../crypto/sign')
@@ -26,11 +27,11 @@ function Peer (id, transportStream, persistent) {
   self.transportStream = transportStream
   transportStream
     .on('end', function () {
-      self.emit('done')
+      self.done()
     })
     .on('error', function (error) {
       log(error)
-      self.emit('done')
+      self.done()
     })
 
   // Multiplex replication streams over the transport stream.
@@ -67,22 +68,26 @@ function Peer (id, transportStream, persistent) {
     })
   })
 
+  var proseline = databases.proseline
+
   // Add and remove replication streams as we join and leave projects.
-  databases.proseline
-    .on('added project', function (project) {
-      var discoveryKey = project.discoveryKey
-      databases.get(discoveryKey, function (error, database) {
+  var pageBusListeners = self._pageBusListeners = {
+    'added project': function (discoveryKey) {
+      proseline.getProject(discoveryKey, function (error, project) {
         if (error) return log(error)
-        self.joinProject(project, database)
+        databases.get(discoveryKey, function (error, database) {
+          if (error) return log(error)
+          self.joinProject(project, database)
+        })
       })
-    })
-    .on('deleted project', function (discoveryKey) {
+    },
+    'deleted project': function (discoveryKey) {
       self.leaveProject(discoveryKey)
-    })
+    }
+  }
 
   if (persistent) {
     var protocol = new InvitationProtocol()
-    var proseline = databases.proseline
 
     // On receiving an invitation, join the project.
     protocol.on('invitation', function (invitation) {
@@ -158,9 +163,14 @@ function Peer (id, transportStream, persistent) {
           if (error) return log(error)
 
           // Invite to projects added later.
-          proseline.on('project', function (project) {
-            if (project.persistent) sendInvitation(project)
-          })
+          pageBusListeners['added project'] = onProject
+          pageBusListeners['overwrote project'] = onProject
+          function onProject (discoveryKey) {
+            proseline.getProject(discoveryKey, function (error, project) {
+              if (error) return log(error)
+              if (project.persistent) sendInvitation(project)
+            })
+          }
 
           // Invite to existing projects.
           proseline.listProjects(function (error, projects) {
@@ -170,8 +180,11 @@ function Peer (id, transportStream, persistent) {
             })
           })
 
+          var invitationsSent = new Set()
+
           function sendInvitation (project) {
             var discoveryKey = project.discoveryKey
+            if (invitationsSent.has(discoveryKey)) return
             var message = {
               replicationKey: project.replicationKey,
               writeSeed: project.writeSeed,
@@ -186,6 +199,7 @@ function Peer (id, transportStream, persistent) {
             log('sending invitation: %o', discoveryKey)
             protocol.invitation(envelope, function (error) {
               if (error) return log(error)
+              invitationsSent.add(discoveryKey)
               log('sent invitation: %o', discoveryKey)
             })
           }
@@ -223,6 +237,10 @@ function Peer (id, transportStream, persistent) {
     })
   }
 
+  Object.keys(pageBusListeners).forEach(function (eventName) {
+    pageBus.addListener(eventName, pageBusListeners[eventName])
+  })
+
   plex.pipe(transportStream).pipe(plex)
 }
 
@@ -259,10 +277,7 @@ Peer.prototype.joinProject = function (
     publicKey: project.writeKeyPair.publicKey,
     secretKey: project.writeKeyPair.secretKey,
     discoveryKey,
-    database,
-    onUpdate: function (discoveryKey) {
-      self.emit('update', discoveryKey)
-    }
+    database
   })
   if (!sharedStream) {
     sharedStream = self.plex.createSharedStream(discoveryKey)
@@ -296,7 +311,18 @@ Peer.prototype.leaveProject = function (discoveryKey) {
     sharedStreams.delete(discoveryKey)
   }
   if (self._sharedStreams.size === 0) {
-    self.emit('done')
-    self.transportStream.destroy()
+    self.done()
   }
+}
+
+Peer.prototype.done = function () {
+  this._removePageBusListeners()
+  this.emit('done')
+}
+
+Peer.prototype._removePageBusListeners = function () {
+  var pageBusListeners = this._pageBusListeners
+  Object.keys(pageBusListeners).forEach(function (eventName) {
+    pageBus.removeListener(eventName, pageBusListeners[eventName])
+  })
 }

@@ -4,6 +4,7 @@ var assert = require('assert')
 var createIdentity = require('../crypto/create-identity')
 var hash = require('../crypto/hash')
 var inherits = require('inherits')
+var pageBus = require('../page-bus')
 var runParallel = require('run-parallel')
 var sign = require('../crypto/sign')
 var stringify = require('../utilities/stringify')
@@ -189,11 +190,7 @@ Project.prototype._log = function (message, identity, callback) {
 }
 
 Project.prototype._emitEnvelopeEvent = function (envelope) {
-  this.emit('envelope', {
-    publicKey: envelope.publicKey,
-    index: envelope.message.index,
-    type: envelope.message.body.type
-  })
+  pageBus.emit('envelope', envelope)
 }
 
 Project.prototype.getEnvelope = function (publicKey, index, callback) {

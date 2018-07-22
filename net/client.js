@@ -5,6 +5,7 @@ var assert = require('assert')
 var databases = require('../db/databases')
 var debug = require('debug')('proseline:client')
 var inherits = require('inherits')
+var pageBus = require('../page-bus')
 var signalhub = require('signalhub')
 var simpleGet = require('simple-get')
 var webRTCSwarm = require('webrtc-swarm')
@@ -20,13 +21,15 @@ function Client () {
   self._peers = new Set()
   self._swarms = new Set()
   self._joinSwarms()
-  databases.proseline
-    .on('added project', function (project) {
+  pageBus.on('added project', function (discoveryKey) {
+    databases.proseline.getProject(discoveryKey, function (error, project) {
+      if (error) return debug(error)
       self._joinSwarm(project)
     })
-    .on('deleted project', function (discoveryKey) {
-      self._leaveSwarm(discoveryKey)
-    })
+  })
+  pageBus.on('deleted project', function (discoveryKey) {
+    self._leaveSwarm(discoveryKey)
+  })
   self._persistentPeer = null
   self._connectToPersistentPeer()
 }
