@@ -62,8 +62,7 @@
     "standard": "^11.0.1",
     "tape": "^4.9.1",
     "unassertify": "^2.1.1",
-    "watchify": "^3.11.0",
-    "webdriverio": "^4.13.1"
+    "watchify": "^3.11.0"
   },
   "lint-staged": {
     "*.js": "standard"
