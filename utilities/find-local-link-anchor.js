@@ -1,3 +1,4 @@
+/* global SVGAnimatedString */
 module.exports = function findLocalLinkAnchor (node) {
   if (!node) return undefined
   var checkParent = !node || !hasHREF(node)
@@ -5,11 +6,9 @@ module.exports = function findLocalLinkAnchor (node) {
 }
 
 function hasHREF (element) {
-  if (element.href) return true
-  if (
-    element.getAttributeNS &&
-    element.getAttribute('href') &&
-    element.getAttribute('href').baseVal
-  ) return true
-  return false
+  if (!element.href) return false
+  if (element.href instanceof SVGAnimatedString) {
+    return !!element.href.baseVal
+  }
+  return true
 }
