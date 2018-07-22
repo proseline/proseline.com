@@ -61,6 +61,7 @@ function Peer (id, transportStream, persistent) {
       })
     })
   })
+
   plex.pipe(transportStream).pipe(plex)
 
   // Add and remove replication streams as we join and leave projects.
