@@ -123,6 +123,7 @@ function Peer (id, transportStream, persistent) {
               if (error) return done(error)
               var message = {
                 replicationKey: chunk.replicationKey,
+                writeSeed: chunk.writeSeed,
                 title: chunk.title || 'Untitled Project'
               }
               var stringified = stringify(message)
