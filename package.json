@@ -50,7 +50,6 @@
     "ajv": "^6.5.2",
     "browserify": "^16.2.2",
     "browserify-header": "^0.9.4",
-    "chromedriver": "^2.40.0",
     "common-shakeify": "^0.5.0",
     "envify": "^4.1.0",
     "exorcist": "^1.0.1",
