@@ -3,8 +3,6 @@ var renderLoading = require('./loading')
 var renderSection = require('./partials/section')
 var renderSharing = require('./partials/sharing')
 
-// TODO: paid peer UI
-
 module.exports = function (state, send) {
   state.route = 'home'
   var main = document.createElement('main')

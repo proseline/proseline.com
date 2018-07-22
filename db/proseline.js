@@ -1,8 +1,6 @@
 var Database = require('./database')
 var createIdentity = require('../crypto/create-identity')
 var inherits = require('inherits')
-
-// TODO: paid peer data storage
 var pageBus = require('../page-bus')
 
 // Proseline wraps a single IndexedDB database that stores
