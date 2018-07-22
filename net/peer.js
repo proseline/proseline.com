@@ -1,4 +1,5 @@
 var EventEmitter = require('events').EventEmitter
+var keyPairFromSeed = require('../crypto/key-pair-from-seed')
 var InvitationProtocol = require('proseline-protocol').Invitation
 var databases = require('../db/databases')
 var debug = require('debug')
@@ -83,8 +84,17 @@ function Peer (id, transportStream, persistent) {
       log('invited: %o', invitation)
       var replicationKey = invitation.message.replicationKey
       var discoveryKey = hashHex(replicationKey)
+      var writeSeed = invitation.message.writeSeed
+      if (!writeSeed) return log('no write seed')
+      var writeKeyPair = keyPairFromSeed(writeSeed)
       var title = invitation.message.title || 'Untitled Project'
-      var project = {replicationKey, discoveryKey, title}
+      var project = {
+        replicationKey,
+        discoveryKey,
+        writeSeed,
+        writeKeyPair,
+        title
+      }
       // TODO: Deduplicate project join code in peer and model.
       runSeries([
         function indexProjectInProselineDB (done) {
