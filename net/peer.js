@@ -62,8 +62,6 @@ function Peer (id, transportStream, persistent) {
     })
   })
 
-  plex.pipe(transportStream).pipe(plex)
-
   // Add and remove replication streams as we join and leave projects.
   databases.proseline
     .on('added project', function (project) {
@@ -175,6 +173,8 @@ function Peer (id, transportStream, persistent) {
       log('sent handshake')
     })
   }
+
+  plex.pipe(transportStream).pipe(plex)
 }
 
 inherits(Peer, EventEmitter)
