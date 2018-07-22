@@ -4,7 +4,6 @@ var InvitationProtocol = require('proseline-protocol').Invitation
 var databases = require('../db/databases')
 var debug = require('debug')
 var duplexify = require('duplexify')
-var flushWriteStream = require('flush-write-stream')
 var hashHex = require('../crypto/hash-hex')
 var inherits = require('inherits')
 var multiplex = require('multiplex')
@@ -134,34 +133,41 @@ function Peer (id, transportStream, persistent) {
       proseline.getSubscription(function (error, subscription) {
         if (error) return log(error)
         if (!subscription) return log('no subscription')
-        log('streaming projects')
-        // Create a stream of all existing and later-joined projects.
-        proseline.createProjectStream()
-          .pipe(flushWriteStream.obj(function (chunk, _, done) {
-            // Send an invitation to the problem to the persistent peer.
-            proseline.getUserIdentity(function (error, identity) {
-              if (error) return done(error)
-              var message = {
-                replicationKey: chunk.replicationKey,
-                writeSeed: chunk.writeSeed,
-                title: chunk.title || 'Untitled Project'
-              }
-              var stringified = stringify(message)
-              var envelope = {
-                message,
-                publicKey: identity.publicKey,
-                signature: sign(stringified, identity.secretKey)
-              }
-              log('sending invitation: %o', chunk.discoveryKey)
-              protocol.invitation(envelope, function (error) {
-                if (error) return log(error)
-              })
-            })
-          }))
-        // Request invitations.
+
         var email = subscription.email
         proseline.getUserIdentity(function (error, identity) {
           if (error) return log(error)
+
+          // Invite to projects added later.
+          proseline.on('project', sendInvitation)
+
+          // Invite to existing projects.
+          proseline.listProjects(function (error, projects) {
+            if (error) return log(error)
+            projects.forEach(sendInvitation)
+          })
+
+          function sendInvitation (project) {
+            var discoveryKey = project.discoveryKey
+            var message = {
+              replicationKey: project.replicationKey,
+              writeSeed: project.writeSeed,
+              title: project.title || 'Untitled Project'
+            }
+            var stringified = stringify(message)
+            var envelope = {
+              message,
+              publicKey: identity.publicKey,
+              signature: sign(stringified, identity.secretKey)
+            }
+            log('sending invitation: %o', discoveryKey)
+            protocol.invitation(envelope, function (error) {
+              if (error) return log(error)
+              log('sent invitation: %o', discoveryKey)
+            })
+          }
+
+          // Request invitations.
           var message = {email, date: new Date().toISOString()}
           var stringified = stringify(message)
           var envelope = {
@@ -169,9 +175,10 @@ function Peer (id, transportStream, persistent) {
             publicKey: identity.publicKey,
             signature: sign(stringified, identity.secretKey)
           }
-          log('requesting invitations: %o', subscription)
+          log('sending request: %s', email)
           protocol.request(envelope, function (error) {
             if (error) return log(error)
+            log('sent request: %s', email)
           })
         })
       })
