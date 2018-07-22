@@ -96,9 +96,9 @@ module.exports = function (options) {
     log('received envelope: %s # %d', envelope.publicKey, envelope.message.index)
     database.putEnvelope(envelope, function (error) {
       if (error) return log(error)
+      // Call back about the update.
+      onUpdate(envelope.project)
     })
-    // Call back about the update.
-    onUpdate(envelope.project)
   })
 
   protocol.on('invalid', function (body) {
