@@ -88,7 +88,12 @@ function Peer (id, transportStream, persistent) {
       if (!writeSeed) return log('no write seed')
       proseline.getProject(discoveryKey, function (error, existing) {
         if (error) return log(error)
-        if (existing) return log('already joined project')
+        if (existing) {
+          log('already have project')
+          return replicateProject(function (error) {
+            if (error) return log(error)
+          })
+        }
         var writeKeyPair = keyPairFromSeed(writeSeed)
         var title = invitation.message.title || 'Untitled Project'
         var project = {
@@ -109,16 +114,18 @@ function Peer (id, transportStream, persistent) {
               db.createIdentity(true, done)
             })
           },
-          function join (done) {
-            databases.get(discoveryKey, function (error, db) {
-              if (error) return done(error)
-              self.joinProject(project, db)
-              done()
-            })
-          }
+          replicateProject
         ], function (error) {
           if (error) return log(error)
         })
+
+        function replicateProject (callback) {
+          databases.get(discoveryKey, function (error, db) {
+            if (error) return callback(error)
+            self.joinProject(project, db)
+            callback()
+          })
+        }
       })
     })
 
