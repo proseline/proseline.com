@@ -1,16 +1,18 @@
+/* global fetch */
 var EventEmitter = require('events').EventEmitter
-var keyPairFromSeed = require('../crypto/key-pair-from-seed')
 var InvitationProtocol = require('proseline-protocol').Invitation
 var databases = require('../db/databases')
 var debug = require('debug')
 var duplexify = require('duplexify')
 var hashHex = require('../crypto/hash-hex')
 var inherits = require('inherits')
+var keyPairFromSeed = require('../crypto/key-pair-from-seed')
 var multiplex = require('multiplex')
 var replicate = require('./replicate')
 var runSeries = require('run-series')
 var sign = require('../crypto/sign')
 var stringify = require('fast-json-stable-stringify')
+var verify = require('../crypto/verify')
 
 var DEBUG_NAMESPACE = 'proseline:peer:'
 
@@ -100,23 +102,40 @@ function Peer (id, transportStream, persistent) {
             if (error) return log(error)
           })
         }
-        project.title = invitation.message.title || 'Untitled Project'
-        // TODO: Deduplicate project join code in peer and model.
-        runSeries([
-          function indexProjectInProselineDB (done) {
-            proseline.putProject(project, done)
-          },
-          function createProjectDBAndIdentity (done) {
-            databases.get(discoveryKey, function (error, db) {
-              if (error) return done(error)
-              db.createIdentity(true, done)
+        fetch('https://paid.proseline.com/publickey')
+          .then(function (response) { return response.text() })
+          .then(function (fetchedPublicKey) {
+            if (!/^[a-f0-9]{64}$/.test(fetchedPublicKey)) {
+              return log('invalid public key')
+            }
+            var publicKey = invitation.publicKey
+            var validSignature = verify(
+              stringify(invitation.message),
+              invitation.signature,
+              publicKey
+            )
+            if (!validSignature) return log('invalid signature')
+            if (publicKey !== fetchedPublicKey) {
+              return log('public key mismatch')
+            }
+            project.title = invitation.message.title || 'Untitled Project'
+            // TODO: Deduplicate project join code in peer and model.
+            runSeries([
+              function indexProjectInProselineDB (done) {
+                proseline.putProject(project, done)
+              },
+              function createProjectDBAndIdentity (done) {
+                databases.get(discoveryKey, function (error, db) {
+                  if (error) return done(error)
+                  db.createIdentity(true, done)
+                })
+              },
+              replicateProject
+            ], function (error) {
+              if (error) return log(error)
             })
-          },
-          replicateProject
-        ], function (error) {
-          if (error) return log(error)
-        })
-
+          })
+          .catch(function (error) { log(error) })
         function replicateProject (callback) {
           databases.get(discoveryKey, function (error, db) {
             if (error) return callback(error)
