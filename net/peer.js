@@ -85,19 +85,18 @@ function Peer (id, transportStream, persistent) {
       var replicationKey = invitation.message.replicationKey
       var discoveryKey = hashHex(replicationKey)
       var writeSeed = invitation.message.writeSeed
+      var project = {replicationKey, discoveryKey, writeSeed}
       if (!writeSeed) return log('no write seed')
       proseline.getProject(discoveryKey, function (error, existing) {
         if (error) return log(error)
-        if (existing) return log('already joined project')
-        var writeKeyPair = keyPairFromSeed(writeSeed)
-        var title = invitation.message.title || 'Untitled Project'
-        var project = {
-          replicationKey,
-          discoveryKey,
-          writeSeed,
-          writeKeyPair,
-          title
+        if (existing) {
+          log('already have project')
+          return replicateProject(function (error) {
+            if (error) return log(error)
+          })
         }
+        project.writeKeyPair = keyPairFromSeed(writeSeed)
+        project.title = invitation.message.title || 'Untitled Project'
         // TODO: Deduplicate project join code in peer and model.
         runSeries([
           function indexProjectInProselineDB (done) {
@@ -109,16 +108,18 @@ function Peer (id, transportStream, persistent) {
               db.createIdentity(true, done)
             })
           },
-          function join (done) {
-            databases.get(discoveryKey, function (error, db) {
-              if (error) return done(error)
-              self.joinProject(project, db)
-              done()
-            })
-          }
+          replicateProject
         ], function (error) {
           if (error) return log(error)
         })
+
+        function replicateProject (callback) {
+          databases.get(discoveryKey, function (error, db) {
+            if (error) return callback(error)
+            self.joinProject(project, db)
+            callback()
+          })
+        }
       })
     })
 
