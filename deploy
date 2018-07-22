@@ -1,20 +1,16 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 BUILD=build
 ROOT=/var/www/proseline.com
-FLAGS="--verbose --checksum --recursive --sparse --compress --human-readable --progress"
-REF=${1:-HEAD}
-(
-	set -e
-  GITDIR=$(pwd)
-  TMPDIR=$(mktemp -d)
-	trap '{ cd $GITDIR ; rm -rf $TMPDIR; exit 255; }' SIGINT EXIT
-	git clone -s "$GITDIR" "$TMPDIR"
-	cd "$TMPDIR"
-	npm install
-	NODE_ENV=production STRIPE_PUBLISHABLE_KEY=pk_live_5wJPQjw3o8OhAtam7CpTRLbq npm run build
-	rsync $FLAGS $BUILD/* "node@proseline.com:$ROOT"
-)
 TAGNAME="deployed-$(date --iso-8601=seconds --utc | tr -d ':' | sed 's/+0000//')"
+GITDIR="$PWD"
+TMPDIR=$(mktemp -d)
+trap '{ cd $GITDIR ; rm -rf $TMPDIR; exit 255; }' INT EXIT
+git clone -s "$GITDIR" "$TMPDIR"
+cd "$TMPDIR"
+npm install
+NODE_ENV=production STRIPE_PUBLISHABLE_KEY=pk_live_5wJPQjw3o8OhAtam7CpTRLbq npm run build
+rsync --verbose --checksum --recursive --sparse --compress --human-readable --progress $BUILD/* "node@proseline.com:$ROOT"
+cd "$GITDIR"
 git tag "$TAGNAME"
 git push origin "$TAGNAME"
