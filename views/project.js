@@ -62,7 +62,7 @@ function renderDeleteButton (state, send) {
   button.appendChild(document.createTextNode('Leave this project.'))
   button.addEventListener('click', function () {
     if (window.confirm(CONFIRM_DELETE)) {
-      send('delete project', state.discoveryKey)
+      send('leave project', state.discoveryKey)
     }
   })
   return button

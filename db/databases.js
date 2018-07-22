@@ -32,6 +32,7 @@ function get (id, callback) {
   // Otherwise...
   proseline.getProject(id, function (error, project) {
     if (error) return callback(error)
+    if (project.deleted) return callback(new Error('deleted project'))
     var db = new ProjectDatabase({
       discoveryKey: id,
       writeKeyPair: project.writeKeyPair

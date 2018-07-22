@@ -114,13 +114,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  handler('delete project', function (discoveryKey, state, reduce, done) {
+  handler('leave project', function (discoveryKey, state, reduce, done) {
     assert.equal(typeof discoveryKey, 'string')
     runParallel([
-      function deleteProject (done) {
+      function overwriteProject (done) {
         withIndexedDB('proseline', function (error, db) {
           if (error) return done(error)
-          db.deleteProject(discoveryKey, done)
+          db.putProject({discoveryKey, deleted: true}, done)
         })
       },
       function deleteDatabase (done) {
@@ -147,7 +147,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       db.getProject(discoveryKey, function (error, project) {
         if (error) return done(error)
-        if (project) return redirect()
+        if (project && !project.deleted) return redirect()
         createProject({
           replicationKey,
           discoveryKey,
@@ -219,6 +219,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       db.getProject(state.discoveryKey, function (error, project) {
         if (error) return done(error)
         if (!project) return done(new Error('no project to rename'))
+        if (project.deleted) return done(new Error('deleted project'))
         project.title = newTitle
         db.putProject(project, done)
         reduce('rename', newTitle)
@@ -300,7 +301,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         project: function (done) {
           withIndexedDB('proseline', function (error, db) {
             if (error) return done(error)
-            db.getProject(discoveryKey, done)
+            db.getProject(discoveryKey, function (error, project) {
+              if (error) return done(error)
+              if (project.deleted) return done(new Error('deleted project'))
+              done(null, project)
+            })
           })
         },
         identity: function (done) {

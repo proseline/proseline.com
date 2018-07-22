@@ -55,6 +55,10 @@ function Peer (id, transportStream, persistent) {
         log('unknown discovery key: %o', discoveryKey)
         return sharedStream.destroy()
       }
+      if (project.deleted) {
+        log('deleted project: %o', discoveryKey)
+        return sharedStream.destroy()
+      }
       databases.get(discoveryKey, function (error, database) {
         if (error) return log(error)
         self.joinProject(project, database, sharedStream)
@@ -92,6 +96,7 @@ function Peer (id, transportStream, persistent) {
         if (error) return log(error)
         if (existing) {
           log('already have project')
+          if (existing.deleted) return log('deleted project')
           return replicateProject(function (error) {
             if (error) return log(error)
           })
