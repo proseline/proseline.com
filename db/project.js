@@ -4,11 +4,9 @@ var assert = require('assert')
 var createIdentity = require('../crypto/create-identity')
 var hash = require('../crypto/hash')
 var inherits = require('inherits')
-var multistream = require('multistream')
 var runParallel = require('run-parallel')
 var sign = require('../crypto/sign')
 var stringify = require('../utilities/stringify')
-var through2 = require('through2')
 
 module.exports = Project
 
@@ -17,7 +15,6 @@ function Project (data) {
   assert.equal(typeof data, 'object')
   assert.equal(typeof data.discoveryKey, 'string')
   assert.equal(typeof data.writeKeyPair, 'object')
-  this._updateStreams = []
   this._writeKeyPair = data.writeKeyPair
   Database.call(this, {
     name: data.discoveryKey,
@@ -165,13 +162,7 @@ Project.prototype._log = function (message, identity, callback) {
     callback(transaction.error)
   }
   transaction.oncomplete = function () {
-    self._streamUpdate(
-      envelope.publicKey, envelope.message.index,
-      function (error) {
-        if (error) return callback(error)
-        callback(null, envelope, envelope.digest)
-      }
-    )
+    self._emitEnvelopeEvent(envelope)
   }
   requestHead(transaction, publicKey, function (head) {
     if (head === undefined) {
@@ -193,6 +184,14 @@ Project.prototype._log = function (message, identity, callback) {
     transaction
       .objectStore('logs')
       .add(envelope, logEntryKey(envelope.publicKey, message.index))
+  })
+}
+
+Project.prototype._emitEnvelopeEvent = function (envelope) {
+  this.emit('envelope', {
+    publicKey: envelope.publicKey,
+    index: envelope.message.index,
+    type: envelope.message.body.type
   })
 }
 
@@ -236,9 +235,7 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   var calledBackWithError = false
   transaction.oncomplete = function () {
     if (calledBackWithError) return
-    self._streamUpdate(
-      envelope.publicKey, envelope.message.index, callback
-    )
+    self._emitEnvelopeEvent(envelope)
   }
   var key = logEntryKey(envelope.publicKey, envelope.message.index)
   requestHead(transaction, envelope.publicKey, function (head) {
@@ -266,49 +263,6 @@ function addIndexingMetadata (envelope) {
 function removeIndexingMetadata (envelope) {
   delete envelope.digest
   delete envelope.added
-}
-
-Project.prototype._streamUpdate = function (publicKey, index, callback) {
-  runParallel(
-    this._updateStreams.map(function (stream) {
-      return function (done) {
-        stream.write({publicKey, index}, done)
-      }
-    }),
-    callback
-  )
-}
-
-Project.prototype.createOfferStream = function () {
-  var self = this
-  return multistream.obj([
-    function currentHeads () {
-      var stream = through2.obj()
-      self.listLogs(function (error, publicKeys) {
-        if (error) return stream.destroy(error)
-        runParallel(
-          publicKeys.map(function (publicKey) {
-            return function (done) {
-              self.getLogHead(publicKey, function (error, index) {
-                if (error) return done(error)
-                stream.write({publicKey, index}, done)
-              })
-            }
-          }),
-          function (error) {
-            if (error) stream.destroy(error)
-            stream.end()
-          }
-        )
-      })
-      return stream
-    },
-    function updatedHeads () {
-      var stream = through2.obj()
-      self._updateStreams.push(stream)
-      return stream
-    }
-  ])
 }
 
 // Drafts

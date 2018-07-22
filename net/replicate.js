@@ -1,7 +1,6 @@
 var ReplicationProtocol = require('proseline-protocol').Replication
 var assert = require('assert')
 var debug = require('debug')
-var flushWriteStream = require('flush-write-stream')
 
 var DEBUG_NAMESPACE = 'proseline:replicate:'
 
@@ -18,6 +17,7 @@ module.exports = function (options) {
   var secretKey = options.secretKey
   var database = options.database
   var onUpdate = options.onUpdate
+
   var log = debug(DEBUG_NAMESPACE + discoveryKey)
 
   var protocol = new ReplicationProtocol({
@@ -26,47 +26,51 @@ module.exports = function (options) {
     secretKey: Buffer.from(secretKey, 'hex')
   })
 
-  // Store a list of envelopes that we've requested, so we can
-  // check the list to avoid offering this peer envelopes we've
-  // just received from it.
-  var requestedFromPeer = []
+  var listeningToDatabase = false
 
   protocol.once('handshake', function () {
     log('received handshake')
-    database.createOfferStream()
-      .pipe(flushWriteStream.obj(function (chunk, _, done) {
-        var publicKey = chunk.publicKey
-        var index = chunk.index
-        var requestIndex = requestedFromPeer
-          .findIndex(function (request) {
-            return (
-              request.publicKey === publicKey &&
-              request.index === index
-            )
-          })
-        if (requestIndex === -1) {
-          log('sending offer: %s # %d', publicKey, index)
-          protocol.offer(chunk, function (error) {
-            if (error) return log(error)
-          })
-          return done()
-        }
-        requestedFromPeer.splice(requestIndex, 1)
-        done()
-      }))
+    // Offer new envelopes as we receive them.
+    database.addListener('envelope', onEnvelope)
+    listeningToDatabase = true
+    // Offer envelopes we already have.
+    database.listLogs(function (error, publicKeys) {
+      if (error) return log(error)
+      publicKeys.forEach(function (publicKey) {
+        database.getLogHead(publicKey, function (error, index) {
+          if (error) return log(error)
+          offerEnvelope(publicKey, index)
+        })
+      })
+    })
   })
+
+  function onEnvelope (metadata) {
+    offerEnvelope(metadata.publicKey, metadata.index)
+  }
+
+  function offerEnvelope (publicKey, index) {
+    var id = loggingID(publicKey, index)
+    log('sending offer: %s', id)
+    protocol.offer({publicKey, index}, function (error) {
+      if (error) return log(error)
+      log('sent offer: %s', id)
+    })
+  }
 
   // When our peer requests an envelope...
   protocol.on('request', function (request) {
     var publicKey = request.publicKey
     var index = request.index
-    log('received request: %s # %d', publicKey, index)
+    var id = loggingID(publicKey, index)
+    log('received request: %s', id)
     database.getEnvelope(publicKey, index, function (error, envelope) {
       if (error) return log(error)
       if (envelope === undefined) return
-      log('sending envelope: %s # %d', envelope.publicKey, envelope.message.index)
+      log('sending envelope: %s', id)
       protocol.envelope(envelope, function (error) {
         if (error) return log(error)
+        log('sent envelope: %s', id)
       })
     })
   })
@@ -77,15 +81,16 @@ module.exports = function (options) {
   protocol.on('offer', function (offer) {
     var publicKey = offer.publicKey
     var offeredIndex = offer.index
-    log('received offer: %s # %d', publicKey, offeredIndex)
+    var id = loggingID(publicKey, offeredIndex)
+    log('received offer: %s', id)
     database.getLogHead(publicKey, function (error, head) {
       if (error) return log(error)
       if (head === undefined) head = -1
       for (var index = head + 1; index <= offeredIndex; index++) {
-        log('sending request: %s # %d', publicKey, index)
+        log('sending request: %s', id)
         protocol.request({publicKey, index}, function (error) {
           if (error) return log(error)
-          requestedFromPeer.push({publicKey, index})
+          log('sent request: %s', id)
         })
       }
     })
@@ -93,9 +98,11 @@ module.exports = function (options) {
 
   // When our peer sends an envelope...
   protocol.on('envelope', function (envelope) {
-    log('received envelope: %s # %d', envelope.publicKey, envelope.message.index)
+    var id = loggingID(envelope.publicKey, envelope.message.index)
+    log('received envelope: %s', id)
     database.putEnvelope(envelope, function (error) {
       if (error) return log(error)
+      log('put envelope: %s', id)
       // Call back about the update.
       onUpdate(envelope.project)
     })
@@ -107,6 +114,9 @@ module.exports = function (options) {
 
   protocol.on('error', function (error) {
     log(error)
+    if (listeningToDatabase) {
+      database.removeListener('envelope', onEnvelope)
+    }
   })
 
   // Extend our handshake.
@@ -117,4 +127,8 @@ module.exports = function (options) {
   })
 
   return protocol
+}
+
+function loggingID (publicKey, index) {
+  return publicKey + ' # ' + index
 }
