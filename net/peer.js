@@ -86,35 +86,39 @@ function Peer (id, transportStream, persistent) {
       var discoveryKey = hashHex(replicationKey)
       var writeSeed = invitation.message.writeSeed
       if (!writeSeed) return log('no write seed')
-      var writeKeyPair = keyPairFromSeed(writeSeed)
-      var title = invitation.message.title || 'Untitled Project'
-      var project = {
-        replicationKey,
-        discoveryKey,
-        writeSeed,
-        writeKeyPair,
-        title
-      }
-      // TODO: Deduplicate project join code in peer and model.
-      runSeries([
-        function indexProjectInProselineDB (done) {
-          proseline.putProject(project, done)
-        },
-        function createProjectDBAndIdentity (done) {
-          databases.get(discoveryKey, function (error, db) {
-            if (error) return done(error)
-            db.createIdentity(true, done)
-          })
-        },
-        function join (done) {
-          databases.get(discoveryKey, function (error, db) {
-            if (error) return done(error)
-            self.joinProject(project, db)
-            done()
-          })
-        }
-      ], function (error) {
+      proseline.getProject(discoveryKey, function (error, existing) {
         if (error) return log(error)
+        if (existing) return log('already joined project')
+        var writeKeyPair = keyPairFromSeed(writeSeed)
+        var title = invitation.message.title || 'Untitled Project'
+        var project = {
+          replicationKey,
+          discoveryKey,
+          writeSeed,
+          writeKeyPair,
+          title
+        }
+        // TODO: Deduplicate project join code in peer and model.
+        runSeries([
+          function indexProjectInProselineDB (done) {
+            proseline.putProject(project, done)
+          },
+          function createProjectDBAndIdentity (done) {
+            databases.get(discoveryKey, function (error, db) {
+              if (error) return done(error)
+              db.createIdentity(true, done)
+            })
+          },
+          function join (done) {
+            databases.get(discoveryKey, function (error, db) {
+              if (error) return done(error)
+              self.joinProject(project, db)
+              done()
+            })
+          }
+        ], function (error) {
+          if (error) return log(error)
+        })
       })
     })
 
