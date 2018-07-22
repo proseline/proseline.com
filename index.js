@@ -6,7 +6,7 @@ var assert = require('assert')
 var databases = require('./db/databases')
 var domainSingleton = require('domain-singleton')
 var moment = require('moment')
-var pageBus = require('page-bus')
+var pageBus = require('./page-bus')
 var runSeries = require('run-series')
 
 var debug = {
@@ -200,26 +200,25 @@ function render (state) {
 var PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
 
 function network (done) {
-  var bus = pageBus()
   domainSingleton({
-    bus,
+    pageBus,
     task: 'proseline-peer',
     onAppointed: function () {
       debug.instance('appointed peer')
       var client = new Client()
       setInterval(function () {
-        bus.emit('peers', client.countPeers())
+        pageBus.emit('peers', client.countPeers())
       }, PEER_COUNT_UPDATE_INTERVAL)
       client.on('update', function (discoveryKey) {
-        bus.emit('update', discoveryKey)
+        pageBus.emit('update', discoveryKey)
       })
     }
   })
-  bus.on('peers', function (count) {
+  pageBus.on('peers', function (count) {
     // TODO: Prevent clearing inputs on redraw.
     // action('peers', count)
   })
-  bus.on('update', function (discoveryKey) {
+  pageBus.on('update', function (discoveryKey) {
     if (
       globalState.discoveryKey === discoveryKey &&
       // Don't render updates while introducing.
