@@ -163,6 +163,7 @@ Project.prototype._log = function (message, identity, callback) {
   }
   transaction.oncomplete = function () {
     self._emitEnvelopeEvent(envelope)
+    callback()
   }
   requestHead(transaction, publicKey, function (head) {
     if (head === undefined) {
@@ -236,6 +237,7 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   transaction.oncomplete = function () {
     if (calledBackWithError) return
     self._emitEnvelopeEvent(envelope)
+    callback()
   }
   var key = logEntryKey(envelope.publicKey, envelope.message.index)
   requestHead(transaction, envelope.publicKey, function (head) {
