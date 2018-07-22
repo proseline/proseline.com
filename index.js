@@ -255,10 +255,12 @@ window.addEventListener('click', function (event) {
   var node = findLocalLinkAnchor(event.target)
   if (node) {
     event.preventDefault()
-    window.history.pushState({}, null, pathOf(node.href) || '/')
+    var href = node.href
+    if (href.baseVal) href = href.baseVal
+    window.history.pushState({}, null, pathOf(href) || '/')
     update()
     setTimeout(function () {
-      var match = /#([a-f0-9]{64})$/.exec(node.href)
+      var match = /#([a-f0-9]{64})$/.exec(href)
       if (match) {
         var anchor = document.getElementById(match[1])
         if (anchor) {
