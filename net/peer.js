@@ -206,6 +206,8 @@ Peer.prototype.joinProject = function (
   if (self._sharedStreams.has(discoveryKey)) return
   var replicationStream = replicate({
     replicationKey: project.replicationKey,
+    publicKey: project.writeKeyPair.publicKey,
+    secretKey: project.writeKeyPair.secretKey,
     discoveryKey,
     database,
     onUpdate: function (discoveryKey) {

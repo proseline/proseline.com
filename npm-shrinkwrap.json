@@ -4670,9 +4670,9 @@
       }
     },
     "json-protocol": {
-      "version": "2.0.2",
-      "resolved": "https://registry.npmjs.org/json-protocol/-/json-protocol-2.0.2.tgz",
-      "integrity": "sha512-0xfjX4TBgFwmBR8V5fjoE9n1+W2memXbD3h2ALatI/4AOUzsGGSxqJssI+aDKFpkgq5HWDNEdIKwia2Rchakqg==",
+      "version": "2.0.3",
+      "resolved": "https://registry.npmjs.org/json-protocol/-/json-protocol-2.0.3.tgz",
+      "integrity": "sha512-xA1ELiLdRhWhsQnI1MRBOev5qdAR/qfgG6LGs/yEDxfP61WsznL3Xph+W7vzd5V5h+aQRxHTAElyLqA3/oHYYA==",
       "requires": {
         "fast-json-stable-stringify": "^2.0.0",
         "inherits": "^2.0.3",

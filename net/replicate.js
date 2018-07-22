@@ -8,15 +8,21 @@ var DEBUG_NAMESPACE = 'proseline:replicate:'
 module.exports = function (options) {
   assert.equal(typeof options.replicationKey, 'string')
   assert.equal(typeof options.discoveryKey, 'string')
+  assert.equal(typeof options.publicKey, 'string')
+  assert.equal(typeof options.secretKey, 'string')
   assert(options.database)
   assert(typeof options.onUpdate, 'function')
   var replicationKey = options.replicationKey
   var discoveryKey = options.discoveryKey
+  var publicKey = options.publicKey
+  var secretKey = options.secretKey
   var database = options.database
   var onUpdate = options.onUpdate
   var log = debug(DEBUG_NAMESPACE + discoveryKey)
 
-  var protocol = new ReplicationProtocol(replicationKey)
+  var protocol = new ReplicationProtocol({
+    replicationKey, publicKey, secretKey
+  })
 
   // Store a list of envelopes that we've requested, so we can
   // check the list to avoid offering this peer envelopes we've
