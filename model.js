@@ -2,6 +2,7 @@
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
+var keyPairFromSeed = require('./crypto/key-pair-from-seed')
 var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
@@ -30,8 +31,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draft: null,
       // Project
       identity: null,
-      secretKey: null,
+      replicationKey: null,
       discoveryKey: null,
+      writeKeyPair: null,
       title: null,
       draftSelection: null,
       // Overview
@@ -105,7 +107,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Projects
 
   handler('create project', function (data, state, reduce, done) {
-    createProject(null, null, function (error, project) {
+    createProject({}, function (error, project) {
       if (error) return done(error)
       redirectToProject(project.discoveryKey)
       done()
@@ -134,15 +136,23 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  handler('join project', function (secretKey, state, reduce, done) {
-    assert.equal(typeof secretKey, 'string')
-    var discoveryKey = hashHex(secretKey)
+  handler('join project', function (data, state, reduce, done) {
+    assert.equal(typeof data, 'object')
+    assert.equal(typeof data.replicationKey, 'string')
+    assert.equal(typeof data.writeSeed, 'string')
+    var replicationKey = data.replicationKey
+    var writeSeed = data.writeSeed
+    var discoveryKey = hashHex(replicationKey)
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
       db.getProject(discoveryKey, function (error, project) {
         if (error) return done(error)
         if (project) return redirect()
-        createProject(secretKey, discoveryKey, function (error) {
+        createProject({
+          replicationKey,
+          discoveryKey,
+          writeSeed
+        }, function (error) {
           if (error) return done(error)
           redirect()
         })
@@ -157,24 +167,29 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  function createProject (secretKey, discoveryKey, callback) {
+  function createProject (data, callback) {
+    assert.equal(typeof data, 'object')
+    var replicationKey = data.replicationKey
+    var discoveryKey = data.discoveryKey
+    var writeSeed = data.writeSeed
     assert.equal(typeof callback, 'function')
-    if (secretKey) {
-      assert.equal(typeof secretKey, 'string')
+    if (replicationKey) {
+      assert.equal(typeof replicationKey, 'string')
       assert.equal(typeof discoveryKey, 'string')
+      assert.equal(typeof writeSeed, 'string')
     } else {
-      secretKey = random(32)
-      discoveryKey = hashHex(secretKey)
+      replicationKey = random(32)
+      discoveryKey = hashHex(replicationKey)
+      writeSeed = random(32)
     }
+    var writeKeyPair = keyPairFromSeed(writeSeed)
     var project = {
-      secretKey: secretKey,
+      replicationKey: replicationKey,
       discoveryKey: discoveryKey,
+      writeSeed: writeSeed,
+      writeKeyPair: writeKeyPair,
       title: DEFAULT_TITLE
     }
-    assert.equal(typeof secretKey, 'string')
-    assert.equal(typeof discoveryKey, 'string')
-    assert.equal(typeof project.secretKey, 'string')
-    assert.equal(typeof project.discoveryKey, 'string')
     runSeries([
       function (done) {
         withIndexedDB('proseline', function (error, db) {
@@ -200,7 +215,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   handler('rename', function (newTitle, state, reduce, done) {
     var project = {
-      secretKey: state.secretKey,
+      replicationKey: state.replicationKey,
       discoveryKey: state.discoveryKey,
       title: newTitle
     }
@@ -231,7 +246,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var order = {
           message: message,
           publicKey: identity.publicKey,
-          signature: sign(stringified, identity.secretKey)
+          signature: sign(stringified, identity.replicationKey)
         }
         fetch('https://paid.proseline.com/subscribe', {
           method: 'POST',
@@ -323,8 +338,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       projects: null,
       changed: false,
       title: data.project.title,
+      replicationKey: data.project.replicationKey,
       discoveryKey: data.project.discoveryKey,
-      secretKey: data.project.secretKey,
+      writeSeed: data.project.writeSeed,
+      writeKeyPair: data.project.writeKeyPair,
       identity: data.identity,
       intros: data.intros,
       projectMarks: data.projectMarks || [],

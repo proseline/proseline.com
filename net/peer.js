@@ -84,10 +84,10 @@ function Peer (id, transportStream, persistent) {
     // On receiving an invitation, join the project.
     protocol.on('invitation', function (invitation) {
       log('invited: %o', invitation)
-      var secretKey = invitation.message.secretKey
-      var discoveryKey = hashHex(secretKey)
+      var replicationKey = invitation.message.replicationKey
+      var discoveryKey = hashHex(replicationKey)
       var title = invitation.message.title || 'Untitled Project'
-      var project = {secretKey, discoveryKey, title}
+      var project = {replicationKey, discoveryKey, title}
       // TODO: Deduplicate project join code in peer and model.
       runSeries([
         function indexProjectInProselineDB (done) {
@@ -125,7 +125,7 @@ function Peer (id, transportStream, persistent) {
             proseline.getUserIdentity(function (error, identity) {
               if (error) return done(error)
               var message = {
-                secretKey: chunk.secretKey,
+                replicationKey: chunk.replicationKey,
                 title: chunk.title || 'Untitled Project'
               }
               var stringified = stringify(message)
@@ -204,7 +204,7 @@ Peer.prototype.joinProject = function (
   var discoveryKey = project.discoveryKey
   if (self._sharedStreams.has(discoveryKey)) return
   var replicationStream = replicate({
-    secretKey: project.secretKey,
+    replicationKey: project.replicationKey,
     discoveryKey,
     database,
     onUpdate: function (discoveryKey) {

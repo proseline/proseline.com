@@ -13,10 +13,14 @@ var through2 = require('through2')
 module.exports = Project
 
 // Project wraps IndexedDB databases storing project data.
-function Project (secretKey) {
+function Project (data) {
+  assert.equal(typeof data, 'object')
+  assert.equal(typeof data.discoveryKey, 'string')
+  assert.equal(typeof data.writeKeyPair, 'object')
   this._updateStreams = []
+  this._writeKeyPair = data.writeKeyPair
   Database.call(this, {
-    name: secretKey,
+    name: data.discoveryKey,
     version: CURRENT_VERSION
   })
 }
@@ -169,26 +173,27 @@ Project.prototype._log = function (message, identity, callback) {
       }
     )
   }
-  // Find the head of the log by counting entries.
-  var lower = logEntryKey(publicKey, MIN_INDEX)
-  var upper = logEntryKey(publicKey, MAX_INDEX)
-  var headRequest = transaction
-    .objectStore('logs')
-    .count(IDBKeyRange.bound(lower, upper))
-  headRequest.onsuccess = function () {
-    var index = headRequest.result
-    message.index = index
+  requestHead(transaction, publicKey, function (head) {
+    if (head === undefined) {
+      // This will be the first entry in the log.
+      message.index = 0
+    } else {
+      // This will be a later entry in the log.
+      message.index = head.message.index + 1
+      message.prior = head.digest
+    }
     var stringified = stringify(message)
     envelope = {
       message: message,
       publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey)
+      signature: sign(stringified, identity.secretKey),
+      authorization: sign(stringified, self._writeKeyPair.secretKey)
     }
     addIndexingMetadata(envelope)
     transaction
       .objectStore('logs')
-      .add(envelope, logEntryKey(envelope.publicKey, index))
-  }
+      .add(envelope, logEntryKey(envelope.publicKey, message.index))
+  })
 }
 
 Project.prototype.getEnvelope = function (publicKey, index, callback) {
@@ -198,6 +203,22 @@ Project.prototype.getEnvelope = function (publicKey, index, callback) {
     removeIndexingMetadata(envelope)
     callback(null, envelope)
   })
+}
+
+function requestHead (transaction, publicKey, onResult) {
+  assert.equal(typeof transaction, 'object')
+  assert.equal(typeof publicKey, 'string')
+  assert.equal(typeof onResult, 'function')
+  var lower = logEntryKey(publicKey, MIN_INDEX)
+  var upper = logEntryKey(publicKey, MAX_INDEX)
+  var request = transaction
+    .objectStore('logs')
+    .openCursor(IDBKeyRange.bound(lower, upper), 'prev')
+  request.onsuccess = function () {
+    var cursor = request.result
+    if (!cursor) return onResult(undefined)
+    onResult(cursor.value)
+  }
 }
 
 Project.prototype.putEnvelope = function (envelope, callback) {
@@ -212,17 +233,29 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   transaction.onerror = function () {
     callback(transaction.error)
   }
+  var calledBackWithError = false
   transaction.oncomplete = function () {
+    if (calledBackWithError) return
     self._streamUpdate(
       envelope.publicKey, envelope.message.index, callback
     )
   }
-  var key = logEntryKey(
-    envelope.publicKey, envelope.message.index
-  )
-  transaction
-    .objectStore('logs')
-    .add(envelope, key)
+  var key = logEntryKey(envelope.publicKey, envelope.message.index)
+  requestHead(transaction, envelope.publicKey, function (head) {
+    if (head) {
+      if (envelope.message.index !== head.message.index + 1) {
+        calledBackWithError = true
+        return callback(new Error('incorrect index'))
+      }
+      if (envelope.message.prior !== head.digest) {
+        calledBackWithError = true
+        return callback(new Error('incorrect prior'))
+      }
+    }
+    transaction
+      .objectStore('logs')
+      .add(envelope, key)
+  })
 }
 
 function addIndexingMetadata (envelope) {

@@ -95,7 +95,7 @@ function inviteExplanation () {
 function inviteViaEMail (state) {
   var a = document.createElement('a')
   a.className = 'button'
-  var url = 'https://proseline.com/join#' + state.secretKey
+  var url = inviteURL(state)
   a.href = (
     'mailto:' +
     '?subject=' + encodeURIComponent('Proseline Project') +
@@ -110,10 +110,17 @@ function inviteViaEMail (state) {
 function copyInvitation (state) {
   var a = document.createElement('a')
   a.className = 'clipboard button'
-  var url = 'https://proseline.com/join#' + state.secretKey
+  var url = inviteURL(state)
   a.setAttribute('data-clipboard-text', url)
   a.appendChild(document.createTextNode('Copy a link for joining this project.'))
   return a
+}
+
+function inviteURL (state) {
+  return (
+    'https://proseline.com/join#' +
+    state.replicationKey + ':' + state.writeSeed
+  )
 }
 
 var BRIEF_WIDTH = 85 * 1.5
