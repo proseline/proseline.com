@@ -49,7 +49,6 @@
   "devDependencies": {
     "ajv": "^6.5.2",
     "browserify": "^16.2.2",
-    "browserify-header": "^0.9.4",
     "common-shakeify": "^0.5.0",
     "envify": "^4.1.0",
     "exorcist": "^1.0.1",
@@ -70,15 +69,14 @@
   "scripts": {
     "build": "npm-run-all --parallel build:*",
     "build:css": "node-sass --output-style compressed styles.sass > build/styles.css",
-    "build:js": "browserify -p common-shakeify -p [ browserify-header --file header.js ] index.js -o build/browser.js",
+    "build:js": "browserify -p common-shakeify --debug index.js | exorcist build/browser.js.map > build/browser.js",
     "outdated": "npm outdated | tee outdated.log",
-    "chromedriver": "chromedriver --url-base=/wd/hub",
     "licenses": "licensee --production --errors-only | tee licenses.log",
     "lint": "standard",
     "precommit": "lint-staged",
     "test": "tape test/*.test.js",
     "prewatch:css": "npm run build:css",
     "watch:css": "node-sass --watch --source-map true --output build styles.sass",
-    "watch:js": "watchify -p common-shakeify --ignore-transform unassertify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
+    "watch:js": "STRIPE_PUBLISHABLE_KEY=pk_test_qSIOnRX1RuPvoXtBLiMCRjGV watchify -p common-shakeify --ignore-transform unassertify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
   }
 }

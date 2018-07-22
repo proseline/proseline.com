@@ -744,15 +744,6 @@
         "inherits": "^2.0.1"
       }
     },
-    "browserify-header": {
-      "version": "0.9.4",
-      "resolved": "https://registry.npmjs.org/browserify-header/-/browserify-header-0.9.4.tgz",
-      "integrity": "sha512-7CirKONh/JcXYqQlsJEaDJDhZvhUWMDspsYKjUtWtrfgiBOVdpqJC3bGnpjup1YRx8Z4czn7NyKb2nSNLd8i1A==",
-      "dev": true,
-      "requires": {
-        "through2": "2.0.3"
-      }
-    },
     "browserify-rsa": {
       "version": "4.0.1",
       "resolved": "https://registry.npmjs.org/browserify-rsa/-/browserify-rsa-4.0.1.tgz",
