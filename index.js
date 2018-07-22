@@ -217,20 +217,24 @@ function network (done) {
   })
   pageBus.on('envelope', function (envelope) {
     var discoveryKey = envelope.message.project
+    var publicKey = envelope.publicKey
+    if (globalState.discoveryKey) {
+      databases.get(discoveryKey, function (error, database) {
+        if (error) return debug.instance(error)
+        database.getDefaultIdentity(function (error, identity) {
+          if (error) return debug.instance(error)
+          // If we created this envelope, don't show an update.
+          if (identity.publicKey === publicKey) return
+          return action('changed')
+        })
+      })
+    }
     if (
-      globalState.discoveryKey === discoveryKey &&
-      // Don't render updates while introducing.
-      globalState.intros[globalState.identity.publicKey]
-    ) {
-      action('changed')
-    } else if (
       !globalState.discoveryKey &&
       !globalState.projects.some(function (project) {
         return project.discoveryKey === discoveryKey
       })
-    ) {
-      action('changed')
-    }
+    ) return action('changed')
   })
   done()
 }
