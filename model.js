@@ -34,6 +34,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replicationKey: null,
       discoveryKey: null,
       writeKeyPair: null,
+      persistent: null,
       title: null,
       draftSelection: null,
       // Overview
@@ -188,7 +189,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: discoveryKey,
       writeSeed: writeSeed,
       writeKeyPair: writeKeyPair,
-      title: DEFAULT_TITLE
+      title: DEFAULT_TITLE,
+      persistent: false
     }
     runSeries([
       function (done) {
@@ -232,6 +234,27 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reduction('rename', function (newTitle, state) {
     return {title: newTitle}
+  })
+
+  handler('persist', function (_, state, reduce, done) {
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.getProject(state.discoveryKey, function (error, project) {
+        if (error) return done(error)
+        if (!project) return done(new Error('no project'))
+        if (project.deleted) return done(new Error('deleted project'))
+        project.persistent = true
+        db.overwriteProject(project, function (error) {
+          if (error) return done(error)
+          reduce('persistent', true)
+          done()
+        })
+      })
+    })
+  })
+
+  reduction('persistent', function (persistent, state) {
+    return {persistent: persistent}
   })
 
   // Subscriptions
@@ -332,6 +355,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         },
         activity: function (done) {
           db.activity(10, done)
+        },
+        subscription: function (done) {
+          withIndexedDB('proseline', function (error, db) {
+            if (error) return done(error)
+            db.getSubscription(done)
+          })
         }
       }, function (error, data) {
         if (error) return done(error)
@@ -350,12 +379,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: data.project.discoveryKey,
       writeSeed: data.project.writeSeed,
       writeKeyPair: data.project.writeKeyPair,
+      persistent: data.project.persistent,
       identity: data.identity,
       intros: data.intros,
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || [],
       activity: data.activity,
-      draftSelection: null
+      draftSelection: null,
+      subscription: data.subscription || {}
     }
   })
 

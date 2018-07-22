@@ -158,12 +158,16 @@ function Peer (id, transportStream, persistent) {
           if (error) return log(error)
 
           // Invite to projects added later.
-          proseline.on('project', sendInvitation)
+          proseline.on('project', function (project) {
+            if (project.persistent) sendInvitation(project)
+          })
 
           // Invite to existing projects.
           proseline.listProjects(function (error, projects) {
             if (error) return log(error)
-            projects.forEach(sendInvitation)
+            projects.forEach(function (project) {
+              if (project.persistent) sendInvitation(project)
+            })
           })
 
           function sendInvitation (project) {

@@ -36,7 +36,7 @@ module.exports = withProject(function (state, send, discoveryKey) {
     var newSection = renderSection('Start from Scratch')
     main.appendChild(newSection)
     newSection.appendChild(newDraft(state))
-    main.appendChild(renderShareSection(state))
+    main.appendChild(renderShareSection(state, send))
     main.appendChild(renderOrganizeSection(state, send))
     main.appendChild(renderRenameSection(state, send))
   }
@@ -114,6 +114,20 @@ function copyInvitation (state) {
   a.setAttribute('data-clipboard-text', url)
   a.appendChild(document.createTextNode('Copy a link for joining this project.'))
   return a
+}
+
+function persistent (state, send) {
+  if (state.persistent) {
+    return document.createTextNode(
+      'You are sharing this project through your subscription.'
+    )
+  }
+  var button = document.createElement('button')
+  button.onclick = function () { send('persist') }
+  button.appendChild(document.createTextNode(
+    'Share through your subscription.'
+  ))
+  return button
 }
 
 function inviteURL (state) {
@@ -446,11 +460,14 @@ function withoutOrphans (briefs) {
     })
 }
 
-function renderShareSection (state) {
+function renderShareSection (state, send) {
   var section = renderSection('Share')
   section.appendChild(inviteExplanation())
   section.appendChild(inviteViaEMail(state))
   section.appendChild(copyInvitation(state))
+  if (state.subscription.email) {
+    section.appendChild(persistent(state, send))
+  }
   return section
 }
 
