@@ -100,10 +100,10 @@ function Peer (id, transportStream, persistent) {
           })
         },
         function joinProject (done) {
-          if (self._sharedStreams.has(discoveryKey)) return done()
           databases.get(discoveryKey, function (error, db) {
             if (error) return done(error)
-            self.joinProject(project, db, done)
+            self.joinProject(project, db)
+            done()
           })
         }
       ], function (error) {
