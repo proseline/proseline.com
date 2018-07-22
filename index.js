@@ -150,8 +150,8 @@ function render (state) {
     main.appendChild(
       renderLoading(function () {
         action('join project', {
-          replicationKey: match[0],
-          writeSeed: match[1]
+          replicationKey: match[1],
+          writeSeed: match[2]
         })
       }, 'Joining…')
     )
