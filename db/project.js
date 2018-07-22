@@ -163,7 +163,7 @@ Project.prototype._log = function (message, identity, callback) {
   }
   transaction.oncomplete = function () {
     self._emitEnvelopeEvent(envelope)
-    callback()
+    callback(null, envelope, envelope.digest)
   }
   requestHead(transaction, publicKey, function (head) {
     if (head === undefined) {
