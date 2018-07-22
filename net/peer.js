@@ -8,7 +8,6 @@ var hashHex = require('../crypto/hash-hex')
 var inherits = require('inherits')
 var multiplex = require('multiplex')
 var replicate = require('./replicate')
-var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 var sign = require('../crypto/sign')
 var stringify = require('fast-json-stable-stringify')
@@ -19,8 +18,8 @@ module.exports = Peer
 
 function Peer (id, transportStream, persistent) {
   if (!(this instanceof Peer)) return new Peer(id)
-  var log = debug(DEBUG_NAMESPACE + id)
   var self = this
+  var log = self.log = debug(DEBUG_NAMESPACE + id)
   self.id = id
   self.transportStream = transportStream
   transportStream
@@ -56,7 +55,7 @@ function Peer (id, transportStream, persistent) {
         return sharedStream.destroy()
       }
       databases.get(discoveryKey, function (error, database) {
-        if (error) return console.error(error)
+        if (error) return log(error)
         self.joinProject(project, database, sharedStream)
       })
     })
@@ -67,7 +66,7 @@ function Peer (id, transportStream, persistent) {
     .on('added project', function (project) {
       var discoveryKey = project.discoveryKey
       databases.get(discoveryKey, function (error, database) {
-        if (error) return console.error(error)
+        if (error) return log(error)
         self.joinProject(project, database)
       })
     })
@@ -77,7 +76,6 @@ function Peer (id, transportStream, persistent) {
 
   if (persistent) {
     var protocol = new InvitationProtocol()
-
     var proseline = databases.proseline
 
     // On receiving an invitation, join the project.
@@ -98,7 +96,7 @@ function Peer (id, transportStream, persistent) {
             db.createIdentity(true, done)
           })
         },
-        function joinProject (done) {
+        function join (done) {
           databases.get(discoveryKey, function (error, db) {
             if (error) return done(error)
             self.joinProject(project, db)
@@ -115,7 +113,7 @@ function Peer (id, transportStream, persistent) {
       // If we have a subscription...
       proseline.getSubscription(function (error, subscription) {
         if (error) return log(error)
-        if (!subscription) return
+        if (!subscription) return log('no subscription')
         log('streaming projects')
         // Create a stream of all existing and later-joined projects.
         proseline.createProjectStream()
@@ -139,7 +137,7 @@ function Peer (id, transportStream, persistent) {
               })
             })
           }))
-        //  Request invitations.
+        // Request invitations.
         var email = subscription.email
         proseline.getUserIdentity(function (error, identity) {
           if (error) return log(error)
@@ -181,18 +179,17 @@ inherits(Peer, EventEmitter)
 
 Peer.prototype.joinProjects = function () {
   var self = this
+  var log = self.log
+  log('joining projects')
   var proselineDB = databases.proseline
   proselineDB.listProjects(function (error, projects) {
-    if (error) return console.error(error)
-    runParallel(projects.map(function (project) {
-      return function (done) {
-        databases.get(project.discoveryKey, function (error, database) {
-          if (error) return console.error(error)
-          self.joinProject(project, database)
-          done()
-        })
-      }
-    }))
+    if (error) return log(error)
+    projects.forEach(function (project) {
+      databases.get(project.discoveryKey, function (error, database) {
+        if (error) return log(error)
+        self.joinProject(project, database)
+      })
+    })
   })
 }
 
@@ -202,8 +199,10 @@ Peer.prototype.joinProject = function (
   sharedStream // optional
 ) {
   var self = this
+  var log = self.log
   var discoveryKey = project.discoveryKey
   if (self._sharedStreams.has(discoveryKey)) return
+  log('joining project: %s', discoveryKey)
   var replicationStream = replicate({
     replicationKey: project.replicationKey,
     publicKey: project.writeKeyPair.publicKey,
@@ -225,10 +224,16 @@ Peer.prototype.joinProject = function (
 
 Peer.prototype._addSharedStream = function (discoveryKey, stream) {
   var self = this
+  var log = self.log
   self._sharedStreams.set(discoveryKey, stream)
-  stream.once('close', function () {
-    self._sharedStreams.delete(discoveryKey)
-  })
+  stream
+    .once('error', function (error) {
+      log(error)
+      self._sharedStreams.delete(discoveryKey)
+    })
+    .once('close', function () {
+      self._sharedStreams.delete(discoveryKey)
+    })
 }
 
 Peer.prototype.leaveProject = function (discoveryKey) {

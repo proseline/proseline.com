@@ -15,9 +15,7 @@ var websocketStream = require('websocket-stream')
 module.exports = Client
 
 function Client () {
-  if (!(this instanceof Client)) {
-    return new Client()
-  }
+  if (!(this instanceof Client)) return new Client()
   var self = this
   self._peers = new Set()
   self._swarms = new Set()
@@ -126,10 +124,12 @@ Client.prototype._connectToPersistentPeer = function () {
       .on('end', reconnect)
       .on('error', reconnect)
   } catch (error) {
+    debug(error)
     reconnect()
   }
 
   function reconnect () {
+    debug('reconnecting to persistent peer')
     self._persistentPeer = null
     setTimeout(function () {
       self._connectToPersistentPeer()

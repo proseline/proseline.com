@@ -21,7 +21,9 @@ module.exports = function (options) {
   var log = debug(DEBUG_NAMESPACE + discoveryKey)
 
   var protocol = new ReplicationProtocol({
-    replicationKey, publicKey, secretKey
+    encryptionKey: Buffer.from(replicationKey, 'hex'),
+    publicKey: Buffer.from(publicKey, 'hex'),
+    secretKey: Buffer.from(secretKey, 'hex')
   })
 
   // Store a list of envelopes that we've requested, so we can
@@ -43,8 +45,11 @@ module.exports = function (options) {
             )
           })
         if (requestIndex === -1) {
-          log('sending offer: %s#%d', publicKey, index)
-          return protocol.offer(chunk, done)
+          log('sending offer: %s # %d', publicKey, index)
+          protocol.offer(chunk, function (error) {
+            if (error) return log(error)
+          })
+          return done()
         }
         requestedFromPeer.splice(requestIndex, 1)
         done()
@@ -55,12 +60,14 @@ module.exports = function (options) {
   protocol.on('request', function (request) {
     var publicKey = request.publicKey
     var index = request.index
-    log('received request: %s#%d', publicKey, index)
+    log('received request: %s # %d', publicKey, index)
     database.getEnvelope(publicKey, index, function (error, envelope) {
       if (error) return log(error)
       if (envelope === undefined) return
-      log('sending envelope: %s#%d', envelope.publicKey, envelope.message.index)
-      protocol.envelope(envelope)
+      log('sending envelope: %s # %d', envelope.publicKey, envelope.message.index)
+      protocol.envelope(envelope, function (error) {
+        if (error) return log(error)
+      })
     })
   })
 
@@ -68,14 +75,14 @@ module.exports = function (options) {
 
   // When our peer offers envelopes...
   protocol.on('offer', function (offer) {
-    log('received offer: %o', offer)
     var publicKey = offer.publicKey
     var offeredIndex = offer.index
+    log('received offer: %s # %d', publicKey, offeredIndex)
     database.getLogHead(publicKey, function (error, head) {
       if (error) return log(error)
-      if (head === undefined) head = 0
+      if (head === undefined) head = -1
       for (var index = head + 1; index <= offeredIndex; index++) {
-        log('sending request: %s#%d', publicKey, index)
+        log('sending request: %s # %d', publicKey, index)
         protocol.request({publicKey, index}, function (error) {
           if (error) return log(error)
           requestedFromPeer.push({publicKey, index})
@@ -86,7 +93,7 @@ module.exports = function (options) {
 
   // When our peer sends an envelope...
   protocol.on('envelope', function (envelope) {
-    log('received envelope: %s#%d', envelope.publicKey, envelope.message.index)
+    log('received envelope: %s # %d', envelope.publicKey, envelope.message.index)
     database.putEnvelope(envelope, function (error) {
       if (error) return log(error)
     })
@@ -96,6 +103,10 @@ module.exports = function (options) {
 
   protocol.on('invalid', function (body) {
     log('received invalid message: %O', body)
+  })
+
+  protocol.on('error', function (error) {
+    log(error)
   })
 
   // Extend our handshake.

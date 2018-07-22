@@ -4670,14 +4670,18 @@
       }
     },
     "json-protocol": {
-      "version": "2.0.3",
-      "resolved": "https://registry.npmjs.org/json-protocol/-/json-protocol-2.0.3.tgz",
-      "integrity": "sha512-xA1ELiLdRhWhsQnI1MRBOev5qdAR/qfgG6LGs/yEDxfP61WsznL3Xph+W7vzd5V5h+aQRxHTAElyLqA3/oHYYA==",
+      "version": "2.0.4",
+      "resolved": "https://registry.npmjs.org/json-protocol/-/json-protocol-2.0.4.tgz",
+      "integrity": "sha512-5+UPEd658+pSkx3aV9W4RaLlgRtDgoPs7HqHUZXqgtP8o7tHDyXCTIkqlojr4Pid/4/cOGdFRO2/RV4vTz5srw==",
       "requires": {
+        "ajv": "^6.5.2",
+        "duplexify": "^3.6.0",
         "fast-json-stable-stringify": "^2.0.0",
         "inherits": "^2.0.3",
         "length-prefixed-stream": "^1.6.0",
-        "strict-json-object-schema": "^1.1.0"
+        "sodium-universal": "^2.0.0",
+        "strict-json-object-schema": "^1.1.0",
+        "through2": "^2.0.3"
       }
     },
     "json-schema": {
