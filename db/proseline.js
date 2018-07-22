@@ -49,6 +49,14 @@ prototype.putProject = function (project, callback) {
   })
 }
 
+prototype.overwriteProject = function (project, callback) {
+  var self = this
+  self._put('projects', project.discoveryKey, project, function (error) {
+    if (error) return callback(error)
+    self._streamProject(project, callback)
+  })
+}
+
 prototype.getProject = function (discoveryKey, callback) {
   this._get('projects', discoveryKey, callback)
 }

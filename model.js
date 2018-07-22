@@ -221,8 +221,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         if (!project) return done(new Error('no project to rename'))
         if (project.deleted) return done(new Error('deleted project'))
         project.title = newTitle
-        db.putProject(project, done)
-        reduce('rename', newTitle)
+        db.overwriteProject(project, function (error) {
+          if (error) return done(error)
+          reduce('rename', newTitle)
+          done()
+        })
       })
     })
   })
