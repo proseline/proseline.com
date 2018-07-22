@@ -214,15 +214,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   }
 
   handler('rename', function (newTitle, state, reduce, done) {
-    var project = {
-      replicationKey: state.replicationKey,
-      discoveryKey: state.discoveryKey,
-      title: newTitle
-    }
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
-      db.putProject(project, done)
-      reduce('rename', newTitle)
+      db.getProject(state.discoveryKey, function (error, project) {
+        if (error) return done(error)
+        if (!project) return done(new Error('no project to rename'))
+        project.title = newTitle
+        db.putProject(project, done)
+        reduce('rename', newTitle)
+      })
     })
   })
 
