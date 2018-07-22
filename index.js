@@ -143,11 +143,16 @@ function render (state) {
     return renderHomePage(state, action)
   // Join Link
   } else if (path === '/join' && window.location.hash) {
-    var secretKey = window.location.hash.substring(1)
+    var re = /^#([a-f0-9]{64}):([a-f0-9]{64})$/
+    var match = re.exec(window.location.hash)
+    if (!match) return renderNotFound(state, action)
     main = document.createElement('main')
     main.appendChild(
       renderLoading(function () {
-        action('join project', secretKey)
+        action('join project', {
+          replicationKey: match[0],
+          writeSeed: match[1]
+        })
       }, 'Joining…')
     )
     return main

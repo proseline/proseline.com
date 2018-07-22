@@ -30,18 +30,24 @@ function get (id, callback) {
     })
   }
   // Otherwise...
-  var db = new ProjectDatabase(id)
-  cache[id] = db
-  debug('initializing "' + id + '"')
-  var errored = false
-  db.once('ready', function () {
-    if (!errored) callback(null, db)
-  })
-  db.init(function (error) {
-    if (error) {
-      errored = true
-      delete cache[id]
-      return callback(error)
-    }
+  proseline.getProject(id, function (error, project) {
+    if (error) return callback(error)
+    var db = new ProjectDatabase({
+      discoveryKey: id,
+      writeKeyPair: project.writeKeyPair
+    })
+    cache[id] = db
+    debug('initializing "' + id + '"')
+    var errored = false
+    db.once('ready', function () {
+      if (!errored) callback(null, db)
+    })
+    db.init(function (error) {
+      if (error) {
+        errored = true
+        delete cache[id]
+        return callback(error)
+      }
+    })
   })
 }

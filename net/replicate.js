@@ -2,22 +2,21 @@ var ReplicationProtocol = require('proseline-protocol').Replication
 var assert = require('assert')
 var debug = require('debug')
 var flushWriteStream = require('flush-write-stream')
-var validate = require('../schemas/validate')
 
 var DEBUG_NAMESPACE = 'proseline:replicate:'
 
 module.exports = function (options) {
-  assert.equal(typeof options.secretKey, 'string')
+  assert.equal(typeof options.replicationKey, 'string')
   assert.equal(typeof options.discoveryKey, 'string')
   assert(options.database)
   assert(typeof options.onUpdate, 'function')
-  var secretKey = options.secretKey
+  var replicationKey = options.replicationKey
   var discoveryKey = options.discoveryKey
   var database = options.database
   var onUpdate = options.onUpdate
   var log = debug(DEBUG_NAMESPACE + discoveryKey)
 
-  var protocol = new ReplicationProtocol(secretKey)
+  var protocol = new ReplicationProtocol(replicationKey)
 
   // Store a list of envelopes that we've requested, so we can
   // check the list to avoid offering this peer envelopes we've
@@ -82,20 +81,6 @@ module.exports = function (options) {
   // When our peer sends an envelope...
   protocol.on('envelope', function (envelope) {
     log('received envelope: %s#%d', envelope.publicKey, envelope.message.index)
-    // Validate envelope schema and signature.
-    if (!validate.envelope(envelope)) {
-      return log('invalid envelope: %O', envelope)
-    }
-    // Validate body.
-    if (!validate.body(envelope.message.body)) {
-      return log('invalid body: %O', envelope.message.body)
-    }
-    // Ensure body is for this project.
-    if (envelope.message.project !== discoveryKey) {
-      return log('project mismatch')
-    }
-    // Write to our database.
-    log('putting envelope: %s#%d', envelope.publicKey, envelope.message.index)
     database.putEnvelope(envelope, function (error) {
       if (error) return log(error)
     })
