@@ -10,6 +10,7 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var withProject = require('./with-project')
+var panzoom = require('panzoom')
 
 module.exports = withProject(function (state, send, discoveryKey) {
   state.route = 'project'
@@ -180,9 +181,12 @@ function renderGraph (state, send) {
   svg.setAttributeNS(null, 'width', boxWidth)
   svg.setAttribute('class', 'graph')
 
+  var graphGroup = document.createElementNS(SVG, 'g')
+  svg.appendChild(graphGroup)
+
   // <title>
   var title = document.createElementNS(SVG, 'title')
-  svg.appendChild(title)
+  graphGroup.appendChild(title)
   title.appendChild(document.createTextNode('Graph of Drafts'))
 
   // Render nodes.
@@ -195,7 +199,7 @@ function renderGraph (state, send) {
     var selected = state.draftSelection === digest
 
     var g = document.createElementNS(SVG, 'g')
-    svg.appendChild(g)
+    graphGroup.appendChild(g)
 
     var rect = document.createElementNS(SVG, 'rect')
     g.appendChild(rect)
@@ -323,7 +327,7 @@ function renderGraph (state, send) {
       var notesCountFontSize = 14
 
       var notesCount = document.createElementNS(SVG, 'text')
-      svg.appendChild(notesCount)
+      graphGroup.appendChild(notesCount)
       notesCount.setAttributeNS(null, 'x', notesX + (notesWidth / 2))
       notesCount.setAttributeNS(null, 'y', notesY + (notesWidth / 2) + (notesCountFontSize / 2))
       notesCount.setAttributeNS(null, 'text-anchor', 'middle')
@@ -373,7 +377,7 @@ function renderGraph (state, send) {
     }
 
     if (othersMarks.length !== 0) {
-      svg.appendChild(
+      graphGroup.appendChild(
         renderBookmarkPath(
           node.x + MARGIN + (node.width / 2) - BOOKMARK_WIDTH - 10,
           node.y + MARGIN - (node.height / 2),
@@ -384,7 +388,7 @@ function renderGraph (state, send) {
     }
 
     if (ourMarks.length !== 0) {
-      svg.appendChild(
+      graphGroup.appendChild(
         renderBookmarkPath(
           node.x + MARGIN + (node.width / 2) - BOOKMARK_WIDTH - 5,
           node.y + MARGIN - (node.height / 2),
@@ -399,7 +403,7 @@ function renderGraph (state, send) {
   graph.edges().forEach(function (nodes) {
     var edge = graph.edge(nodes)
     var polyline = document.createElementNS(SVG, 'polyline')
-    svg.appendChild(polyline)
+    graphGroup.appendChild(polyline)
     var points = edge.points
       .map(function (point) {
         return (point.x + MARGIN) + ' ' + (point.y + MARGIN)
@@ -411,6 +415,8 @@ function renderGraph (state, send) {
     polyline.setAttributeNS(null, 'stroke-width', 1)
     polyline.setAttributeNS(null, 'stroke-dasharray', '5,5')
   })
+
+  panzoom(graphGroup)
 
   return svg
 }
