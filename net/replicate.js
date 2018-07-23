@@ -104,7 +104,6 @@ module.exports = function (options) {
     database.putEnvelope(envelope, function (error) {
       if (error) return log(error)
       log('put envelope: %s', id)
-      pageBus.emit('envelope', envelope)
     })
   })
 
