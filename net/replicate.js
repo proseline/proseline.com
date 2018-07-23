@@ -30,7 +30,7 @@ module.exports = function (options) {
   protocol.once('handshake', function () {
     log('received handshake')
     // Offer new envelopes as we receive them.
-    database.addListener('envelope', onEnvelope)
+    pageBus.addListener('envelope', onEnvelope)
     listeningToDatabase = true
     // Offer envelopes we already have.
     database.listLogs(function (error, publicKeys) {
@@ -44,8 +44,10 @@ module.exports = function (options) {
     })
   })
 
-  function onEnvelope (metadata) {
-    offerEnvelope(metadata.publicKey, metadata.index)
+  function onEnvelope (envelope) {
+    var message = envelope.message
+    if (message.project !== discoveryKey) return
+    offerEnvelope(envelope.publicKey, message.index)
   }
 
   function offerEnvelope (publicKey, index) {
