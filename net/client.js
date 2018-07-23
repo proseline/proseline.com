@@ -114,22 +114,37 @@ Client.prototype.countPeers = function () {
   return this._peers.length
 }
 
+var WEBSOCKET_HEARTBEAT = 30000
+
 Client.prototype._connectToPersistentPeer = function () {
   var self = this
   try {
-    self._persistentPeer = new Peer(
-      'paid.proseline.com',
-      websocketStream('wss://paid.proseline.com/ws', {
-        perMessageDeflate: false
-      }),
-      true
+    var stream = websocketStream(
+      'wss://paid.proseline.com/ws',
+      {perMessageDeflate: false}
     )
-      .on('end', reconnect)
-      .on('error', reconnect)
+    // Send ping messages.
+    var interval
+    var socket = stream.socket // ws instance.
+    socket
+      .on('pong', function () {
+        socket.receivedPong = true
+      })
+      .once('close', function () {
+        clearInterval(interval)
+      })
+    interval = setInterval(function () {
+      if (!socket.receivedPong) return socket.terminate()
+      socket.receivedPong = false
+      socket.ping(function () { })
+    }, WEBSOCKET_HEARTBEAT)
   } catch (error) {
     debug(error)
     reconnect()
   }
+  self._persistentPeer = new Peer('paid.proseline.com', stream, true)
+    .on('end', reconnect)
+    .on('error', reconnect)
 
   function reconnect () {
     debug('reconnecting to persistent peer')
