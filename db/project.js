@@ -22,7 +22,7 @@ function Project (data) {
     name: data.discoveryKey,
     version: CURRENT_VERSION
   })
-  this._log = debug('proseline:db:' + data.discoveryKey)
+  this.debug = debug('proseline:db:' + data.discoveryKey)
 }
 
 inherits(Project, Database)
@@ -227,7 +227,7 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   assert(envelope.hasOwnProperty('signature'))
   assert.equal(typeof callback, 'function')
   var self = this
-  var log = self._log
+  var debug = self.debug
   addIndexingMetadata(envelope)
   var transaction = self._db.transaction(['logs'], 'readwrite')
   transaction.onerror = function () {
@@ -245,12 +245,12 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     if (head) {
       if (index !== head.message.index + 1) {
         calledBackWithError = true
-        log('incorrect index head %O new $O', head, envelope)
+        debug('incorrect index head %O new $O', head, envelope)
         return callback(new Error('incorrect index'))
       }
       if (envelope.message.prior !== head.digest) {
         calledBackWithError = true
-        log('incorrect index head %O new $O', head, envelope)
+        debug('incorrect index head %O new $O', head, envelope)
         return callback(new Error('incorrect prior'))
       }
     }
