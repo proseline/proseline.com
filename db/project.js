@@ -240,17 +240,18 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     callback()
   }
   var index = envelope.message.index
+  var prior = envelope.message.prior
   var publicKey = envelope.publicKey
   requestHead(transaction, publicKey, function (head) {
     if (head) {
       if (index !== head.message.index + 1) {
         calledBackWithError = true
-        debug('incorrect index head %O new $O', head, envelope)
+        debug('incorrect index new %d have %d', head.message.index, index)
         return callback(new Error('incorrect index'))
       }
-      if (envelope.message.prior !== head.digest) {
+      if (prior !== head.digest) {
         calledBackWithError = true
-        debug('incorrect index head %O new $O', head, envelope)
+        debug('incorrect index head %s new %s', head.digest, prior)
         return callback(new Error('incorrect prior'))
       }
     }
