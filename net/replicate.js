@@ -40,6 +40,7 @@ module.exports = function (options) {
       publicKeys.forEach(function (publicKey) {
         database.getLogHead(publicKey, function (error, index) {
           if (error) return log(error)
+          if (index === undefined) return
           offerEnvelope(publicKey, index)
         })
       })
