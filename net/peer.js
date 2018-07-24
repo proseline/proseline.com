@@ -83,6 +83,12 @@ function Peer (id, transportStream, persistent) {
     },
     'deleted project': function (discoveryKey) {
       self.leaveProject(discoveryKey)
+    },
+    'overwrote project': function (discoveryKey) {
+      proseline.getProject(discoveryKey, function (error, project) {
+        if (error) return log(error)
+        if (project.deleted) self.leaveProject(discoveryKey)
+      })
     }
   }
 

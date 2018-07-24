@@ -3,7 +3,6 @@ var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
 var keyPairFromSeed = require('./crypto/key-pair-from-seed')
-var peer = require('./net/peer')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 var saveAs = require('file-saver').saveAs
@@ -121,7 +120,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       function overwriteProject (done) {
         withIndexedDB('proseline', function (error, db) {
           if (error) return done(error)
-          db.putProject({discoveryKey, deleted: true}, done)
+          db.overwriteProject({discoveryKey, deleted: true}, done)
         })
       },
       function deleteDatabase (done) {
@@ -131,7 +130,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     ], function (error) {
       if (error) return done(error)
       reduce('clear project', null)
-      peer.leaveSwarm(discoveryKey)
       window.history.pushState({}, null, '/')
       done()
     })
