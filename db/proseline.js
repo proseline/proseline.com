@@ -49,7 +49,7 @@ prototype.overwriteProject = function (project, callback) {
   var self = this
   self._put('projects', project.discoveryKey, project, function (error) {
     if (error) return callback(error)
-    pageBus.emit('overwrote project', project.discoverKey)
+    pageBus.emit('overwrote project', project.discoveryKey)
     callback()
   })
 }
