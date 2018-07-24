@@ -236,10 +236,11 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     self._emitEnvelopeEvent(envelope)
     callback()
   }
-  var key = logEntryKey(envelope.publicKey, envelope.message.index)
-  requestHead(transaction, envelope.publicKey, function (head) {
+  var index = envelope.message.index
+  var publicKey = envelope.publicKey
+  requestHead(transaction, publicKey, function (head) {
     if (head) {
-      if (envelope.message.index !== head.message.index + 1) {
+      if (index !== head.message.index + 1) {
         calledBackWithError = true
         return callback(new Error('incorrect index'))
       }
@@ -248,6 +249,7 @@ Project.prototype.putEnvelope = function (envelope, callback) {
         return callback(new Error('incorrect prior'))
       }
     }
+    var key = logEntryKey(publicKey, index)
     transaction
       .objectStore('logs')
       .add(envelope, key)
