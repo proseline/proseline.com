@@ -7,6 +7,7 @@ var runSeries = require('run-series')
 var DEBUG_NAMESPACE = 'proseline:replicate:'
 
 module.exports = function (options) {
+  assert.equal(typeof options.peerID, 'string')
   assert.equal(typeof options.replicationKey, 'string')
   assert.equal(typeof options.discoveryKey, 'string')
   assert.equal(typeof options.publicKey, 'string')
@@ -18,7 +19,7 @@ module.exports = function (options) {
   var secretKey = options.secretKey
   var database = options.database
 
-  var log = debug(DEBUG_NAMESPACE + discoveryKey)
+  var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + discoveryKey)
 
   var protocol = new ReplicationProtocol({
     encryptionKey: Buffer.from(replicationKey, 'hex'),
