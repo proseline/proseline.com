@@ -129,7 +129,7 @@ Project.prototype.getLogHead = function (publicKey, callback) {
     function (error, count) {
       if (error) return callback(error)
       if (count === 0) return callback(null, undefined)
-      return callback(null, undefined)
+      return callback(null, count - 1)
     }
   )
 }
