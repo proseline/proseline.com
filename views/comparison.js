@@ -43,7 +43,6 @@ module.exports = withProject(function (state, send, discoveryKey, drafts) {
       state.draft.message.body.text,
       state.comparing.message.body.text
     )
-    console.log(patch)
     patch.forEach(function (element) {
       var type = element.op
       if (type === 'replace') {
