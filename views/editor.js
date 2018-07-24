@@ -1,4 +1,5 @@
 var assert = require('assert')
+var beforeUnload = require('../before-unload')
 var initializeEditor = require('../editor')
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
@@ -69,7 +70,14 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
       content = state.parents[0].message.body.text
     }
     // TODO: Diff starting point for merge drafts.
-    var editor = initializeEditor({element: div, content})
+    var editor = initializeEditor({
+      element: div,
+      content,
+      dirty: function (dirty) {
+        if (dirty) beforeUnload.enable()
+        else beforeUnload.disable()
+      }
+    })
   }
   return main
 })

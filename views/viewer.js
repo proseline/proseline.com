@@ -1,5 +1,6 @@
 var SVG = require('../svg')
 var assert = require('assert')
+var beforeUnload = require('../before-unload')
 var initializeEditor = require('../editor')
 var renderBookmarkPath = require('./partials/bookmark-path')
 var renderDraftHeader = require('./partials/draft-header')
@@ -29,13 +30,15 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
       renderNote: renderNote.bind(null, state, send),
       notes: state.notesTree,
       renderMarkForm: renderMarkForm.bind(null, state, send),
-      dirty: function (modified) {
+      dirty: function (dirty) {
+        if (dirty) beforeUnload.enable()
+        else beforeUnload.disable()
         if (saveForm) {
-          saveForm.className = SAVE_FORM_CLASS + ' ' + (modified ? '' : 'hidden')
+          saveForm.className = SAVE_FORM_CLASS + ' ' + (dirty ? '' : 'hidden')
         }
         if (bookmarks) {
           bookmarks.setAttributeNS(
-            null, 'class', BOOKMARKS_CLASS + ' ' + (modified ? 'hidden' : '')
+            null, 'class', BOOKMARKS_CLASS + ' ' + (dirty ? 'hidden' : '')
           )
         }
       },

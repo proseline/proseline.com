@@ -3,6 +3,7 @@ var Client = require('./net/client')
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
+var beforeUnload = require('./before-unload')
 var databases = require('./db/databases')
 var debug = require('debug')('proseline:instance')
 var domainSingleton = require('domain-singleton')
@@ -109,6 +110,7 @@ function update () {
   // diff algorithm will fail.
   assert(rerendered instanceof Element)
   assert.equal(rerendered.tagName, 'MAIN')
+  beforeUnload.disable()
   nanomorph(rendered, rerendered)
   timestampInterval = setInterval(updateTimestamps, 30 * 1000)
 }
@@ -255,6 +257,10 @@ window.addEventListener('click', function (event) {
     event.preventDefault()
     var href = node.href
     if (href.baseVal) href = href.baseVal
+    if (
+      beforeUnload.isEnabled() &&
+      !window.confirm(beforeUnload.message)
+    ) return
     window.history.pushState({}, null, pathOf(href) || '/')
     update()
     setTimeout(function () {
