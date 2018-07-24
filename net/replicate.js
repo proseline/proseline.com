@@ -2,6 +2,7 @@ var ReplicationProtocol = require('proseline-protocol').Replication
 var assert = require('assert')
 var debug = require('debug')
 var pageBus = require('../page-bus')
+var runSeries = require('run-series')
 
 var DEBUG_NAMESPACE = 'proseline:replicate:'
 
@@ -82,18 +83,23 @@ module.exports = function (options) {
   protocol.on('offer', function (offer) {
     var publicKey = offer.publicKey
     var offeredIndex = offer.index
-    var id = loggingID(publicKey, offeredIndex)
-    log('received offer: %s', id)
+    var offeredID = loggingID(publicKey, offeredIndex)
+    log('received offer: %s', offeredID)
     database.getLogHead(publicKey, function (error, head) {
       if (error) return log(error)
       if (head === undefined) head = -1
-      for (var index = head + 1; index <= offeredIndex; index++) {
-        log('sending request: %s', id)
-        protocol.request({publicKey, index}, function (error) {
-          if (error) return log(error)
-          log('sent request: %s', id)
-        })
-      }
+      var indexes = inclusiveRange(head + 1, offeredIndex)
+      runSeries(indexes.map(function (index) {
+        var requestID = loggingID(publicKey, index)
+        return function (done) {
+          log('sending request: %s', requestID)
+          protocol.request({publicKey, index}, function (error) {
+            if (error) log(error)
+            else log('sent request: %s', requestID)
+            done()
+          })
+        }
+      }))
     })
   })
 
@@ -130,4 +136,14 @@ module.exports = function (options) {
 
 function loggingID (publicKey, index) {
   return publicKey + ' # ' + index
+}
+
+function inclusiveRange (from, to) {
+  if (from > to) return []
+  if (from === to) return [from]
+  var returned = []
+  for (var index = from; index <= to; index++) {
+    returned.push(index)
+  }
+  return returned
 }
