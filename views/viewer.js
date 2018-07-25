@@ -2,6 +2,7 @@ var SVG = require('../svg')
 var assert = require('assert')
 var beforeUnload = require('../before-unload')
 var initializeEditor = require('../editor')
+var onKeyDown = require('./on-key-down')
 var renderBookmarkPath = require('./partials/bookmark-path')
 var renderDraftHeader = require('./partials/draft-header')
 var renderIntro = require('./partials/intro')
@@ -46,6 +47,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
         ? state.parents[0].message.body.text
         : undefined
     })
+    div.onkeydown = onKeyDown(editor, [state.draft.digest], state, send)
     var saveForm = renderSaveForm(state, send, editor)
     main.appendChild(renderDraftHeader(state, saveForm))
     main.appendChild(div)

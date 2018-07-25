@@ -1,6 +1,7 @@
 var assert = require('assert')
 var beforeUnload = require('../before-unload')
 var initializeEditor = require('../editor')
+var onKeyDown = require('./on-key-down')
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var withProject = require('./with-project')
@@ -33,6 +34,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
       })
     )
   ) {
+    // TODO: Action isn't defined, and this code never seems to run.
     main.appendChild(
       renderLoading(function () {
         send('reload parents', {discoveryKey, parentDigests})
@@ -78,6 +80,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
         else beforeUnload.disable()
       }
     })
+    div.onkeydown = onKeyDown(editor, parentDigests || [], state, send)
   }
   return main
 })
