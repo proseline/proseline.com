@@ -208,6 +208,14 @@ function Peer (id, transportStream, persistent) {
               if (error) return log(error)
               invitationsSent.add(discoveryKey)
               log('sent invitation: %o', discoveryKey)
+              if (!self._sharedStreams.has(discoveryKey)) {
+                setTimeout(function () {
+                  databases.get(discoveryKey, function (error, database) {
+                    if (error) return log(error)
+                    self.joinProject(project, database)
+                  })
+                }, 5000)
+              }
             })
           }
 
