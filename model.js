@@ -1,4 +1,5 @@
 /* globals Blob, fetch */
+var UNTITLED = require('./untitled')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
 var diff = require('diff/lib/diff/line').diffLines
@@ -14,8 +15,6 @@ var random = require('./crypto/random')
 var treeifyNotes = require('./utilities/treeify-notes')
 
 // TODO: Copy draft to new project.
-
-var DEFAULT_TITLE = 'Nameless Project'
 
 module.exports = function (initialize, reduction, handler, withIndexedDB) {
   initialize(function () {
@@ -189,7 +188,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: discoveryKey,
       writeSeed: writeSeed,
       writeKeyPair: writeKeyPair,
-      title: title || DEFAULT_TITLE,
+      title: title || UNTITLED,
       persistent: false
     }
     runSeries([

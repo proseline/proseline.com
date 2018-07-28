@@ -1,4 +1,5 @@
 /* global fetch */
+var UNTITLED = require('../untitled')
 var EventEmitter = require('events').EventEmitter
 var InvitationProtocol = require('proseline-protocol').Invitation
 var databases = require('../db/databases')
@@ -129,7 +130,7 @@ function Peer (id, transportStream, persistent) {
             if (publicKey !== fetchedPublicKey) {
               return log('public key mismatch')
             }
-            project.title = invitation.message.title || 'Untitled Project'
+            project.title = invitation.message.title || UNTITLED
             // TODO: Deduplicate project join code in peer and model.
             runSeries([
               function indexProjectInProselineDB (done) {
@@ -194,7 +195,7 @@ function Peer (id, transportStream, persistent) {
             var message = {
               replicationKey: project.replicationKey,
               writeSeed: project.writeSeed,
-              title: project.title || 'Untitled Project'
+              title: project.title || UNTITLED
             }
             var stringified = stringify(message)
             var envelope = {
