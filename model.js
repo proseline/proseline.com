@@ -107,7 +107,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Projects
 
   handler('create project', function (data, state, reduce, done) {
-    createProject({}, function (error, project) {
+    var title = data.title
+    createProject({title}, function (error, project) {
       if (error) return done(error)
       redirectToProject(project.discoveryKey)
       done()
@@ -171,6 +172,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var replicationKey = data.replicationKey
     var discoveryKey = data.discoveryKey
     var writeSeed = data.writeSeed
+    var title = data.title
     assert.equal(typeof callback, 'function')
     if (replicationKey) {
       assert.equal(typeof replicationKey, 'string')
@@ -187,7 +189,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       discoveryKey: discoveryKey,
       writeSeed: writeSeed,
       writeKeyPair: writeKeyPair,
-      title: DEFAULT_TITLE,
+      title: title || DEFAULT_TITLE,
       persistent: false
     }
     runSeries([

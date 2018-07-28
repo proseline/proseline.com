@@ -27,36 +27,52 @@ function renderProjectsList (projects, send) {
     var p = document.createElement('p')
     p.appendChild(document.createTextNode('You do not have any projects.'))
     section.appendChild(p)
-  } else {
-    var ul = document.createElement('ul')
-    projects
-      .sort(function (a, b) {
-        return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
-      })
-      .forEach(function (project) {
-        var li = document.createElement('li')
-        var a = document.createElement('a')
-        a.href = '/projects/' + project.discoveryKey
-        a.appendChild(document.createTextNode(project.title))
-        li.appendChild(a)
-        ul.appendChild(li)
-      })
-    section.appendChild(ul)
   }
+  var ul = document.createElement('ul')
+  projects
+    .sort(function (a, b) {
+      return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+    })
+    .forEach(function (project) {
+      var li = document.createElement('li')
+      var a = document.createElement('a')
+      a.href = '/projects/' + project.discoveryKey
+      a.appendChild(document.createTextNode(project.title))
+      li.appendChild(a)
+      ul.appendChild(li)
+    })
+  var createProjectLI = document.createElement('li')
+  ul.appendChild(createProjectLI)
+  createProjectLI.appendChild(renderCreateProject(send))
+  section.appendChild(ul)
 
-  section.appendChild(renderCreateProject(send))
   section.appendChild(renderBackup(send))
 
   return section
 }
 
 function renderCreateProject (send) {
+  var form = document.createElement('form')
+  form.onsubmit = function (event) {
+    event.stopPropagation()
+    event.preventDefault()
+    send('create project', {
+      title: this.elements.title.value
+    })
+  }
+
+  var input = document.createElement('input')
+  form.appendChild(input)
+  input.name = 'title'
+  input.required = true
+  input.placeholder = 'Project Title'
+
   var button = document.createElement('button')
-  button.addEventListener('click', function () {
-    send('create project')
-  })
+  form.appendChild(button)
+  button.type = 'submit'
   button.appendChild(document.createTextNode('Create a project.'))
-  return button
+
+  return form
 }
 
 function renderBackup (send) {
