@@ -1,19 +1,27 @@
-module.exports = function () {
+module.exports = function (link) {
   var returned = document.createDocumentFragment()
   var first = document.createElement('p')
   returned.appendChild(first)
   first.appendChild(document.createTextNode(
-    'Proseline is free to use. ' +
-    'However, in order to share your work with others, ' +
-    'you must be online and have proseline.com open ' +
-    'in your web browser.'
+    'Proseline is free to use, ' +
+    'but you must be online and have proseline.com open ' +
+    'in your web browser to share your work with others.'
   ))
   var second = document.createElement('p')
   returned.appendChild(second)
   second.appendChild(document.createTextNode(
-    'If you would like to share your work even when you ' +
-    'are not online, consider subscribing to Proseline’s ' +
-    'sharing service.'
+    'To share your work even when you ' +
+    'are not online, '
   ))
+  var SUBSCRIBE = 'subscribe to Proseline’s sharing service'
+  if (link) {
+    var a = document.createElement('a')
+    second.appendChild(a)
+    a.href = '/subscription'
+    a.appendChild(document.createTextNode(SUBSCRIBE))
+    second.appendChild(document.createTextNode('.'))
+  } else {
+    second.appendChild(document.createTextNode(SUBSCRIBE))
+  }
   return returned
 }
