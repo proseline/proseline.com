@@ -107,7 +107,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   handler('create project', function (data, state, reduce, done) {
     var title = data.title
-    createProject({title}, function (error, project) {
+    var persistent = data.persistent
+    createProject({title, persistent}, function (error, project) {
       if (error) return done(error)
       redirectToProject(project.discoveryKey)
       done()
@@ -189,7 +190,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       writeSeed: writeSeed,
       writeKeyPair: writeKeyPair,
       title: title || UNTITLED,
-      persistent: false
+      persistent: !!data.persistent
     }
     runSeries([
       function (done) {

@@ -14,13 +14,13 @@ module.exports = function (state, send) {
     )
   } else {
     main.appendChild(renderDraftHeader(state))
-    main.appendChild(renderProjectsList(state.projects, send))
+    main.appendChild(renderProjectsList(state.subscription, state.projects, send))
     main.appendChild(renderSubscriptionSection())
   }
   return main
 }
 
-function renderProjectsList (projects, send) {
+function renderProjectsList (subscription, projects, send) {
   var section = renderSection('Projects')
 
   if (projects.length === 0) {
@@ -43,7 +43,7 @@ function renderProjectsList (projects, send) {
     })
   var createProjectLI = document.createElement('li')
   ul.appendChild(createProjectLI)
-  createProjectLI.appendChild(renderCreateProject(send))
+  createProjectLI.appendChild(renderCreateProject(subscription, send))
   section.appendChild(ul)
 
   section.appendChild(renderBackup(send))
@@ -51,14 +51,16 @@ function renderProjectsList (projects, send) {
   return section
 }
 
-function renderCreateProject (send) {
+function renderCreateProject (subscription, send) {
   var form = document.createElement('form')
   form.onsubmit = function (event) {
     event.stopPropagation()
     event.preventDefault()
-    send('create project', {
-      title: this.elements.title.value
-    })
+    var data = {title: this.elements.title.value}
+    if (this.elements.persistent) {
+      data.share = this.elements.persistent.value
+    }
+    send('create project', data)
   }
 
   var input = document.createElement('input')
@@ -66,6 +68,16 @@ function renderCreateProject (send) {
   input.name = 'title'
   input.required = true
   input.placeholder = 'Project Title'
+
+  if (subscription) {
+    var label = document.createElement('label')
+    form.appendChild(label)
+    var checkbox = document.createElement('input')
+    label.appendChild(checkbox)
+    checkbox.type = 'checkbox'
+    checkbox.name = 'persistent'
+    label.appendChild(document.createTextNode('Save when you’re offline.'))
+  }
 
   var button = document.createElement('button')
   form.appendChild(button)
