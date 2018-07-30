@@ -76,7 +76,7 @@ function renderCreateProject (subscription, send) {
     label.appendChild(checkbox)
     checkbox.type = 'checkbox'
     checkbox.name = 'persistent'
-    label.appendChild(document.createTextNode('Save when you’re offline.'))
+    label.appendChild(document.createTextNode('Share when you’re offline.'))
   }
 
   var button = document.createElement('button')
