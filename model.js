@@ -304,9 +304,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('load projects', function (_, state, reduce, done) {
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
-      db.listProjects(function (error, projects) {
+      runParallel({
+        projects: function (done) {
+          db.listProjects(done)
+        },
+        subscription: function (done) {
+          db.getSubscription(done)
+        }
+      }, function (error, results) {
         if (error) return done(error)
-        reduce('projects', projects)
+        reduce('projects', results.projects)
+        reduce('subscription', results.subscription || {})
         done()
       })
     })

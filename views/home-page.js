@@ -69,7 +69,7 @@ function renderCreateProject (subscription, send) {
   input.required = true
   input.placeholder = 'Project Title'
 
-  if (subscription) {
+  if (subscription.email) {
     var label = document.createElement('label')
     form.appendChild(label)
     var checkbox = document.createElement('input')
