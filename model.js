@@ -2,7 +2,6 @@
 var UNTITLED = require('./untitled')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('assert')
-var diff = require('diff/lib/diff/line').diffLines
 var keyPairFromSeed = require('./crypto/key-pair-from-seed')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
@@ -469,7 +468,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replyTo: null,
       parents: data.parents || [],
       children: children,
-      diff: null,
       parent: null,
       parentMarks: null,
       ownMarks: null,
@@ -545,49 +543,6 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       })
     }
   )
-
-  handler('diff', function (data, state, reduce, done) {
-    reduce('diff', {
-      source: data.source,
-      index: data.index,
-      changes: splitChanges(
-        data.source === 'children'
-          ? diff(
-            state.draft.message.body.text,
-            state.children[data.index].message.body.text
-          )
-          : diff(
-            state.parents[data.index].message.body.text,
-            state.draft.message.body.text
-          )
-      )
-    })
-    done()
-  })
-
-  function splitChanges (changes) {
-    var returned = []
-    changes.forEach(function (change) {
-      change.value
-        .split('\n')
-        .forEach(function (line) {
-          var newChange = {value: line}
-          newChange.added = change.added
-          newChange.removed = change.removed
-          returned.push(newChange)
-        })
-    })
-    return returned
-  }
-
-  handler('stop diffing', function (_, state, reduce, done) {
-    reduce('diff', null)
-    done()
-  })
-
-  reduction('diff', function (diff, state) {
-    return {diff: diff}
-  })
 
   handler('load parents', function (data, state, reduce, done) {
     loadParents(data, state, reduce, done)
