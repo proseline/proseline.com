@@ -58,7 +58,7 @@ function renderCreateProject (subscription, send) {
     event.preventDefault()
     var data = {title: this.elements.title.value}
     if (this.elements.persistent) {
-      data.share = this.elements.persistent.value
+      data.persistent = this.elements.persistent.value
     }
     send('create project', data)
   }
