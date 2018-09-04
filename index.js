@@ -235,6 +235,9 @@ function network (done) {
       })
     ) return send('changed')
   })
+  pageBus.on('added project', function (x) {
+    if (!globalState.discoveryKey) return send('changed')
+  })
   done()
 }
 
