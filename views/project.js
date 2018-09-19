@@ -425,6 +425,9 @@ function renderSVGLink (options) {
   anchor.setAttributeNS(null, 'id', options.label + '-' + options.digest)
   if (options.href) {
     anchor.setAttribute('href', options.href)
+    anchor.addEventListener('click', function () {
+      window.location = options.href
+    })
   } else if (options.onClick) {
     anchor.addEventListener('click', options.onClick)
   }
