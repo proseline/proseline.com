@@ -3,6 +3,8 @@ var renderLoading = require('./loading')
 var renderSection = require('./partials/section')
 var renderSharing = require('./partials/sharing')
 
+// TODO: UI for re-joining projects.
+
 module.exports = function (state, send) {
   state.route = 'home'
   var main = document.createElement('main')
