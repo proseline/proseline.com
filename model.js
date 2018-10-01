@@ -36,6 +36,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draftSelection: null,
       // Overview
       projects: null,
+      userIntro: null,
       // Subscription
       subscription: null
     }
@@ -43,12 +44,28 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Intro
 
+  handler('set user intro', function (data, state, reduce, done) {
+    withIndexedDB('proseline', function (error, db) {
+      if (error) return done(error)
+      db.setIntro(data, function (error) {
+        if (error) return done(error)
+        reduce('user intro', data)
+        done()
+      })
+    })
+  })
+
+  reduction('user intro', function (userIntro, state) {
+    return {userIntro}
+  })
+
   handler('introduce', function (data, state, reduce, done) {
     var identity = state.identity
+    var userIntro = state.userIntro
     var intro = {
       type: 'intro',
-      name: data.name,
-      device: data.device,
+      name: userIntro.name,
+      device: userIntro.device,
       timestamp: new Date().toISOString()
     }
     var message = {
@@ -59,13 +76,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       db.putIntro(message, identity, function (error, envelope) {
         if (error) return done(error)
-        reduce('intro', envelope)
+        reduce('project intro', envelope)
         done()
       })
     })
   })
 
-  reduction('intro', function (newIntro, state) {
+  reduction('project intro', function (newIntro, state) {
     state.intros[newIntro.publicKey] = newIntro
     return {
       intros: state.intros,
@@ -367,6 +384,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           withIndexedDB('proseline', function (error, db) {
             if (error) return done(error)
             db.getSubscription(done)
+          })
+        },
+        userIdentity: function (done) {
+          withIndexedDB('proseline', function (error, db) {
+            if (error) return done(error)
+            db.getIntro(done)
           })
         }
       }, function (error, data) {

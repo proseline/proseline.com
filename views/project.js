@@ -21,10 +21,17 @@ module.exports = withProject(function (state, send, discoveryKey) {
   }
   main.appendChild(renderDraftHeader(state))
   var intro = state.intros[state.identity.publicKey]
+  var userIntro = state.userIntro
   if (!intro) {
-    var introSection = renderSection('Introduce Yourself')
-    main.appendChild(introSection)
-    introSection.appendChild(identityLine(send))
+    if (!userIntro) {
+      var introSection = renderSection('Introduce Yourself')
+      main.appendChild(introSection)
+      introSection.appendChild(identityLine(send))
+    } else {
+      main.appendChild(renderRefreshNotice(function () {
+        send('introduce')
+      }))
+    }
   } else {
     main.appendChild(renderWhatsNew(state))
     if (state.draftBriefs.length !== 0) {

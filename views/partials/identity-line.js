@@ -35,7 +35,7 @@ module.exports = function (send) {
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()
-    send('introduce', {
+    send('set user intro', {
       name: input.value,
       device: select.value
     })

@@ -102,3 +102,13 @@ prototype.getSubscription = function (callback) {
 prototype.setSubscription = function (subscription, callback) {
   this._put('user', 'subscription', subscription, callback)
 }
+
+// Introduction
+
+prototype.getIntro = function (callback) {
+  this._get('user', 'intro', callback)
+}
+
+prototype.setIntro = function (intro, callback) {
+  this._put('user', 'intro', intro, callback)
+}
