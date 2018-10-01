@@ -27,7 +27,7 @@
     "proseline-protocol": "^7.0.0",
     "prosemirror-commands": "^1.0.7",
     "prosemirror-dropcursor": "^1.0.1",
-    "prosemirror-gapcursor": "^1.0.2",
+    "prosemirror-gapcursor": "^1.0.3",
     "prosemirror-history": "^1.0.2",
     "prosemirror-keymap": "^1.0.1",
     "prosemirror-menu": "^1.0.4",
