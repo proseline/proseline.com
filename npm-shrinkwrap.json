@@ -5880,9 +5880,9 @@
       }
     },
     "prosemirror-view": {
-      "version": "1.3.7",
-      "resolved": "https://registry.npmjs.org/prosemirror-view/-/prosemirror-view-1.3.7.tgz",
-      "integrity": "sha512-vTWOXbprc5f1b05SF7hapahz2Cjbe7e9AoMUSTB+E62V7u7xrcy3uPCmpNhYUqhEmo/ad6HZTO1JPiYgBSwMeQ==",
+      "version": "1.6.1",
+      "resolved": "https://registry.npmjs.org/prosemirror-view/-/prosemirror-view-1.6.1.tgz",
+      "integrity": "sha512-KdwmnkXtN15Lz3l4NO2NeZlkQZnvu0HTGMk0fHPUytgfnz3J9xqCmPNsCJN0GqRcuCHzlLeKclv4puw1v2+6yA==",
       "requires": {
         "prosemirror-model": "^1.1.0",
         "prosemirror-state": "^1.0.0",
