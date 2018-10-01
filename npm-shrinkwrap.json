@@ -5855,9 +5855,9 @@
       }
     },
     "prosemirror-model": {
-      "version": "1.5.0",
-      "resolved": "https://registry.npmjs.org/prosemirror-model/-/prosemirror-model-1.5.0.tgz",
-      "integrity": "sha512-d0/4pt8ky5vU1SXq7WlOuGfrXlNEO4YZg7UuqCWfnW0GlGydQVJzvYHe1gH3/97alVpGwqFBZFnO5au5LjHjZQ==",
+      "version": "1.6.2",
+      "resolved": "https://registry.npmjs.org/prosemirror-model/-/prosemirror-model-1.6.2.tgz",
+      "integrity": "sha512-fdFvthBpM7P3GRcJJW0tYB49z0lYo/yvxI4Avx4rZguFzMyLRmDdH4hIinxLR14u9K59FMnC9ihba4mwsf9LNw==",
       "requires": {
         "orderedmap": "^1.0.0"
       }
