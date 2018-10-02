@@ -386,7 +386,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             db.getSubscription(done)
           })
         },
-        userIdentity: function (done) {
+        userIntro: function (done) {
           withIndexedDB('proseline', function (error, db) {
             if (error) return done(error)
             db.getIntro(done)
