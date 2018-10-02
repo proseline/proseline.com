@@ -412,6 +412,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       persistent: data.project.persistent,
       identity: data.identity,
       intros: data.intros,
+      userIntro: data.userIntro,
       projectMarks: data.projectMarks || [],
       draftBriefs: data.draftBriefs || [],
       activity: data.activity,
