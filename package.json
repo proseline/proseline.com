@@ -33,7 +33,7 @@
     "prosemirror-menu": "^1.0.5",
     "prosemirror-model": "^1.6.2",
     "prosemirror-state": "^1.2.2",
-    "prosemirror-view": "^1.6.1",
+    "prosemirror-view": "^1.6.2",
     "rfc6902-json-diff": "^0.2.1",
     "run-parallel": "^1.1.9",
     "run-series": "^1.1.8",
