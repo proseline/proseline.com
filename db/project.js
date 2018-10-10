@@ -182,7 +182,8 @@ Project.prototype._log = function (message, identity, callback) {
       message: message,
       publicKey: identity.publicKey,
       signature: sign(stringified, identity.secretKey),
-      authorization: sign(stringified, self._writeKeyPair.secretKey)
+      authorization: sign(stringified, self._writeKeyPair.secretKey),
+      local: true
     }
     addIndexingMetadata(envelope)
     transaction
@@ -270,6 +271,7 @@ function addIndexingMetadata (envelope) {
 function removeIndexingMetadata (envelope) {
   delete envelope.digest
   delete envelope.added
+  delete envelope.local
 }
 
 // Drafts

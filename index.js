@@ -215,26 +215,19 @@ function network (done) {
     // send('peers', count)
   })
   pageBus.on('envelope', function (envelope) {
+    // If we created this envelope, don't show an update.
+    if (envelope.local) return
     var discoveryKey = envelope.message.project
-    var publicKey = envelope.publicKey
-    databases.get(discoveryKey, function (error, database) {
-      if (error) return debug(error)
-      database.getDefaultIdentity(function (error, identity) {
-        if (error) return debug(error)
-        // If we created this envelope, don't show an update.
-        if (identity.publicKey === publicKey) return
-        if (
-          globalState.discoveryKey &&
-          globalState.discoveryKey === discoveryKey
-        ) return send('changed')
-        if (
-          !globalState.discoveryKey &&
-          !globalState.projects.some(function (project) {
-            return project.discoveryKey === discoveryKey
-          })
-        ) return send('changed')
+    if (
+      globalState.discoveryKey &&
+      globalState.discoveryKey === discoveryKey
+    ) return send('changed')
+    if (
+      !globalState.discoveryKey &&
+      !globalState.projects.some(function (project) {
+        return project.discoveryKey === discoveryKey
       })
-    })
+    ) return send('changed')
   })
   /*
   pageBus.on('added project', function (x) {
