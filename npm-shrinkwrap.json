@@ -5833,11 +5833,11 @@
       }
     },
     "prosemirror-history": {
-      "version": "1.0.2",
-      "resolved": "https://registry.npmjs.org/prosemirror-history/-/prosemirror-history-1.0.2.tgz",
-      "integrity": "sha512-UGPugDKQY8i4sz6vIzFgt+SSGKa2tLVoVajyqpNtczJBzuIDitpgeUT5aOcv/b8zc8NHOM2dGdY97FoEvrCHKQ==",
+      "version": "1.0.3",
+      "resolved": "https://registry.npmjs.org/prosemirror-history/-/prosemirror-history-1.0.3.tgz",
+      "integrity": "sha512-IfFGbhafSx+R3aq7nLJGkXeu2iaUiP8mkU3aRu2uQcIIjU8Fq7RJfuvhIOJ2RNUoSyqF/ANkdTjnZ74F5eHs1Q==",
       "requires": {
-        "prosemirror-state": "^1.0.0",
+        "prosemirror-state": "^1.2.2",
         "prosemirror-transform": "^1.0.0",
         "rope-sequence": "^1.2.0"
       }
