@@ -7,6 +7,7 @@ var moment = require('moment')
 var renderActivity = require('./partials/activity')
 var renderBookmarkPath = require('./partials/bookmark-path')
 var renderDraftHeader = require('./partials/draft-header')
+var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var withProject = require('./with-project')
@@ -28,7 +29,7 @@ module.exports = withProject(function (state, send, discoveryKey) {
       main.appendChild(introSection)
       introSection.appendChild(identityLine(send))
     } else {
-      main.appendChild(renderRefreshNotice(function () {
+      main.appendChild(renderLoading(function () {
         send('introduce')
       }))
     }
