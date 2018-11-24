@@ -42,6 +42,7 @@ Client.prototype._joinSwarms = function () {
   proselineDB.listProjects(function (error, projects) {
     if (error) return debug(error)
     projects.forEach(function (project) {
+      if (project.deleted) return
       databases.get(project.discoveryKey, function (error, database) {
         if (error) return debug(error)
         self._joinSwarm(project, database)

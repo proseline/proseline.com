@@ -183,6 +183,7 @@ function Peer (id, transportStream, persistent) {
           proseline.listProjects(function (error, projects) {
             if (error) return log(error)
             projects.forEach(function (project) {
+              if (project.deleted) return
               if (project.persistent) sendInvitation(project)
             })
           })
@@ -269,6 +270,7 @@ Peer.prototype.joinProjects = function () {
   proselineDB.listProjects(function (error, projects) {
     if (error) return log(error)
     projects.forEach(function (project) {
+      if (project.deleted) return
       databases.get(project.discoveryKey, function (error, database) {
         if (error) return log(error)
         self.joinProject(project, database)

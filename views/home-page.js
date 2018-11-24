@@ -3,8 +3,6 @@ var renderLoading = require('./loading')
 var renderSection = require('./partials/section')
 var renderSharing = require('./partials/sharing')
 
-// TODO: UI for re-joining projects.
-
 module.exports = function (state, send) {
   state.route = 'home'
   var main = document.createElement('main')
@@ -16,23 +14,30 @@ module.exports = function (state, send) {
     )
   } else {
     main.appendChild(renderDraftHeader(state))
-    main.appendChild(renderProjectsList(state.subscription, state.projects, send))
+    main.appendChild(renderActiveProjectsList(state.subscription, state.projects, send))
+    main.appendChild(renderArchivedProjectsList(state.subscription, state.projects, send))
     main.appendChild(renderSubscriptionSection())
+    main.appendChild(renderBackupSection(send))
   }
   return main
 }
 
-function renderProjectsList (subscription, projects, send) {
-  var section = renderSection('Projects')
+function renderActiveProjectsList (subscription, projects, send) {
+  var section = renderSection('Active Projects')
 
-  if (projects.length === 0) {
+  var activeProjects = projects.filter(function (project) {
+    return !project.deleted
+  })
+
+  if (activeProjects.length === 0) {
     var p = document.createElement('p')
-    p.appendChild(document.createTextNode('You do not have any projects.'))
+    p.appendChild(document.createTextNode('You do not have any active projects.'))
     section.appendChild(p)
   }
   var ul = document.createElement('ul')
-  projects
-    .sort(function (a, b) {
+  ul.className = 'activeProjects'
+  activeProjects
+    .sort(function byTitle (a, b) {
       return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
     })
     .forEach(function (project) {
@@ -48,7 +53,42 @@ function renderProjectsList (subscription, projects, send) {
   createProjectLI.appendChild(renderCreateProject(subscription, send))
   section.appendChild(ul)
 
-  section.appendChild(renderBackup(send))
+  return section
+}
+
+function renderArchivedProjectsList (subscription, projects, send) {
+  var section = renderSection('Archived Projects')
+
+  var archivedProjects = projects.filter(function (project) {
+    if (!project.deleted) return false
+    return project.writeSeed && project.replicationKey
+  })
+
+  if (archivedProjects.length === 0) {
+    var p = document.createElement('p')
+    p.appendChild(document.createTextNode('You do not have any archived projects.'))
+    section.appendChild(p)
+  }
+  var ul = document.createElement('ul')
+  ul.className = 'archivedProjects'
+  archivedProjects
+    .sort(function byTitle (a, b) {
+      return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+    })
+    .forEach(function (project) {
+      var li = document.createElement('li')
+      var a = document.createElement('a')
+      a.appendChild(document.createTextNode(project.title))
+      var button = document.createElement('button')
+      button.addEventListener('click', function () {
+        send('join project', project)
+      })
+      button.appendChild(document.createTextNode('Rejoin project.'))
+      a.appendChild(button)
+      li.appendChild(a)
+      ul.appendChild(li)
+    })
+  section.appendChild(ul)
 
   return section
 }
@@ -89,17 +129,19 @@ function renderCreateProject (subscription, send) {
   return form
 }
 
-function renderBackup (send) {
+function renderSubscriptionSection () {
+  var section = renderSection('Subscription')
+  section.appendChild(renderSharing(true))
+  return section
+}
+
+function renderBackupSection (send) {
+  var section = renderSection('Backup')
   var button = document.createElement('button')
   button.addEventListener('click', function () {
     send('backup')
   })
-  button.appendChild(document.createTextNode('Backup projects.'))
-  return button
-}
-
-function renderSubscriptionSection () {
-  var section = renderSection('Subscription')
-  section.appendChild(renderSharing(true))
+  button.appendChild(document.createTextNode('Backup your project data.'))
+  section.appendChild(button)
   return section
 }

@@ -137,7 +137,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       function overwriteProject (done) {
         withIndexedDB('proseline', function (error, db) {
           if (error) return done(error)
-          db.overwriteProject({discoveryKey, deleted: true}, done)
+          db.getProject(discoveryKey, function (error, project) {
+            if (error) return done(error)
+            var stub = {
+              deleted: true,
+              discoveryKey: project.discoveryKey,
+              replicationKey: project.replicationKey,
+              title: project.title,
+              writeSeed: project.writeSeed
+            }
+            db.overwriteProject(stub, done)
+          })
         })
       },
       function deleteDatabase (done) {
@@ -167,7 +177,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         createProject({
           replicationKey,
           discoveryKey,
-          writeSeed
+          writeSeed,
+          // If we are rejoining a project we left, reuse
+          // the old title.
+          title: data.title
         }, function (error) {
           if (error) return done(error)
           redirect()
@@ -849,6 +862,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             if (error) return done(error)
             runParallel(projects.map(function (project) {
               return function (done) {
+                if (project.deleted) return done(null, {project})
                 withIndexedDB(project.discoveryKey, function (error, db) {
                   if (error) return done(error)
                   db.getDefaultIdentity(function (error, identity) {

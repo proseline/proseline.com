@@ -68,12 +68,7 @@ prototype.deleteProject = function (discoveryKey, callback) {
 }
 
 prototype.listProjects = function (callback) {
-  this._listValues('projects', function (error, projects) {
-    if (error) return callback(error)
-    callback(null, projects.filter(function (project) {
-      return !project.deleted
-    }))
-  })
+  this._listValues('projects', callback)
 }
 
 // User
