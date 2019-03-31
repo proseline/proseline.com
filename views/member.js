@@ -7,12 +7,12 @@ var withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, publicKey) {
   state.route = 'member'
-  assert.equal(typeof state, 'object')
-  assert.equal(typeof send, 'function')
-  assert.equal(typeof discoveryKey, 'string')
-  assert.equal(discoveryKey.length, 64)
-  assert.equal(typeof publicKey, 'string')
-  assert.equal(publicKey.length, 64)
+  assert.strictEqual(typeof state, 'object')
+  assert.strictEqual(typeof send, 'function')
+  assert.strictEqual(typeof discoveryKey, 'string')
+  assert.strictEqual(discoveryKey.length, 64)
+  assert.strictEqual(typeof publicKey, 'string')
+  assert.strictEqual(publicKey.length, 64)
   var main = document.createElement('main')
   if (state.member === publicKey && state.memberActivity) {
     if (state.changed) {

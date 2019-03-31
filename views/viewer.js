@@ -18,7 +18,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
   if (state.draft && state.draft.digest === digest) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('reload draft', {discoveryKey, digest})
+        send('reload draft', { discoveryKey, digest })
       }))
     }
     var draft = state.draft
@@ -203,7 +203,7 @@ function renderNote (state, send, note) {
   blockquote.appendChild(renderText(note.message.body.text))
 
   if (replyTo === note.digest) {
-    aside.appendChild(renderNoteForm(state, send, {parent: note.digest}))
+    aside.appendChild(renderNoteForm(state, send, { parent: note.digest }))
   } else {
     // <button>
     var button = document.createElement('button')
@@ -242,7 +242,7 @@ function renderNoteForm (state, send, options) {
     )
   )
   assert(!selected || typeof selected === 'string')
-  assert.equal(typeof send, 'function')
+  assert.strictEqual(typeof send, 'function')
 
   // <form>
   var form = document.createElement('form')
@@ -250,7 +250,7 @@ function renderNoteForm (state, send, options) {
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()
-    send('note', {parent, range, text: textarea.value})
+    send('note', { parent, range, text: textarea.value })
   })
 
   // <textarea>

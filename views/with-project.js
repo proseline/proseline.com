@@ -3,9 +3,9 @@ var renderLoading = require('./loading')
 
 module.exports = function (view) {
   return function (state, send, discoveryKey) {
-    assert.equal(typeof state, 'object')
-    assert.equal(typeof send, 'function')
-    assert.equal(typeof view, 'function')
+    assert.strictEqual(typeof state, 'object')
+    assert.strictEqual(typeof send, 'function')
+    assert.strictEqual(typeof view, 'function')
     if (discoveryKey && state.discoveryKey !== discoveryKey) {
       var main = document.createElement('main')
       main.appendChild(

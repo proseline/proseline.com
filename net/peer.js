@@ -102,7 +102,7 @@ function Peer (id, transportStream, persistent) {
       var replicationKey = invitation.message.replicationKey
       var discoveryKey = hashHex(replicationKey)
       var writeSeed = invitation.message.writeSeed
-      var project = {replicationKey, discoveryKey, writeSeed}
+      var project = { replicationKey, discoveryKey, writeSeed }
       if (!writeSeed) return log('no write seed')
       project.writeKeyPair = keyPairFromSeed(writeSeed)
       proseline.getProject(discoveryKey, function (error, existing) {
@@ -221,7 +221,7 @@ function Peer (id, transportStream, persistent) {
           }
 
           // Request invitations.
-          var message = {email, date: new Date().toISOString()}
+          var message = { email, date: new Date().toISOString() }
           var stringified = stringify(message)
           var envelope = {
             message,

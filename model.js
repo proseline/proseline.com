@@ -56,7 +56,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('user intro', function (userIntro, state) {
-    return {userIntro}
+    return { userIntro }
   })
 
   handler('introduce', function (data, state, reduce, done) {
@@ -99,8 +99,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reloadHandler('member', loadMember)
 
   function loadMember (data, setate, reduce, done) {
-    assert.equal(typeof data.publicKey, 'string')
-    assert.equal(data.publicKey.length, 64)
+    assert.strictEqual(typeof data.publicKey, 'string')
+    assert.strictEqual(data.publicKey.length, 64)
     var publicKey = data.publicKey
     withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
@@ -124,7 +124,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('create project', function (data, state, reduce, done) {
     var title = data.title
     var persistent = data.persistent
-    createProject({title, persistent}, function (error, project) {
+    createProject({ title, persistent }, function (error, project) {
       if (error) return done(error)
       redirectToProject(project.discoveryKey)
       done()
@@ -132,7 +132,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('leave project', function (discoveryKey, state, reduce, done) {
-    assert.equal(typeof discoveryKey, 'string')
+    assert.strictEqual(typeof discoveryKey, 'string')
     runParallel([
       function overwriteProject (done) {
         withIndexedDB('proseline', function (error, db) {
@@ -163,9 +163,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('join project', function (data, state, reduce, done) {
-    assert.equal(typeof data, 'object')
-    assert.equal(typeof data.replicationKey, 'string')
-    assert.equal(typeof data.writeSeed, 'string')
+    assert.strictEqual(typeof data, 'object')
+    assert.strictEqual(typeof data.replicationKey, 'string')
+    assert.strictEqual(typeof data.writeSeed, 'string')
     var replicationKey = data.replicationKey
     var writeSeed = data.writeSeed
     var discoveryKey = hashHex(replicationKey)
@@ -197,16 +197,16 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   function createProject (data, callback) {
-    assert.equal(typeof data, 'object')
+    assert.strictEqual(typeof data, 'object')
     var replicationKey = data.replicationKey
     var discoveryKey = data.discoveryKey
     var writeSeed = data.writeSeed
     var title = data.title
-    assert.equal(typeof callback, 'function')
+    assert.strictEqual(typeof callback, 'function')
     if (replicationKey) {
-      assert.equal(typeof replicationKey, 'string')
-      assert.equal(typeof discoveryKey, 'string')
-      assert.equal(typeof writeSeed, 'string')
+      assert.strictEqual(typeof replicationKey, 'string')
+      assert.strictEqual(typeof discoveryKey, 'string')
+      assert.strictEqual(typeof writeSeed, 'string')
     } else {
       replicationKey = random(32)
       discoveryKey = hashHex(replicationKey)
@@ -262,7 +262,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('rename', function (newTitle, state) {
-    return {title: newTitle}
+    return { title: newTitle }
   })
 
   handler('persist', function (_, state, reduce, done) {
@@ -283,7 +283,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('persistent', function (persistent, state) {
-    return {persistent: persistent}
+    return { persistent: persistent }
   })
 
   // Subscriptions
@@ -297,7 +297,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var email = data.email
         var token = data.token
         var date = new Date().toISOString()
-        var message = {token, email, date}
+        var message = { token, email, date }
         var stringified = stringify(message)
         var order = {
           message: message,
@@ -309,13 +309,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           mode: 'cors',
           cache: 'no-cache',
           credentials: 'omit',
-          headers: {'Content-Type': 'application/json'},
+          headers: { 'Content-Type': 'application/json' },
           referrer: 'no-referrer',
           body: JSON.stringify(order)
         })
           .then(function (response) { return response.json() })
           .then(function (result) {
-            var subscription = {email}
+            var subscription = { email }
             db.setSubscription(subscription, function (error) {
               if (error) return done(error)
               reduce('subscription', subscription)
@@ -350,7 +350,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('projects', function (projects, state) {
-    return {projects: projects}
+    return { projects: projects }
   })
 
   handler('load project', function (discoveryKey, state, reduce, done) {
@@ -526,7 +526,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('subscription', function (subscription, state) {
-    return {subscription: subscription}
+    return { subscription: subscription }
   })
 
   handler(
@@ -554,7 +554,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             mode: 'cors',
             cache: 'no-cache',
             credentials: 'omit',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             referrer: 'no-referrer',
             body: JSON.stringify(request)
           })
@@ -567,8 +567,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             })
             .then(function (body) {
               if (body.error) return done(body.error)
-              var subscription = {email}
-              db.setSubscription({email}, function (error) {
+              var subscription = { email }
+              db.setSubscription({ email }, function (error) {
                 if (error) return done(error)
                 reduce('subscription', subscription)
                 // TODO: Tell Client to reconnect on subscribe.
@@ -613,7 +613,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   }
 
   reduction('parents', function (parents, state) {
-    return {parents}
+    return { parents }
   })
 
   handler('load mark', function (data, state, reduce, done) {
@@ -683,11 +683,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('push draft', function (envelope, state) {
-    return {activity: [envelope].concat(state.activity)}
+    return { activity: [envelope].concat(state.activity) }
   })
 
   reduction('push brief', function (brief, state) {
-    return {draftBriefs: (state.draftBriefs || []).concat(brief)}
+    return { draftBriefs: (state.draftBriefs || []).concat(brief) }
   })
 
   // Marks
@@ -798,7 +798,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('reply to', function (parent, state) {
-    return {replyTo: parent}
+    return { replyTo: parent }
   })
 
   handler('select draft', function (digest, state, reduce, done) {
@@ -807,7 +807,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('select draft', function (draftSelection, state) {
-    return {draftSelection}
+    return { draftSelection }
   })
 
   handler('deselect draft', function (digest, state, reduce, done) {
@@ -816,7 +816,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('deselect draft', function (digest, state) {
-    return {draftSelection: null}
+    return { draftSelection: null }
   })
 
   // Change
@@ -827,7 +827,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('changed', function () {
-    return {changed: true}
+    return { changed: true }
   })
 
   handler('peers', function (count, state, reduce, done) {
@@ -836,7 +836,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('peers', function (count) {
-    return {peers: count}
+    return { peers: count }
   })
 
   // Downloads
@@ -846,7 +846,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     saveAs(
       new Blob(
         [JSON.stringify(state.draft.message.body.text)],
-        {type: 'application/json;charset=utf-8'}
+        { type: 'application/json;charset=utf-8' }
       ),
       'proseline.json',
       true // Omit BOM.
@@ -862,12 +862,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             if (error) return done(error)
             runParallel(projects.map(function (project) {
               return function (done) {
-                if (project.deleted) return done(null, {project})
+                if (project.deleted) return done(null, { project })
                 withIndexedDB(project.discoveryKey, function (error, db) {
                   if (error) return done(error)
                   db.getDefaultIdentity(function (error, identity) {
                     if (error) return done(error)
-                    done(null, {project, identity})
+                    done(null, { project, identity })
                   })
                 })
               }
@@ -885,7 +885,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         saveAs(
           new Blob(
             [JSON.stringify(results)],
-            {type: 'application/json;charset=UTF-8'}
+            { type: 'application/json;charset=UTF-8' }
           ),
           'proseline-backup.json'
         )

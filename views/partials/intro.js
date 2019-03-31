@@ -2,8 +2,8 @@ var assert = require('assert')
 var renderIntroIcon = require('./intro-icon')
 
 module.exports = function (state, publicKey, options) {
-  assert.equal(typeof state, 'object')
-  assert.equal(typeof publicKey, 'string')
+  assert.strictEqual(typeof state, 'object')
+  assert.strictEqual(typeof publicKey, 'string')
   options = options || {}
   var element
   if (options.plainText) {

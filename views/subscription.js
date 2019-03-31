@@ -100,7 +100,7 @@ function renderSubscribeSection (send) {
         var input = document.getElementById('subscribe-email')
         var email = input.value
         input.value = ''
-        send('subscribe', {token, email})
+        send('subscribe', { token, email })
       })
   }
   button.appendChild(document.createTextNode('Subscribe'))
@@ -136,7 +136,7 @@ function renderAddDeviceSection (send) {
     event.stopPropagation()
     var email = this.elements.email.value
     var name = this.elements.name.value
-    send('add device to subscription', {email, name})
+    send('add device to subscription', { email, name })
     this.elements.email.value = ''
   }
 

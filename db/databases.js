@@ -7,9 +7,9 @@ var debug = require('debug')('proseline:databases')
 var proseline = new ProselineDatabase()
 
 // A cache of Database instances, stored by name.
-var cache = {proseline}
+var cache = { proseline }
 
-module.exports = {proseline, setup, get}
+module.exports = { proseline, setup, get }
 
 // Export function to set up the main proseline database,
 // so that the application can ensure it's loaded before rendering.

@@ -14,9 +14,9 @@ module.exports = Project
 
 // Project wraps IndexedDB databases storing project data.
 function Project (data) {
-  assert.equal(typeof data, 'object')
-  assert.equal(typeof data.discoveryKey, 'string')
-  assert.equal(typeof data.writeKeyPair, 'object')
+  assert.strictEqual(typeof data, 'object')
+  assert.strictEqual(typeof data.discoveryKey, 'string')
+  assert.strictEqual(typeof data.writeKeyPair, 'object')
   this._writeKeyPair = data.writeKeyPair
   Database.call(this, {
     name: data.discoveryKey,
@@ -33,15 +33,15 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
   if (oldVersion < CURRENT_VERSION) {
     // Identities
     var identities = db.createObjectStore('identities')
-    identities.createIndex('publicKey', 'publicKey', {unique: true})
+    identities.createIndex('publicKey', 'publicKey', { unique: true })
 
     // Logs
     var logs = db.createObjectStore('logs')
-    logs.createIndex('publicKey', 'publicKey', {unique: false})
+    logs.createIndex('publicKey', 'publicKey', { unique: false })
     var TYPE_KEY_PATH = 'message.body.type'
-    logs.createIndex('type', TYPE_KEY_PATH, {unique: false})
+    logs.createIndex('type', TYPE_KEY_PATH, { unique: false })
     logs.createIndex(
-      'publicKey-type', ['publicKey', TYPE_KEY_PATH], {unique: false}
+      'publicKey-type', ['publicKey', TYPE_KEY_PATH], { unique: false }
     )
     // Index by parents so we can query for drafts by parent digest.
     logs.createIndex('parents', 'message.body.parents', {
@@ -53,17 +53,17 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     logs.createIndex(
       'type-draft',
       [TYPE_KEY_PATH, 'message.body.draft'],
-      {unique: false}
+      { unique: false }
     )
     // Index by public key and identifier so we can query for marks.
     logs.createIndex(
       'publicKey-identifier',
       ['publicKey', 'message.body.identifier'],
-      {unique: false}
+      { unique: false }
     )
     // Index everything by digest, a property added just for indexing,
     // so that we can get drafts and notes by digest.
-    logs.createIndex('digest', 'digest', {unique: true})
+    logs.createIndex('digest', 'digest', { unique: true })
     // Index everything by time added so we can query for the most
     // recent activity in a project.
     logs.createIndex('added', 'added')
@@ -113,9 +113,9 @@ Project.prototype.listIntros = function (callback) {
 }
 
 Project.prototype.putIntro = function (message, identity, callback) {
-  assert.equal(typeof message, 'object')
-  assert.equal(typeof identity, 'object')
-  assert.equal(typeof callback, 'function')
+  assert.strictEqual(typeof message, 'object')
+  assert.strictEqual(typeof identity, 'object')
+  assert.strictEqual(typeof callback, 'function')
   this._log(message, identity, callback)
 }
 
@@ -151,10 +151,10 @@ function formatEntryIndex (index) {
 }
 
 Project.prototype._log = function (message, identity, callback) {
-  assert.equal(typeof message, 'object')
+  assert.strictEqual(typeof message, 'object')
   assert(message.hasOwnProperty('project'))
   assert(message.hasOwnProperty('body'))
-  assert.equal(typeof callback, 'function')
+  assert.strictEqual(typeof callback, 'function')
   var self = this
   var publicKey = identity.publicKey
   // Determine the current log head, create an envelope, and append
@@ -206,9 +206,9 @@ Project.prototype.getEnvelope = function (publicKey, index, callback) {
 }
 
 function requestHead (transaction, publicKey, onResult) {
-  assert.equal(typeof transaction, 'object')
-  assert.equal(typeof publicKey, 'string')
-  assert.equal(typeof onResult, 'function')
+  assert.strictEqual(typeof transaction, 'object')
+  assert.strictEqual(typeof publicKey, 'string')
+  assert.strictEqual(typeof onResult, 'function')
   var lower = logEntryKey(publicKey, MIN_INDEX)
   var upper = logEntryKey(publicKey, MAX_INDEX)
   var request = transaction
@@ -222,11 +222,11 @@ function requestHead (transaction, publicKey, onResult) {
 }
 
 Project.prototype.putEnvelope = function (envelope, callback) {
-  assert.equal(typeof envelope, 'object')
+  assert.strictEqual(typeof envelope, 'object')
   assert(envelope.hasOwnProperty('message'))
   assert(envelope.hasOwnProperty('publicKey'))
   assert(envelope.hasOwnProperty('signature'))
-  assert.equal(typeof callback, 'function')
+  assert.strictEqual(typeof callback, 'function')
   var self = this
   var debug = self.debug
   addIndexingMetadata(envelope)
@@ -400,8 +400,8 @@ Project.prototype.activity = function (count, callback) {
 }
 
 Project.prototype.memberActivity = function (publicKey, count, callback) {
-  assert.equal(typeof publicKey, 'string')
-  assert.equal(publicKey.length, 64)
+  assert.strictEqual(typeof publicKey, 'string')
+  assert.strictEqual(publicKey.length, 64)
   assert(Number.isInteger(count))
   assert(count > 0)
   var transaction = this._db.transaction(['logs'], 'readonly')
@@ -428,11 +428,11 @@ Project.prototype.memberActivity = function (publicKey, count, callback) {
 }
 
 Project.prototype.markHistory = function (publicKey, identifier, count, callback) {
-  assert.equal(typeof publicKey, 'string')
-  assert.equal(publicKey.length, 64)
+  assert.strictEqual(typeof publicKey, 'string')
+  assert.strictEqual(publicKey.length, 64)
   assert(Number.isInteger(count))
-  assert.equal(typeof identifier, 'string')
-  assert.equal(identifier.length, 8)
+  assert.strictEqual(typeof identifier, 'string')
+  assert.strictEqual(identifier.length, 8)
   assert(count > 0)
   var transaction = this._db.transaction(['logs'], 'readonly')
   transaction.onerror = function () {

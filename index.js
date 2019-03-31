@@ -66,9 +66,9 @@ require('./model')(
     resetState()
   },
   function makeReduction (name, listener) {
-    assert.equal(typeof name, 'string', 'name is a string')
+    assert.strictEqual(typeof name, 'string', 'name is a string')
     assert(name.length !== 0, 'name is not empty')
-    assert.equal(
+    assert.strictEqual(
       reductions.listenerCount(name), 0,
       'just one listener for ' + name
     )
@@ -77,9 +77,9 @@ require('./model')(
     })
   },
   function makeHandler (name, listener) {
-    assert.equal(typeof name, 'string', 'name is a string')
+    assert.strictEqual(typeof name, 'string', 'name is a string')
     assert(name.length !== 0, 'name is not empty')
-    assert.equal(
+    assert.strictEqual(
       actions.listenerCount(name), 0,
       'just one listener for ' + name
     )
@@ -109,7 +109,7 @@ function update () {
   // All renderers must return a <main> or the
   // diff algorithm will fail.
   assert(rerendered instanceof Element)
-  assert.equal(rerendered.tagName, 'MAIN')
+  assert.strictEqual(rerendered.tagName, 'MAIN')
   beforeUnload.disable()
   nanomorph(rendered, rerendered)
   timestampInterval = setInterval(updateTimestamps, 30 * 1000)

@@ -98,7 +98,7 @@ function renderCreateProject (subscription, send) {
   form.onsubmit = function (event) {
     event.stopPropagation()
     event.preventDefault()
-    var data = {title: this.elements.title.value}
+    var data = { title: this.elements.title.value }
     if (this.elements.persistent) {
       data.persistent = this.elements.persistent.value
     }

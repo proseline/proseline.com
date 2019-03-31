@@ -7,11 +7,11 @@ var runSeries = require('run-series')
 var DEBUG_NAMESPACE = 'proseline:replicate:'
 
 module.exports = function (options) {
-  assert.equal(typeof options.peerID, 'string')
-  assert.equal(typeof options.replicationKey, 'string')
-  assert.equal(typeof options.discoveryKey, 'string')
-  assert.equal(typeof options.publicKey, 'string')
-  assert.equal(typeof options.secretKey, 'string')
+  assert.strictEqual(typeof options.peerID, 'string')
+  assert.strictEqual(typeof options.replicationKey, 'string')
+  assert.strictEqual(typeof options.discoveryKey, 'string')
+  assert.strictEqual(typeof options.publicKey, 'string')
+  assert.strictEqual(typeof options.secretKey, 'string')
   assert(options.database)
   var replicationKey = options.replicationKey
   var discoveryKey = options.discoveryKey
@@ -55,7 +55,7 @@ module.exports = function (options) {
   function offerEnvelope (publicKey, index) {
     var id = loggingID(publicKey, index)
     log('sending offer: %s', id)
-    protocol.offer({publicKey, index}, function (error) {
+    protocol.offer({ publicKey, index }, function (error) {
       if (error) return log(error)
       log('sent offer: %s', id)
     })
@@ -94,7 +94,7 @@ module.exports = function (options) {
         var requestID = loggingID(publicKey, index)
         return function (done) {
           log('sending request: %s', requestID)
-          protocol.request({publicKey, index}, function (error) {
+          protocol.request({ publicKey, index }, function (error) {
             if (error) log(error)
             else log('sent request: %s', requestID)
             done()

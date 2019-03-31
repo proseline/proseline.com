@@ -73,7 +73,7 @@ function canInsert (state, type) {
 
 eachHeadingLevel(function (level) {
   var name = 'h' + level
-  exports[name] = setBlockType(schema.nodes.heading, {level})
+  exports[name] = setBlockType(schema.nodes.heading, { level })
 })
 
 exports.listing = setBlockType(schema.nodes.listing)

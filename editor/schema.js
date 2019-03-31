@@ -10,26 +10,26 @@ module.exports = new Schema({
     paragraph: {
       group: 'block',
       content: 'inline*',
-      parseDOM: [{tag: 'p'}],
+      parseDOM: [{ tag: 'p' }],
       toDOM: function () { return ['p', 0] }
     },
     heading: {
       group: 'block',
       content: 'inline*',
-      attrs: {level: {default: 1}},
+      attrs: { level: { default: 1 } },
       defining: true,
       parseDOM: new Array(6)
         .fill()
         .map(function (index) {
           var level = index + 1
-          return {tag: 'h' + level, attrs: {level}}
+          return { tag: 'h' + level, attrs: { level } }
         }),
       toDOM: function (node) { return ['h' + node.attrs.level, 0] }
     },
     blockquote: {
       group: 'block',
       content: 'block*',
-      parseDOM: [{tag: 'blockquote'}],
+      parseDOM: [{ tag: 'blockquote' }],
       toDOM: function () { return ['blockquote', 0] }
     },
     listing: {
@@ -37,19 +37,19 @@ module.exports = new Schema({
       content: 'text*',
       code: true,
       defining: true,
-      parseDOM: [{tag: 'pre'}],
+      parseDOM: [{ tag: 'pre' }],
       toDOM: function () { return ['pre', {}, ['code', 0]] }
     },
     hr: {
       group: 'block',
-      parseDOM: [{tag: 'hr'}],
+      parseDOM: [{ tag: 'hr' }],
       toDOM: function () { return ['hr'] }
     },
     br: {
       inline: true,
       group: 'inline',
       selectable: false,
-      parseDOM: [{tag: 'br'}],
+      parseDOM: [{ tag: 'br' }],
       toDOM: function () { return ['br'] }
     },
     text: {
@@ -59,15 +59,15 @@ module.exports = new Schema({
   },
   marks: {
     em: {
-      parseDOM: [{tag: 'i'}, {tag: 'em'}],
+      parseDOM: [{ tag: 'i' }, { tag: 'em' }],
       toDOM: function () { return ['em'] }
     },
     strong: {
-      parseDOM: [{tag: 'b'}, {tag: 'strong'}],
+      parseDOM: [{ tag: 'b' }, { tag: 'strong' }],
       toDOM: function () { return ['strong'] }
     },
     code: {
-      parseDOM: [{tag: 'code'}],
+      parseDOM: [{ tag: 'code' }],
       toDOM: function () { return ['code'] }
     }
   }

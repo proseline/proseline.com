@@ -155,7 +155,7 @@ var BOOKMARK_WIDTH = 20
 
 function renderGraph (state, send) {
   var briefs = withoutOrphans(state.draftBriefs)
-  var graph = new dagre.graphlib.Graph({directed: true})
+  var graph = new dagre.graphlib.Graph({ directed: true })
   graph.setGraph({})
   graph.setDefaultEdgeLabel(function () { return {} })
   briefs.forEach(function (brief) {
@@ -424,10 +424,10 @@ function renderGraph (state, send) {
 }
 
 function renderSVGLink (options) {
-  assert.equal(typeof options.label, 'string')
-  assert.equal(typeof options.digest, 'string')
-  assert.equal(typeof options.x, 'number')
-  assert.equal(typeof options.y, 'number')
+  assert.strictEqual(typeof options.label, 'string')
+  assert.strictEqual(typeof options.digest, 'string')
+  assert.strictEqual(typeof options.x, 'number')
+  assert.strictEqual(typeof options.y, 'number')
 
   var anchor = document.createElementNS(SVG, 'a')
   anchor.setAttributeNS(null, 'id', options.label + '-' + options.digest)

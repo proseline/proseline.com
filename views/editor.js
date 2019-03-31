@@ -37,7 +37,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     // TODO: Action isn't defined, and this code never seems to run.
     main.appendChild(
       renderLoading(function () {
-        send('reload parents', {discoveryKey, parentDigests})
+        send('reload parents', { discoveryKey, parentDigests })
       })
     )
   } else {

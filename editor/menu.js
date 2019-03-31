@@ -94,7 +94,7 @@ module.exports = pmMenu.menuBar({
             run: commands[name]
           })
         }),
-        {label: 'Headings'}
+        { label: 'Headings' }
       ),
       new MenuItem({
         title: 'Listing',

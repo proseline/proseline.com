@@ -2,7 +2,7 @@ var assert = require('assert')
 var sodium = require('sodium-javascript')
 
 module.exports = function (seedString) {
-  assert.equal(typeof seedString, 'string')
+  assert.strictEqual(typeof seedString, 'string')
   var seed = Buffer.from(seedString, 'hex')
   var publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   var secretKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)

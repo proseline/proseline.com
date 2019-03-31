@@ -64,7 +64,7 @@ module.exports = function (options) {
             decorations.push(
               Decoration.widget(
                 $to.after(),
-                renderNoteForm({range: {start: $from.pos, end: $to.pos}}),
+                renderNoteForm({ range: { start: $from.pos, end: $to.pos } }),
                 ignore
               )
             )
@@ -96,7 +96,7 @@ module.exports = function (options) {
               Decoration.inline(
                 $start.pos,
                 $end.pos,
-                {class: 'highlight'}
+                { class: 'highlight' }
               )
             )
           })
@@ -143,6 +143,6 @@ module.exports = function (options) {
   plugins.push(modifiedPlugin)
 
   return new EditorView(element, {
-    state: EditorState.create({doc: originalDocument, plugins})
+    state: EditorState.create({ doc: originalDocument, plugins })
   })
 }

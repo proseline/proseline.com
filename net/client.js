@@ -52,7 +52,7 @@ Client.prototype._joinSwarms = function () {
 }
 
 Client.prototype._joinSwarm = function (project) {
-  assert.equal(typeof project, 'object')
+  assert.strictEqual(typeof project, 'object')
   var self = this
   var discoveryKey = project.discoveryKey
   var alreadyJoined = Array.from(self._swarms).some(function (swarm) {
@@ -65,7 +65,7 @@ Client.prototype._joinSwarm = function (project) {
       url: 'https://iceservers.proseline.com/_servers',
       timeout: 6000
     }, function (error, response, data) {
-      var options = {maxPeers: 3}
+      var options = { maxPeers: 3 }
       if (!error) options.config = data
       var hub = signalhub('proseline-' + project.discoveryKey, HUBS)
       var swarm = webRTCSwarm(hub, options)
@@ -100,7 +100,7 @@ Client.prototype._joinSwarm = function (project) {
 }
 
 Client.prototype._leaveSwarm = function (discoveryKey) {
-  assert.equal(typeof discoveryKey, 'string')
+  assert.strictEqual(typeof discoveryKey, 'string')
   var swarms = this._swarms
   var swarm = Array.from(swarms).find(function (element) {
     return element.project.discoveryKey === discoveryKey
