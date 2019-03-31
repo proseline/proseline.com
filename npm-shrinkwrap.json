@@ -6208,9 +6208,9 @@
       }
     },
     "prosemirror-model": {
-      "version": "1.6.2",
-      "resolved": "https://registry.npmjs.org/prosemirror-model/-/prosemirror-model-1.6.2.tgz",
-      "integrity": "sha512-fdFvthBpM7P3GRcJJW0tYB49z0lYo/yvxI4Avx4rZguFzMyLRmDdH4hIinxLR14u9K59FMnC9ihba4mwsf9LNw==",
+      "version": "1.7.0",
+      "resolved": "https://registry.npmjs.org/prosemirror-model/-/prosemirror-model-1.7.0.tgz",
+      "integrity": "sha512-/6ul6guiqyAl5I+0qbnL7SlmuX0DEfYqjvzeLUVEnb7nwF/vmKZuWqbjEG2tqi/9SSudvd3UxQTBDHvxy9hQwA==",
       "requires": {
         "orderedmap": "^1.0.0"
       }

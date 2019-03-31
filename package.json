@@ -31,7 +31,7 @@
     "prosemirror-history": "^1.0.4",
     "prosemirror-keymap": "^1.0.1",
     "prosemirror-menu": "^1.0.5",
-    "prosemirror-model": "^1.6.2",
+    "prosemirror-model": "^1.7.0",
     "prosemirror-state": "^1.2.2",
     "prosemirror-view": "^1.6.2",
     "rfc6902-json-diff": "^0.2.1",
