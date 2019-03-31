@@ -5181,9 +5181,9 @@
       }
     },
     "nanomorph": {
-      "version": "5.1.3",
-      "resolved": "https://registry.npmjs.org/nanomorph/-/nanomorph-5.1.3.tgz",
-      "integrity": "sha512-VydkKjFWU/DAO0R10awFASRNXQKHrZUMdMIiNcdmWm+IhuifuPOw/dDtpiQ1cNROF8f3ATPrcKRVarEayQJOqA==",
+      "version": "5.4.0",
+      "resolved": "https://registry.npmjs.org/nanomorph/-/nanomorph-5.4.0.tgz",
+      "integrity": "sha512-PJPh+P/NeiKphHNmCO8afkIhRbmeWxwpWhM1imKGWQMyuK1ul4rfnzKqrf3PEhbXYsqhMWCBEMm+q4jddYGODw==",
       "requires": {
         "nanoassert": "^1.1.0"
       }
