@@ -1785,14 +1785,42 @@
       }
     },
     "duplexify": {
-      "version": "3.6.0",
-      "resolved": "https://registry.npmjs.org/duplexify/-/duplexify-3.6.0.tgz",
-      "integrity": "sha512-fO3Di4tBKJpYTFHAxTU00BcfWMY9w24r/x21a6rZRbsD/ToUgGxsMbiGRmB7uVAXeGKXD9MwiLZa5E97EVgIRQ==",
+      "version": "4.0.0",
+      "resolved": "https://registry.npmjs.org/duplexify/-/duplexify-4.0.0.tgz",
+      "integrity": "sha512-yY3mlX6uXXe53lt9TnyIIlPZD9WfBEl+OU/8YLiU+p0xxaNRMjLE+rIEURR5/F1H41z9iMHcmVRxRS89tKCUcQ==",
       "requires": {
-        "end-of-stream": "^1.0.0",
-        "inherits": "^2.0.1",
-        "readable-stream": "^2.0.0",
+        "end-of-stream": "^1.4.1",
+        "inherits": "^2.0.3",
+        "readable-stream": "^3.1.1",
         "stream-shift": "^1.0.0"
+      },
+      "dependencies": {
+        "end-of-stream": {
+          "version": "1.4.1",
+          "resolved": "https://registry.npmjs.org/end-of-stream/-/end-of-stream-1.4.1.tgz",
+          "integrity": "sha512-1MkrZNvWTKCaigbn+W15elq2BB/L22nqrSY5DKlo3X6+vclJm8Bb5djXJBmEX6fS3+zCh/F4VBK5Z2KxJt4s2Q==",
+          "requires": {
+            "once": "^1.4.0"
+          }
+        },
+        "readable-stream": {
+          "version": "3.2.0",
+          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.2.0.tgz",
+          "integrity": "sha512-RV20kLjdmpZuTF1INEb9IA3L68Nmi+Ri7ppZqo78wj//Pn62fCoJyV9zalccNzDD/OuJpMG4f+pfMl8+L6QdGw==",
+          "requires": {
+            "inherits": "^2.0.3",
+            "string_decoder": "^1.1.1",
+            "util-deprecate": "^1.0.1"
+          }
+        },
+        "string_decoder": {
+          "version": "1.2.0",
+          "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.2.0.tgz",
+          "integrity": "sha512-6YqyX6ZWEYguAxgZzHGL7SsCeGx3V2TtOTqZz1xSTSWnqsbWwbptafNyvf/ACquZUXV3DANr5BDIwNYe1mN42w==",
+          "requires": {
+            "safe-buffer": "~5.1.0"
+          }
+        }
       }
     },
     "ecc-jsbn": {
@@ -4000,6 +4028,19 @@
         "sodium-universal": "^2.0.0",
         "strict-json-object-schema": "^1.1.0",
         "through2": "^2.0.3"
+      },
+      "dependencies": {
+        "duplexify": {
+          "version": "3.7.1",
+          "resolved": "https://registry.npmjs.org/duplexify/-/duplexify-3.7.1.tgz",
+          "integrity": "sha512-07z8uv2wMyS51kKhD1KsdXJg5WQ6t93RneqRxUHnskXVtlYYkLqM0gqStQZ3pj073g687jPCHrqNfCzawLYh5g==",
+          "requires": {
+            "end-of-stream": "^1.0.0",
+            "inherits": "^2.0.1",
+            "readable-stream": "^2.0.0",
+            "stream-shift": "^1.0.0"
+          }
+        }
       }
     },
     "json-schema": {
@@ -4895,6 +4936,17 @@
         "xtend": "^4.0.0"
       },
       "dependencies": {
+        "duplexify": {
+          "version": "3.7.1",
+          "resolved": "https://registry.npmjs.org/duplexify/-/duplexify-3.7.1.tgz",
+          "integrity": "sha512-07z8uv2wMyS51kKhD1KsdXJg5WQ6t93RneqRxUHnskXVtlYYkLqM0gqStQZ3pj073g687jPCHrqNfCzawLYh5g==",
+          "requires": {
+            "end-of-stream": "^1.0.0",
+            "inherits": "^2.0.1",
+            "readable-stream": "^2.0.0",
+            "stream-shift": "^1.0.0"
+          }
+        },
         "varint": {
           "version": "4.0.1",
           "resolved": "https://registry.npmjs.org/varint/-/varint-4.0.1.tgz",
@@ -5944,6 +5996,19 @@
         "sodium-universal": "^2.0.0",
         "strict-json-object-schema": "^1.0.1",
         "through2": "^2.0.3"
+      },
+      "dependencies": {
+        "duplexify": {
+          "version": "3.7.1",
+          "resolved": "https://registry.npmjs.org/duplexify/-/duplexify-3.7.1.tgz",
+          "integrity": "sha512-07z8uv2wMyS51kKhD1KsdXJg5WQ6t93RneqRxUHnskXVtlYYkLqM0gqStQZ3pj073g687jPCHrqNfCzawLYh5g==",
+          "requires": {
+            "end-of-stream": "^1.0.0",
+            "inherits": "^2.0.1",
+            "readable-stream": "^2.0.0",
+            "stream-shift": "^1.0.0"
+          }
+        }
       }
     },
     "prosemirror-commands": {
