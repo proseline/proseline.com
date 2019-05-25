@@ -214,12 +214,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       projectReadKey = crypto.makeProjectReplicationKey().toString('hex')
       projectWriteSeed = crypto.makeSigningKeyPairSeed().toString('hex')
     }
-    var projectWriteKeyPair = crypto.makeSigningKeyPairFromSeed(projectWriteSeed)
+    var projectWriteKeyPair = crypto.makeSigningKeyPairFromSeed(
+      Buffer.from(projectWriteSeed, 'hex')
+    )
     projectWriteKeyPair.publicKey = projectWriteKeyPair.publicKey.toString('hex')
     projectWriteKeyPair.secretKey = projectWriteKeyPair.secretKey.toString('hex')
     var project = {
       projectReplicationKey,
       projectDiscoveryKey,
+      projectReadKey,
       projectWriteSeed,
       projectWriteKeyPair,
       title: title || UNTITLED,
@@ -303,7 +306,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var date = new Date().toISOString()
         var entry = { token, email, date }
         var order = { entry, publicKey: identity.publicKey }
-        crypto.sign(order, identity.projectReplicationKey, 'signature')
+        crypto.sign(
+          order,
+          Buffer.from(identity.projectReplicationKey, 'hex'),
+          'signature'
+        )
         fetch('https://paid.proseline.com/subscribe', {
           method: 'POST',
           mode: 'cors',
@@ -547,7 +554,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             entry,
             publicKey: identity.publicKey
           }
-          crypto.sign(request, identity.secretKey, 'signature')
+          crypto.sign(
+            request,
+            Buffer.from(identity.secretKey, 'hex'),
+            'signature'
+          )
           fetch('https://paid.proseline.com/add', {
             method: 'POST',
             mode: 'cors',

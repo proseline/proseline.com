@@ -188,17 +188,26 @@ Project.prototype._log = function (entry, identity, callback) {
     }
     // Sign the inner envelope.
     innerEnvelope.entry = entry
-    crypto.sign(innerEnvelope, identity, 'logSignature')
-    crypto.sign(innerEnvelope, self.projectWriteKeyPair, 'projectSignature')
+    crypto.sign(
+      innerEnvelope,
+      Buffer.from(identity.secretKey, 'hex'),
+      'logSignature'
+    )
+    crypto.sign(
+      innerEnvelope,
+      Buffer.from(self.projectWriteKeyPair.secretKey, 'hex'),
+      'projectSignature'
+    )
     // Encrypt the inner envelope.
     var stringifiedInnerEnvelope = stringify(innerEnvelope)
     var encryptionNonce = crypto.randomNonce()
     var encryptedInnerEnvelope = crypto.encrypt(
       Buffer.from(stringifiedInnerEnvelope),
       encryptionNonce,
-      self.projectReadKey
+      Buffer.from(self.projectReadKey, 'hex')
     )
     outerEnvelope.encryptedInnerEnvelope = encryptedInnerEnvelope
+    outerEnvelope.nonce = encryptionNonce.toString('hex')
     addIndexingMetadata(outerEnvelope, self.projectReadKey)
     transaction
       .objectStore('logs')
@@ -285,14 +294,16 @@ Project.prototype.putOuterEnvelope = function (outerEnvelope, callback) {
 function addIndexingMetadata (outerEnvelope, projectReadKey) {
   var encryptedInnerEnvelope = outerEnvelope.encryptedInnerEnvelope
   var nonce = outerEnvelope.nonce
-  var innerEnvelopeJSON = crypto.decrypt(
-    encryptedInnerEnvelope, nonce, projectReadKey
+  var innerEnvelopeJSONBuffer = crypto.decrypt(
+    Buffer.from(encryptedInnerEnvelope, 'base64'),
+    Buffer.from(nonce, 'hex'),
+    Buffer.from(projectReadKey, 'hex')
   )
-  if (!innerEnvelopeJSON) {
+  if (!innerEnvelopeJSONBuffer) {
     throw new Error('Failed to decrypt encryptedInnerEnvelope.')
   }
   try {
-    var innerEnvelope = JSON.parse(innerEnvelopeJSON)
+    var innerEnvelope = JSON.parse(innerEnvelopeJSONBuffer.toString())
   } catch (error) {
     throw new Error('Failed to parse encryptedInnerEnvelope.')
   }
