@@ -64,13 +64,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       device: userIntro.device,
       timestamp: new Date().toISOString()
     }
-    var message = {
+    var entry = {
       project: state.projectDiscoveryKey,
       body: intro
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putIntro(message, identity, function (error, envelope) {
+      db.putIntro(entry, identity, function (error, envelope) {
         if (error) return done(error)
         reduce('project intro', envelope)
         done()
@@ -472,7 +472,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }, function (error, results) {
         if (error) return done(error)
         results.draft.digest = digest
-        var parents = results.draft.message.body.parents
+        var parents = results.draft.entry.body.parents
         runParallel(parents.map(function (digest) {
           return function (done) {
             db.getDraft(digest, function (error, parent) {
@@ -632,7 +632,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var latestMark = history[0]
         reduce('mark', {
           markPublicKey: latestMark.publicKey,
-          markIdentifier: latestMark.message.body.identifier,
+          markIdentifier: latestMark.entry.body.identifier,
           mark: latestMark,
           markHistory: history
         })
@@ -655,18 +655,18 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    var message = {
+    var entry = {
       project: state.projectDiscoveryKey,
       body: draft
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putDraft(message, identity, function (error, envelope, digest) {
+      db.putDraft(entry, identity, function (error, envelope, digest) {
         if (error) return done(error)
         reduce('push draft', envelope)
         reduce('push brief', {
           digest: digest,
-          project: envelope.message.project,
+          project: envelope.entry.project,
           publicKey: identity.publicKey,
           parents: draft.parents,
           timestamp: draft.timestamp
@@ -722,7 +722,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         }))
     }
     function identifierOf (mark) {
-      return mark.message.body.identifier
+      return mark.entry.body.identifier
     }
   })
 
@@ -736,13 +736,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       timestamp: new Date().toISOString(),
       draft: draft
     }
-    var message = {
+    var entry = {
       project: state.projectDiscoveryKey,
       body: mark
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return callback(error)
-      db.putMark(message, identity, function (error, envelope) {
+      db.putMark(entry, identity, function (error, envelope) {
         if (error) return callback(error)
         callback(null, envelope)
       })
@@ -761,13 +761,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     if (data.parent) note.parent = data.parent
     else if (data.range) note.range = data.range
-    var message = {
+    var entry = {
       project: state.projectDiscoveryKey,
       body: note
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putNote(message, identity, function (error, envelope) {
+      db.putNote(entry, identity, function (error, envelope) {
         if (error) return done(error)
         reduce('push note', envelope)
         done()
@@ -783,7 +783,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replyTo: null,
       activity: [newNote].concat(state.activity),
       draftBriefs: state.draftBriefs.map(function (brief) {
-        if (brief.digest === newNote.message.body.draft) {
+        if (brief.digest === newNote.entry.body.draft) {
           brief.notesCount++
         }
         return brief
@@ -844,7 +844,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('download', function (_, state, reduce, done) {
     saveAs(
       new Blob(
-        [JSON.stringify(state.draft.message.body.text)],
+        [JSON.stringify(state.draft.entry.body.text)],
         { type: 'application/json;charset=utf-8' }
       ),
       'proseline.json',

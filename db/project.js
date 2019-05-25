@@ -39,13 +39,13 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Logs
     var logs = db.createObjectStore('logs')
     logs.createIndex('publicKey', 'publicKey', { unique: false })
-    var TYPE_KEY_PATH = 'innerEnvelope.message.body.type'
+    var TYPE_KEY_PATH = 'innerEnvelope.entry.body.type'
     logs.createIndex('type', TYPE_KEY_PATH, { unique: false })
     logs.createIndex(
       'publicKey-type', ['publicKey', TYPE_KEY_PATH], { unique: false }
     )
     // Index by parents so we can query for drafts by parent digest.
-    logs.createIndex('parents', 'innerEnvelope.message.body.parents', {
+    logs.createIndex('parents', 'innerEnvelope.entry.body.parents', {
       unique: false,
       multiEntry: true
     })
@@ -53,13 +53,13 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // draft digest.
     logs.createIndex(
       'type-draft',
-      [TYPE_KEY_PATH, 'innerEnvelope.message.body.draft'],
+      [TYPE_KEY_PATH, 'innerEnvelope.entry.body.draft'],
       { unique: false }
     )
     // Index by public key and identifier so we can query for marks.
     logs.createIndex(
       'publicKey-identifier',
-      ['publicKey', 'innerEnvelope.message.body.identifier'],
+      ['publicKey', 'innerEnvelope.entry.body.identifier'],
       { unique: false }
     )
     // Index everything by digest, a property added just for indexing,
@@ -116,11 +116,11 @@ Project.prototype.listIntros = function (callback) {
   this._indexQuery('logs', 'type', 'intro', callback)
 }
 
-Project.prototype.putIntro = function (message, identity, callback) {
-  assert.strictEqual(typeof message, 'object')
+Project.prototype.putIntro = function (entry, identity, callback) {
+  assert.strictEqual(typeof entry, 'object')
   assert.strictEqual(typeof identity, 'object')
   assert.strictEqual(typeof callback, 'function')
-  this._log(message, identity, callback)
+  this._log(entry, identity, callback)
 }
 
 // Logs
@@ -154,10 +154,10 @@ function formatEntryIndex (index) {
   return index.toString().padStart(INDEX_DIGITS, '0')
 }
 
-Project.prototype._log = function (message, identity, callback) {
-  assert.strictEqual(typeof message, 'object')
-  assert(message.hasOwnProperty('project'))
-  assert(message.hasOwnProperty('body'))
+Project.prototype._log = function (entry, identity, callback) {
+  assert.strictEqual(typeof entry, 'object')
+  assert(entry.hasOwnProperty('project'))
+  assert(entry.hasOwnProperty('body'))
   assert.strictEqual(typeof callback, 'function')
   var self = this
   var publicKey = identity.publicKey
@@ -182,11 +182,11 @@ Project.prototype._log = function (message, identity, callback) {
       outerEnvelope.index = 0
     } else {
       // This will be a later entry in the log.
-      outerEnvelope.index = head.message.index + 1
+      outerEnvelope.index = head.entry.index + 1
       innerEnvelope.prior = head.digest
     }
     // Sign the inner envelope.
-    innerEnvelope.message = message
+    innerEnvelope.entry = entry
     crypto.sign(innerEnvelope, identity, 'logSignature')
     crypto.sign(innerEnvelope, self.projectWriteKeyPair, 'projectSignature')
     // Encrypt the inner envelope.
@@ -201,7 +201,7 @@ Project.prototype._log = function (message, identity, callback) {
     addIndexingMetadata(outerEnvelope, self.projectReadKey)
     transaction
       .objectStore('logs')
-      .add(outerEnvelope, logEntryKey(outerEnvelope.publicKey, message.index))
+      .add(outerEnvelope, logEntryKey(outerEnvelope.publicKey, entry.index))
   })
 }
 
@@ -255,14 +255,14 @@ Project.prototype.putOuterEnvelope = function (outerEnvelope, callback) {
     self._emitOuterEnvelopeEvent(outerEnvelope)
     callback()
   }
-  var index = outerEnvelope.message.index
-  var prior = outerEnvelope.message.prior
+  var index = outerEnvelope.entry.index
+  var prior = outerEnvelope.entry.prior
   var publicKey = outerEnvelope.publicKey
   requestHead(transaction, publicKey, function (head) {
     if (head) {
-      if (index !== head.message.index + 1) {
+      if (index !== head.entry.index + 1) {
         calledBackWithError = true
-        debug('incorrect index new %d have %d', index, head.message.index)
+        debug('incorrect index new %d have %d', index, head.entry.index)
         return callback(new Error('incorrect index'))
       }
       if (prior !== head.digest) {
@@ -292,9 +292,9 @@ function addIndexingMetadata (outerEnvelope, projectReadKey) {
   } catch (error) {
     throw new Error('Failed to parse encryptedInnerEnvelope.')
   }
-  var message = innerEnvelope.message
+  var entry = innerEnvelope.entry
   outerEnvelope.innerEnvelope = innerEnvelope
-  outerEnvelope.digest = crypto.hash(Buffer.from(stringify(message)))
+  outerEnvelope.digest = crypto.hash(Buffer.from(stringify(entry)))
   outerEnvelope.added = new Date().toISOString()
 }
 
@@ -307,8 +307,8 @@ function removeIndexingMetadata (outerEnvelope) {
 
 // Drafts
 
-Project.prototype.putDraft = function (message, identity, callback) {
-  this._log(message, identity, callback)
+Project.prototype.putDraft = function (entry, identity, callback) {
+  this._log(entry, identity, callback)
 }
 
 Project.prototype.getDraft = function (digest, callback) {
@@ -328,10 +328,10 @@ Project.prototype.listDraftBriefs = function (callback) {
         return function (done) {
           self.countNotes(draft.digest, function (error, notesCount) {
             if (error) return done(error)
-            var body = draft.message.body
+            var body = draft.entry.body
             done(null, {
               digest: draft.digest,
-              project: draft.message.project,
+              project: draft.entry.project,
               publicKey: draft.publicKey,
               parents: body.parents,
               timestamp: body.timestamp,
@@ -347,8 +347,8 @@ Project.prototype.listDraftBriefs = function (callback) {
 
 // Marks
 
-Project.prototype.putMark = function (message, identity, callback) {
-  this._log(message, identity, callback)
+Project.prototype.putMark = function (entry, identity, callback) {
+  this._log(entry, identity, callback)
 }
 
 Project.prototype.getMark = function (publicKey, identifier, callback) {
@@ -376,7 +376,7 @@ Project.prototype.listMarks = function (callback) {
     callback(null, marks
       .reverse()
       .filter(function (mark) {
-        var identifier = mark.message.body.identifier
+        var identifier = mark.entry.body.identifier
         if (seen.has(identifier)) {
           return false
         } else {
@@ -398,8 +398,8 @@ Project.prototype.countNotes = function (digest, callback) {
   this._indexCount('logs', 'type-draft', ['note', digest], callback)
 }
 
-Project.prototype.putNote = function (message, identity, callback) {
-  this._log(message, identity, callback)
+Project.prototype.putNote = function (entry, identity, callback) {
+  this._log(entry, identity, callback)
 }
 
 // Activity

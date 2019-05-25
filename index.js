@@ -218,7 +218,7 @@ function network (done) {
   pageBus.on('outerEnvelope', function (envelope) {
     // If we created this envelope, don't show an update.
     if (envelope.local) return
-    var projectDiscoveryKey = envelope.message.project
+    var projectDiscoveryKey = envelope.entry.project
     if (
       globalState.projectDiscoveryKey &&
       globalState.projectDiscoveryKey === projectDiscoveryKey

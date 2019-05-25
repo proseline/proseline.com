@@ -83,8 +83,8 @@ module.exports = function (options) {
           if (modifiedPlugin.getState(state)) return
           var decorations = []
           notes.forEach(function (note) {
-            var $start = state.doc.resolve(note.message.body.range.start)
-            var $end = state.doc.resolve(note.message.body.range.end)
+            var $start = state.doc.resolve(note.entry.body.range.start)
+            var $end = state.doc.resolve(note.entry.body.range.end)
             decorations.push(
               Decoration.widget(
                 $end.after(),

@@ -56,7 +56,7 @@ function renderMarkHistory (state) {
   state.markHistory.forEach(function (envelope) {
     var li = document.createElement('li')
     ol.appendChild(li)
-    var body = envelope.message.body
+    var body = envelope.entry.body
     var brief = state.draftBriefs.find(function (brief) {
       return brief.digest === body.draft
     })

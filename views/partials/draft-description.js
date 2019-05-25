@@ -1,6 +1,6 @@
 module.exports = function (draftOrBrief, options) {
   options = options || {}
-  var parents = draftOrBrief.parents || draftOrBrief.message.body.parents
+  var parents = draftOrBrief.parents || draftOrBrief.entry.body.parents
   var text
   if (parents.length === 0) text = 'original draft'
   else if (parents.length === 1) text = 'revising draft'

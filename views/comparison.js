@@ -35,13 +35,13 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, drafts)
     main.appendChild(article)
 
     var serializer = DOMSerializer.fromSchema(schema)
-    var doc = schema.nodeFromJSON(state.draft.message.body.text)
+    var doc = schema.nodeFromJSON(state.draft.entry.body.text)
     var rendered = serializer.serializeFragment(doc.content)
     article.appendChild(rendered)
 
     var patch = diff(
-      state.draft.message.body.text,
-      state.comparing.message.body.text
+      state.draft.entry.body.text,
+      state.comparing.entry.body.text
     )
     patch.forEach(function (element) {
       var type = element.op

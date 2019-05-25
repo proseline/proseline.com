@@ -54,6 +54,6 @@ named by `projectDiscoveryKey`
   - `authorization`
   - `digest`
   - `local` (boolean)
-  - `message`
+  - `entry`
   - `publicKey`
   - `signature`

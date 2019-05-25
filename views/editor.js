@@ -69,7 +69,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, parentD
     div.className = 'editor'
     var content = false
     if (parentDigests && parentDigests.length > 0) {
-      content = state.parents[0].message.body.text
+      content = state.parents[0].entry.body.text
     }
     // TODO: Diff starting point for merge drafts.
     var editor = initializeEditor({

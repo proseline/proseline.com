@@ -100,7 +100,7 @@ module.exports = function (options) {
 
   // When our peer sends an envelope...
   protocol.on('outerEnvelope', function (envelope) {
-    var id = loggingID(envelope.publicKey, envelope.message.index)
+    var id = loggingID(envelope.publicKey, envelope.entry.index)
     log('received envelope: %s', id)
     database.putOuterEnvelope(envelope, function (error) {
       if (error) return log(error)
@@ -109,7 +109,7 @@ module.exports = function (options) {
   })
 
   protocol.on('invalid', function (body) {
-    log('received invalid message: %O', body)
+    log('received invalid entry: %O', body)
   })
 
   protocol.on('error', function (error) {

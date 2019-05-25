@@ -92,7 +92,7 @@ function renderSubscribeSection (send) {
       .then(function (result) {
         if (result.error) {
           var errors = document.getElementById('card-errors')
-          errors.textContent = result.error.message
+          errors.textContent = result.error.entry
           return
         }
         var token = result.token.id
