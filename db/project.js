@@ -156,8 +156,7 @@ function formatEntryIndex (index) {
 
 Project.prototype._log = function (entry, identity, callback) {
   assert.strictEqual(typeof entry, 'object')
-  assert(entry.hasOwnProperty('project'))
-  assert(entry.hasOwnProperty('body'))
+  assert.strictEqual(typeof identity, 'object')
   assert.strictEqual(typeof callback, 'function')
   var self = this
   var publicKey = identity.publicKey
