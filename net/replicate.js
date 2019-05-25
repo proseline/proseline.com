@@ -99,12 +99,12 @@ module.exports = function (options) {
   })
 
   // When our peer sends an envelope...
-  protocol.on('outerEnvelope', function (envelope) {
-    var id = loggingID(envelope.publicKey, envelope.entry.index)
-    log('received envelope: %s', id)
-    database.putOuterEnvelope(envelope, function (error) {
+  protocol.on('outerEnvelope', function (outerEnvelope) {
+    var id = loggingID(outerEnvelope.publicKey, outerEnvelope.index)
+    log('received outer envelope: %s', id)
+    database.putOuterEnvelope(outerEnvelope, function (error) {
       if (error) return log(error)
-      log('put envelope: %s', id)
+      log('put outer envelope: %s', id)
     })
   })
 

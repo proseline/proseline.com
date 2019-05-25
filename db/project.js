@@ -182,7 +182,7 @@ Project.prototype._log = function (entry, identity, callback) {
       outerEnvelope.index = 0
     } else {
       // This will be a later entry in the log.
-      outerEnvelope.index = head.entry.index + 1
+      outerEnvelope.index = head.index + 1
       innerEnvelope.prior = head.digest
     }
     // Sign the inner envelope.
@@ -201,7 +201,10 @@ Project.prototype._log = function (entry, identity, callback) {
     addIndexingMetadata(outerEnvelope, self.projectReadKey)
     transaction
       .objectStore('logs')
-      .add(outerEnvelope, logEntryKey(outerEnvelope.publicKey, entry.index))
+      .add(
+        outerEnvelope,
+        logEntryKey(outerEnvelope.publicKey, outerEnvelope.index)
+      )
   })
 }
 
@@ -260,9 +263,9 @@ Project.prototype.putOuterEnvelope = function (outerEnvelope, callback) {
   var prior = outerEnvelope.innerEnvelope.prior
   requestHead(transaction, publicKey, function (head) {
     if (head) {
-      if (index !== head.entry.index + 1) {
+      if (index !== head.index + 1) {
         calledBackWithError = true
-        debug('incorrect index new %d have %d', index, head.entry.index)
+        debug('incorrect index new %d have %d', index, head.index)
         return callback(new Error('incorrect index'))
       }
       if (prior !== head.digest) {
