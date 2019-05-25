@@ -36,8 +36,9 @@ function get (id, callback) {
       return callback(new Error('deleted project'))
     }
     var db = new ProjectDatabase({
-      discoveryKey: id,
-      writeKeyPair: project.writeKeyPair
+      projectDiscoveryKey: id,
+      projectReadKey: project.projectReadKey,
+      projectWriteKeyPair: project.projectWriteKeyPair
     })
     cache[id] = db
     debug('initializing "' + id + '"')

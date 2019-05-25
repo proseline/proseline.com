@@ -6,7 +6,7 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey, parentDigests) {
+module.exports = withProject(function (state, send, projectDiscoveryKey, parentDigests) {
   state.route = 'editor'
   assert(
     parentDigests === undefined ||
@@ -37,7 +37,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     // TODO: Action isn't defined, and this code never seems to run.
     main.appendChild(
       renderLoading(function () {
-        send('reload parents', { discoveryKey, parentDigests })
+        send('reload parents', { projectDiscoveryKey, parentDigests })
       })
     )
   } else {
@@ -49,7 +49,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
       event.preventDefault()
       event.stopPropagation()
       send('save', {
-        discoveryKey: discoveryKey,
+        projectDiscoveryKey,
         text: editor.state.doc.toJSON(),
         parents: parentDigests || []
       })

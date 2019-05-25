@@ -1,5 +1,6 @@
 var Database = require('./database')
-var createIdentity = require('../crypto/create-identity')
+var assert = require('assert')
+var crypto = require('@proseline/crypto')
 var inherits = require('inherits')
 var pageBus = require('../page-bus')
 
@@ -37,32 +38,40 @@ prototype._upgrade = function (db, oldVersion, callback) {
 // Projects
 
 prototype.putProject = function (project, callback) {
+  assert(typeof project === 'object')
+  assert(project.hasOwnProperty('projectDiscoveryKey'))
+  assert(project.hasOwnProperty('projectReadKey'))
   var self = this
-  self._put('projects', project.discoveryKey, project, function (error) {
+  var projectDiscoveryKey = project.projectDiscoveryKey
+  self._put('projects', projectDiscoveryKey, project, function (error) {
     if (error) return callback(error)
-    pageBus.emit('added project', project.discoveryKey)
+    pageBus.emit('added project', projectDiscoveryKey)
     callback()
   })
 }
 
 prototype.overwriteProject = function (project, callback) {
+  assert(typeof project === 'object')
+  assert(project.hasOwnProperty('projectDiscoveryKey'))
+  assert(project.hasOwnProperty('projectReadKey'))
   var self = this
-  self._put('projects', project.discoveryKey, project, function (error) {
+  var projectDiscoveryKey = project.projectDiscoveryKey
+  self._put('projects', projectDiscoveryKey, project, function (error) {
     if (error) return callback(error)
-    pageBus.emit('overwrote project', project.discoveryKey)
+    pageBus.emit('overwrote project', projectDiscoveryKey)
     callback()
   })
 }
 
-prototype.getProject = function (discoveryKey, callback) {
-  this._get('projects', discoveryKey, callback)
+prototype.getProject = function (projectDiscoveryKey, callback) {
+  this._get('projects', projectDiscoveryKey, callback)
 }
 
-prototype.deleteProject = function (discoveryKey, callback) {
+prototype.deleteProject = function (projectDiscoveryKey, callback) {
   var self = this
-  self._delete('projects', discoveryKey, function (error) {
+  self._delete('projects', projectDiscoveryKey, function (error) {
     if (error) return callback(error)
-    pageBus.emit('deleted project', discoveryKey)
+    pageBus.emit('deleted project', projectDiscoveryKey)
     callback()
   })
 }
@@ -82,7 +91,9 @@ prototype.getUserIdentity = function (callback) {
     if (identity !== undefined) {
       return callback(null, identity)
     }
-    identity = createIdentity()
+    identity = crypto.makeSigningKeyPair()
+    identity.publicKey = identity.publicKey.toString('hex')
+    identity.secretKey = identity.secretKey.toString('hex')
     self._put('user', 'identity', identity, function (error) {
       if (error) return callback(error)
       callback(null, identity)

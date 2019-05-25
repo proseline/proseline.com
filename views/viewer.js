@@ -11,14 +11,14 @@ var renderRefreshNotice = require('./partials/refresh-notice')
 var renderRelativeTimestamp = require('./partials/relative-timestamp')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey, digest) {
+module.exports = withProject(function (state, send, projectDiscoveryKey, digest) {
   state.route = 'viewer'
   // <main>
   var main = document.createElement('main')
   if (state.draft && state.draft.digest === digest) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('reload draft', { discoveryKey, digest })
+        send('reload draft', { projectDiscoveryKey, digest })
       }))
     }
     var draft = state.draft
@@ -80,7 +80,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
     main.appendChild(
       renderLoading(function () {
         send('load draft', {
-          discoveryKey: discoveryKey,
+          projectDiscoveryKey,
           digest: digest
         })
       })
@@ -100,7 +100,7 @@ function renderSaveForm (state, send, editor) {
     event.preventDefault()
     event.stopPropagation()
     send('save', {
-      discoveryKey: state.discoveryKey,
+      projectDiscoveryKey: state.projectDiscoveryKey,
       text: editor.state.doc.toJSON(),
       parents: [state.draft.digest]
     })

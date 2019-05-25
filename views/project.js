@@ -12,12 +12,12 @@ var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey) {
+module.exports = withProject(function (state, send, projectDiscoveryKey) {
   state.route = 'project'
   var main = document.createElement('main')
   if (state.changed) {
     main.appendChild(renderRefreshNotice(function () {
-      send('load project', discoveryKey)
+      send('load project', projectDiscoveryKey)
     }))
   }
   main.appendChild(renderDraftHeader(state))
@@ -70,7 +70,7 @@ function renderDeleteButton (state, send) {
   button.appendChild(document.createTextNode('Leave this project.'))
   button.addEventListener('click', function () {
     if (window.confirm(CONFIRM_DELETE)) {
-      send('leave project', state.discoveryKey)
+      send('leave project', state.projectDiscoveryKey)
     }
   })
   return button
@@ -82,7 +82,7 @@ function newDraft (state) {
   var a = document.createElement('a')
   section.appendChild(a)
   a.className = 'button'
-  a.href = '/projects/' + state.discoveryKey + '/drafts/new'
+  a.href = '/projects/' + state.projectDiscoveryKey + '/drafts/new'
   a.appendChild(document.createTextNode('Start a new draft from scratch.'))
 
   return section
@@ -258,7 +258,7 @@ function renderGraph (state, send) {
           x: anchorX,
           y: firstPosition,
           href: (
-            '/projects/' + state.discoveryKey +
+            '/projects/' + state.projectDiscoveryKey +
             '/drafts/' + digest
           )
         })
@@ -283,7 +283,7 @@ function renderGraph (state, send) {
           x: anchorX,
           y: firstPosition,
           href: (
-            '/projects/' + state.discoveryKey +
+            '/projects/' + state.projectDiscoveryKey +
             '/drafts/new/' + state.draftSelection
           )
         })
@@ -295,7 +295,7 @@ function renderGraph (state, send) {
           x: anchorX,
           y: secondPosition,
           href: (
-            '/projects/' + state.discoveryKey +
+            '/projects/' + state.projectDiscoveryKey +
             '/drafts/compare/' + state.draftSelection + ',' + digest
           )
         })

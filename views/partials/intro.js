@@ -11,7 +11,7 @@ module.exports = function (state, publicKey, options) {
   } else {
     element = document.createElement('a')
     element.href = (
-      '/projects/' + state.discoveryKey +
+      '/projects/' + state.projectDiscoveryKey +
       '/members/' + publicKey
     )
     element.title = 'Click to view activity.'

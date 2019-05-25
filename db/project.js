@@ -15,17 +15,17 @@ module.exports = Project
 // Project wraps IndexedDB databases storing project data.
 function Project (data) {
   assert.strictEqual(typeof data, 'object')
-  assert.strictEqual(typeof data.discoveryKey, 'string')
+  assert.strictEqual(typeof data.projectDiscoveryKey, 'string')
   assert.strictEqual(typeof data.projectReadKey, 'string')
   assert.strictEqual(typeof data.projectWriteKeyPair, 'object')
-  var discoveryKey = data.discoveryKey
+  var projectDiscoveryKey = data.projectDiscoveryKey
   this.projectReadKey = data.projectReadKey
   this.projectWriteKeyPair = data.projectWriteKeyPair
   Database.call(this, {
-    name: discoveryKey,
+    name: projectDiscoveryKey,
     version: CURRENT_VERSION
   })
-  this.debug = debug('proseline:db:' + discoveryKey)
+  this.debug = debug('proseline:db:' + projectDiscoveryKey)
 }
 
 inherits(Project, Database)

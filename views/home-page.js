@@ -43,7 +43,7 @@ function renderActiveProjectsList (subscription, projects, send) {
     .forEach(function (project) {
       var li = document.createElement('li')
       var a = document.createElement('a')
-      a.href = '/projects/' + project.discoveryKey
+      a.href = '/projects/' + project.projectDiscoveryKey
       a.appendChild(document.createTextNode(project.title))
       li.appendChild(a)
       ul.appendChild(li)

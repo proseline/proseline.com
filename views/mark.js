@@ -6,12 +6,12 @@ var renderRefreshNotice = require('./partials/refresh-notice')
 var renderRelativeTimestamp = require('./partials/relative-timestamp')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey, publicKey, identifier) {
+module.exports = withProject(function (state, send, projectDiscoveryKey, publicKey, identifier) {
   state.route = 'mark'
   assert.strictEqual(typeof state, 'object')
   assert.strictEqual(typeof send, 'function')
-  assert.strictEqual(typeof discoveryKey, 'string')
-  assert.strictEqual(discoveryKey.length, 64)
+  assert.strictEqual(typeof projectDiscoveryKey, 'string')
+  assert.strictEqual(projectDiscoveryKey.length, 64)
   assert.strictEqual(typeof publicKey, 'string')
   assert.strictEqual(publicKey.length, 64)
   assert.strictEqual(typeof identifier, 'string')
@@ -24,7 +24,7 @@ module.exports = withProject(function (state, send, discoveryKey, publicKey, ide
     main.appendChild(
       renderLoading(function () {
         send('load mark', {
-          discoveryKey: discoveryKey,
+          projectDiscoveryKey,
           publicKey: publicKey,
           identifier: identifier
         })
@@ -33,7 +33,7 @@ module.exports = withProject(function (state, send, discoveryKey, publicKey, ide
   } else {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('reload mark', { discoveryKey, publicKey, identifier })
+        send('reload mark', { projectDiscoveryKey, publicKey, identifier })
       }))
     }
     main.appendChild(renderDraftHeader(state))

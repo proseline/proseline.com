@@ -25,8 +25,8 @@
 
 #### `projects` Store
 
-- `$discoveryKey`
-  - `discoveryKey`
+- `$projectDiscoveryKey`
+  - `projectDiscoveryKey`
   - `deleted` (boolean)
   - `replicationKey`
   - `title`
@@ -37,7 +37,7 @@
 
 ### Per-Project Database
 
-named by `discoveryKey`
+named by `projectDiscoveryKey`
 
 ##### `identities` Store
 

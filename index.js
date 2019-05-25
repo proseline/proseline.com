@@ -157,35 +157,35 @@ function render (state) {
     return main
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
-    var discoveryKey = path.substr(10, 64)
+    var projectDiscoveryKey = path.substr(10, 64)
     var remainder = path.substr(74)
     var publicKey
     if (remainder === '' || remainder === '/') {
-      return renderProject(state, send, discoveryKey)
+      return renderProject(state, send, projectDiscoveryKey)
     // New Draft
     } else if (remainder === '/drafts/new') {
-      return renderEditor(state, send, discoveryKey)
+      return renderEditor(state, send, projectDiscoveryKey)
     // New Draft with Parents
     } else if (/^\/drafts\/new\/[a-f0-9]{64}(,[a-f0-9]{64})*$/.test(remainder)) {
       var parents = remainder.substr(12).split(',')
-      return renderEditor(state, send, discoveryKey, parents)
+      return renderEditor(state, send, projectDiscoveryKey, parents)
     // Comparison
     } else if (/^\/drafts\/compare\/[a-f0-9]{64},[a-f0-9]{64}$/.test(remainder)) {
       var drafts = remainder.substr(16).split(',')
-      return renderComparison(state, send, discoveryKey, drafts)
+      return renderComparison(state, send, projectDiscoveryKey, drafts)
     // View Drafts
     } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
       var digest = remainder.substr(8, 64)
-      return renderViewer(state, send, discoveryKey, digest)
+      return renderViewer(state, send, projectDiscoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
       publicKey = remainder.substr(7, 64)
       var identifier = remainder.substr(7 + 64 + 1, 8)
-      return renderMark(state, send, discoveryKey, publicKey, identifier)
+      return renderMark(state, send, projectDiscoveryKey, publicKey, identifier)
     // Member Activity
     } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
       publicKey = remainder.substr(9, 64)
-      return renderMember(state, send, discoveryKey, publicKey)
+      return renderMember(state, send, projectDiscoveryKey, publicKey)
     } else {
       return renderNotFound(state, send)
     }
@@ -217,21 +217,21 @@ function network (done) {
   pageBus.on('outerEnvelope', function (envelope) {
     // If we created this envelope, don't show an update.
     if (envelope.local) return
-    var discoveryKey = envelope.message.project
+    var projectDiscoveryKey = envelope.message.project
     if (
-      globalState.discoveryKey &&
-      globalState.discoveryKey === discoveryKey
+      globalState.projectDiscoveryKey &&
+      globalState.projectDiscoveryKey === projectDiscoveryKey
     ) return send('changed')
     if (
-      !globalState.discoveryKey &&
+      !globalState.projectDiscoveryKey &&
       !globalState.projects.some(function (project) {
-        return project.discoveryKey === discoveryKey
+        return project.projectDiscoveryKey === projectDiscoveryKey
       })
     ) return send('changed')
   })
   /*
   pageBus.on('added project', function (x) {
-    if (!globalState.discoveryKey) {
+    if (!globalState.projectDiscoveryKey) {
       console.log('changed bc added project')
       return send('changed')
     }

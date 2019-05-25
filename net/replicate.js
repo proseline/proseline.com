@@ -9,15 +9,15 @@ var DEBUG_NAMESPACE = 'proseline:replicate:'
 module.exports = function (options) {
   assert.strictEqual(typeof options.peerID, 'string')
   assert.strictEqual(typeof options.replicationKey, 'string')
-  assert.strictEqual(typeof options.discoveryKey, 'string')
+  assert.strictEqual(typeof options.projectDiscoveryKey, 'string')
   assert.strictEqual(typeof options.publicKey, 'string')
   assert.strictEqual(typeof options.secretKey, 'string')
   assert(options.database)
   var replicationKey = options.replicationKey
-  var discoveryKey = options.discoveryKey
+  var projectDiscoveryKey = options.projectDiscoveryKey
   var database = options.database
 
-  var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + discoveryKey)
+  var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + projectDiscoveryKey)
 
   var protocol = new Protocol({ key: replicationKey })
 
@@ -42,7 +42,7 @@ module.exports = function (options) {
 
   function onOuterEnvelope (outerEnvelope) {
     var project = outerEnvelope.project
-    if (project !== discoveryKey) return
+    if (project !== projectDiscoveryKey) return
     offerOuterEnvelope(outerEnvelope.publicKey, outerEnvelope.index)
   }
 
