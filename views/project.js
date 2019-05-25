@@ -1,5 +1,5 @@
 var SVG = require('../svg')
-var assert = require('assert')
+var assert = require('nanoassert')
 var classnames = require('classnames')
 var dagre = require('dagre')
 var identityLine = require('./partials/identity-line')
@@ -424,10 +424,10 @@ function renderGraph (state, send) {
 }
 
 function renderSVGLink (options) {
-  assert.strictEqual(typeof options.label, 'string')
-  assert.strictEqual(typeof options.digest, 'string')
-  assert.strictEqual(typeof options.x, 'number')
-  assert.strictEqual(typeof options.y, 'number')
+  assert(typeof options.label === 'string')
+  assert(typeof options.digest === 'string')
+  assert(typeof options.x === 'number')
+  assert(typeof options.y === 'number')
 
   var anchor = document.createElementNS(SVG, 'a')
   anchor.setAttributeNS(null, 'id', options.label + '-' + options.digest)

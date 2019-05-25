@@ -1,6 +1,6 @@
 var Database = require('./database')
 var IDBKeyRange = require('./idbkeyrange')
-var assert = require('assert')
+var assert = require('nanoassert')
 var crypto = require('@proseline/crypto')
 var debug = require('debug')
 var inherits = require('inherits')
@@ -12,10 +12,10 @@ module.exports = Project
 
 // Project wraps IndexedDB databases storing project data.
 function Project (data) {
-  assert.strictEqual(typeof data, 'object')
-  assert.strictEqual(typeof data.projectDiscoveryKey, 'string')
-  assert.strictEqual(typeof data.projectReadKey, 'string')
-  assert.strictEqual(typeof data.projectWriteKeyPair, 'object')
+  assert(typeof data === 'object')
+  assert(typeof data.projectDiscoveryKey === 'string')
+  assert(typeof data.projectReadKey === 'string')
+  assert(typeof data.projectWriteKeyPair === 'object')
   var projectDiscoveryKey = data.projectDiscoveryKey
   this.projectDiscoveryKey = projectDiscoveryKey
   this.projectReadKey = data.projectReadKey
@@ -118,9 +118,9 @@ Project.prototype.listIntros = function (callback) {
 }
 
 Project.prototype.putIntro = function (entry, identity, callback) {
-  assert.strictEqual(typeof entry, 'object')
-  assert.strictEqual(typeof identity, 'object')
-  assert.strictEqual(typeof callback, 'function')
+  assert(typeof entry === 'object')
+  assert(typeof identity === 'object')
+  assert(typeof callback === 'function')
   this._log(entry, identity, callback)
 }
 
@@ -156,9 +156,9 @@ function formatEntryIndex (index) {
 }
 
 Project.prototype._log = function (entry, identity, callback) {
-  assert.strictEqual(typeof entry, 'object')
-  assert.strictEqual(typeof identity, 'object')
-  assert.strictEqual(typeof callback, 'function')
+  assert(typeof entry === 'object')
+  assert(typeof identity === 'object')
+  assert(typeof callback === 'function')
   var self = this
   var logPublicKey = identity.publicKey
   // Determine the current log head, create an outer envelope, and append
@@ -223,9 +223,9 @@ Project.prototype.getOuterEnvelope = function (logPublicKey, index, callback) {
 }
 
 function requestHead (transaction, logPublicKey, onResult) {
-  assert.strictEqual(typeof transaction, 'object')
-  assert.strictEqual(typeof logPublicKey, 'string')
-  assert.strictEqual(typeof onResult, 'function')
+  assert(typeof transaction === 'object')
+  assert(typeof logPublicKey === 'string')
+  assert(typeof onResult === 'function')
   var lower = logEntryKey(logPublicKey, MIN_INDEX)
   var upper = logEntryKey(logPublicKey, MAX_INDEX)
   var request = transaction
@@ -239,13 +239,13 @@ function requestHead (transaction, logPublicKey, onResult) {
 }
 
 Project.prototype.putOuterEnvelope = function (outerEnvelope, callback) {
-  assert.strictEqual(typeof outerEnvelope, 'object')
+  assert(typeof outerEnvelope === 'object')
   assert(outerEnvelope.hasOwnProperty('encryptedInnerEnvelope'))
   assert(outerEnvelope.hasOwnProperty('index'))
   assert(outerEnvelope.hasOwnProperty('nonce'))
   assert(outerEnvelope.hasOwnProperty('projectDiscoveryKey'))
   assert(outerEnvelope.hasOwnProperty('logPublicKey'))
-  assert.strictEqual(typeof callback, 'function')
+  assert(typeof callback === 'function')
   var self = this
   var debug = self.debug
   addIndexingMetadata(outerEnvelope, self.projectReadKey)
@@ -435,8 +435,8 @@ Project.prototype.activity = function (count, callback) {
 }
 
 Project.prototype.memberActivity = function (logPublicKey, count, callback) {
-  assert.strictEqual(typeof logPublicKey, 'string')
-  assert.strictEqual(logPublicKey.length, 64)
+  assert(typeof logPublicKey === 'string')
+  assert(logPublicKey.length === 64)
   assert(Number.isInteger(count))
   assert(count > 0)
   var transaction = this._db.transaction(['logs'], 'readonly')
@@ -463,11 +463,11 @@ Project.prototype.memberActivity = function (logPublicKey, count, callback) {
 }
 
 Project.prototype.markHistory = function (logPublicKey, identifier, count, callback) {
-  assert.strictEqual(typeof logPublicKey, 'string')
-  assert.strictEqual(logPublicKey.length, 64)
+  assert(typeof logPublicKey === 'string')
+  assert(logPublicKey.length === 64)
   assert(Number.isInteger(count))
-  assert.strictEqual(typeof identifier, 'string')
-  assert.strictEqual(identifier.length, 8)
+  assert(typeof identifier === 'string')
+  assert(identifier.length === 8)
   assert(count > 0)
   var transaction = this._db.transaction(['logs'], 'readonly')
   transaction.onerror = function () {

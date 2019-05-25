@@ -1,7 +1,7 @@
 var EventEmitter = require('events').EventEmitter
 var HUBS = require('./hubs')
 var Peer = require('./peer')
-var assert = require('assert')
+var assert = require('nanoassert')
 var databases = require('../db/databases')
 var debug = require('debug')('proseline:client')
 var inherits = require('inherits')
@@ -49,7 +49,7 @@ Client.prototype._joinSwarms = function () {
 }
 
 Client.prototype._joinSwarm = function (project) {
-  assert.strictEqual(typeof project, 'object')
+  assert(typeof project === 'object')
   var self = this
   var projectDiscoveryKey = project.projectDiscoveryKey
   var alreadyJoined = Array.from(self._swarms).some(function (swarm) {
@@ -97,7 +97,7 @@ Client.prototype._joinSwarm = function (project) {
 }
 
 Client.prototype._leaveSwarm = function (projectDiscoveryKey) {
-  assert.strictEqual(typeof projectDiscoveryKey, 'string')
+  assert(typeof projectDiscoveryKey === 'string')
   var swarms = this._swarms
   var swarm = Array.from(swarms).find(function (element) {
     return element.project.projectDiscoveryKey === projectDiscoveryKey

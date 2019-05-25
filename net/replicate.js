@@ -1,5 +1,5 @@
 var Protocol = require('./protocol')
-var assert = require('assert')
+var assert = require('nanoassert')
 var debug = require('debug')
 var pageBus = require('../page-bus')
 var runSeries = require('run-series')
@@ -7,9 +7,9 @@ var runSeries = require('run-series')
 var DEBUG_NAMESPACE = 'proseline:replicate:'
 
 module.exports = function (options) {
-  assert.strictEqual(typeof options.peerID, 'string')
-  assert.strictEqual(typeof options.projectReplicationKey, 'string')
-  assert.strictEqual(typeof options.projectDiscoveryKey, 'string')
+  assert(typeof options.peerID === 'string')
+  assert(typeof options.projectReplicationKey === 'string')
+  assert(typeof options.projectDiscoveryKey === 'string')
   assert(options.database)
   var projectReplicationKey = options.projectReplicationKey
   var projectDiscoveryKey = options.projectDiscoveryKey

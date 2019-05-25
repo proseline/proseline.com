@@ -1,11 +1,11 @@
-var assert = require('assert')
+var assert = require('nanoassert')
 var renderLoading = require('./loading')
 
 module.exports = function (view) {
   return function (state, send, projectDiscoveryKey) {
-    assert.strictEqual(typeof state, 'object')
-    assert.strictEqual(typeof send, 'function')
-    assert.strictEqual(typeof view, 'function')
+    assert(typeof state === 'object')
+    assert(typeof send === 'function')
+    assert(typeof view === 'function')
     if (projectDiscoveryKey && state.projectDiscoveryKey !== projectDiscoveryKey) {
       var main = document.createElement('main')
       main.appendChild(

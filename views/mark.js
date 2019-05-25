@@ -1,4 +1,4 @@
-var assert = require('assert')
+var assert = require('nanoassert')
 var renderDraftHeader = require('./partials/draft-header')
 var renderDraftLink = require('./partials/draft-link')
 var renderLoading = require('./loading')
@@ -8,14 +8,14 @@ var withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, projectDiscoveryKey, logPublicKey, identifier) {
   state.route = 'mark'
-  assert.strictEqual(typeof state, 'object')
-  assert.strictEqual(typeof send, 'function')
-  assert.strictEqual(typeof projectDiscoveryKey, 'string')
-  assert.strictEqual(projectDiscoveryKey.length, 64)
-  assert.strictEqual(typeof logPublicKey, 'string')
-  assert.strictEqual(logPublicKey.length, 64)
-  assert.strictEqual(typeof identifier, 'string')
-  assert.strictEqual(identifier.length, 8)
+  assert(typeof state === 'object')
+  assert(typeof send === 'function')
+  assert(typeof projectDiscoveryKey === 'string')
+  assert(projectDiscoveryKey.length === 64)
+  assert(typeof logPublicKey === 'string')
+  assert(logPublicKey.length === 64)
+  assert(typeof identifier === 'string')
+  assert(identifier.length, 8)
   var main = document.createElement('main')
   if (
     state.markPublicKey !== logPublicKey ||

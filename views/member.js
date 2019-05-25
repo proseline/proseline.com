@@ -1,4 +1,4 @@
-var assert = require('assert')
+var assert = require('nanoassert')
 var renderActivity = require('./partials/activity')
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
@@ -7,12 +7,12 @@ var withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, projectDiscoveryKey, logPublicKey) {
   state.route = 'member'
-  assert.strictEqual(typeof state, 'object')
-  assert.strictEqual(typeof send, 'function')
-  assert.strictEqual(typeof projectDiscoveryKey, 'string')
-  assert.strictEqual(projectDiscoveryKey.length, 64)
-  assert.strictEqual(typeof logPublicKey, 'string')
-  assert.strictEqual(logPublicKey.length, 64)
+  assert(typeof state === 'object')
+  assert(typeof send === 'function')
+  assert(typeof projectDiscoveryKey === 'string')
+  assert(projectDiscoveryKey.length === 64)
+  assert(typeof logPublicKey === 'string')
+  assert(logPublicKey.length === 64)
   var main = document.createElement('main')
   if (state.member === logPublicKey && state.memberActivity) {
     if (state.changed) {

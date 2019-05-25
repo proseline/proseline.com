@@ -2,7 +2,7 @@
 var Client = require('./net/client')
 var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
-var assert = require('assert')
+var assert = require('nanoassert')
 var beforeUnload = require('./before-unload')
 var databases = require('./db/databases')
 var debug = require('debug')('proseline:instance')
@@ -66,10 +66,10 @@ require('./model')(
     resetState()
   },
   function makeReduction (name, listener) {
-    assert.strictEqual(typeof name, 'string', 'name is a string')
+    assert(typeof name === 'string', 'name is a string')
     assert(name.length !== 0, 'name is not empty')
-    assert.strictEqual(
-      reductions.listenerCount(name), 0,
+    assert(
+      reductions.listenerCount(name) === 0,
       'just one listener for ' + name
     )
     reductions.on(name, function (data) {
@@ -77,10 +77,10 @@ require('./model')(
     })
   },
   function makeHandler (name, listener) {
-    assert.strictEqual(typeof name, 'string', 'name is a string')
+    assert(typeof name === 'string', 'name is a string')
     assert(name.length !== 0, 'name is not empty')
-    assert.strictEqual(
-      actions.listenerCount(name), 0,
+    assert(
+      actions.listenerCount(name) === 0,
       'just one listener for ' + name
     )
     actions.on(name, nanoraf(function (data) {
@@ -109,7 +109,7 @@ function update () {
   // All renderers must return a <main> or the
   // diff algorithm will fail.
   assert(rerendered instanceof Element)
-  assert.strictEqual(rerendered.tagName, 'MAIN')
+  assert(rerendered.tagName === 'MAIN')
   beforeUnload.disable()
   nanomorph(rendered, rerendered)
   timestampInterval = setInterval(updateTimestamps, 30 * 1000)

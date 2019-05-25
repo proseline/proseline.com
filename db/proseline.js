@@ -1,5 +1,5 @@
 var Database = require('./database')
-var assert = require('assert')
+var assert = require('nanoassert')
 var crypto = require('@proseline/crypto')
 var inherits = require('inherits')
 var pageBus = require('../page-bus')

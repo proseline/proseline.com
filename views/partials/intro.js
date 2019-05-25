@@ -1,9 +1,9 @@
-var assert = require('assert')
+var assert = require('nanoassert')
 var renderIntroIcon = require('./intro-icon')
 
 module.exports = function (state, logPublicKey, options) {
-  assert.strictEqual(typeof state, 'object')
-  assert.strictEqual(typeof logPublicKey, 'string')
+  assert(typeof state === 'object')
+  assert(typeof logPublicKey === 'string')
   options = options || {}
   var element
   if (options.plainText) {

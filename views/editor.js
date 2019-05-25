@@ -1,4 +1,4 @@
-var assert = require('assert')
+var assert = require('nanoassert')
 var beforeUnload = require('../before-unload')
 var initializeEditor = require('../editor')
 var onKeyDown = require('./on-key-down')

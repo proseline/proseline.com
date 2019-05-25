@@ -1,5 +1,5 @@
 /* globals Node */
-var assert = require('assert')
+var assert = require('nanoassert')
 var dropCursor = require('prosemirror-dropcursor').dropCursor
 var gapCursor = require('prosemirror-gapcursor').gapCursor
 var keyMap = require('./key-map')

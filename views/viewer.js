@@ -1,5 +1,5 @@
 var SVG = require('../svg')
-var assert = require('assert')
+var assert = require('nanoassert')
 var beforeUnload = require('../before-unload')
 var initializeEditor = require('../editor')
 var onKeyDown = require('./on-key-down')
@@ -242,7 +242,7 @@ function renderNoteForm (state, send, options) {
     )
   )
   assert(!selected || typeof selected === 'string')
-  assert.strictEqual(typeof send, 'function')
+  assert(typeof send === 'function')
 
   // <form>
   var form = document.createElement('form')

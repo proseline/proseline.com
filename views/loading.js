@@ -1,8 +1,8 @@
-var assert = require('assert')
+var assert = require('nanoassert')
 
 module.exports = function (onLoadEvent, text) {
   assert(typeof onLoadEvent === 'function')
-  if (text) assert.strictEqual(typeof text, 'string')
+  if (text) assert(typeof text === 'string')
   onLoadEvent()
   var section = document.createElement('section')
   section.appendChild(document.createTextNode(text || 'Loading…'))

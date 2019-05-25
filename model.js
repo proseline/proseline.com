@@ -1,7 +1,7 @@
 /* globals Blob, fetch */
 var IndexedDB = require('./db/indexeddb')
 var UNTITLED = require('./untitled')
-var assert = require('assert')
+var assert = require('nanoassert')
 var crypto = require('@proseline/crypto')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
@@ -95,8 +95,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reloadHandler('member', loadMember)
 
   function loadMember (data, setate, reduce, done) {
-    assert.strictEqual(typeof data.logPublicKey, 'string')
-    assert.strictEqual(data.logPublicKey.length, 64)
+    assert(typeof data.logPublicKey === 'string')
+    assert(data.logPublicKey.length === 64)
     var logPublicKey = data.logPublicKey
     withIndexedDB(data.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
@@ -128,7 +128,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('leave project', function (projectDiscoveryKey, state, reduce, done) {
-    assert.strictEqual(typeof projectDiscoveryKey, 'string')
+    assert(typeof projectDiscoveryKey === 'string')
     runParallel([
       function overwriteProject (done) {
         withIndexedDB('proseline', function (error, db) {
@@ -159,10 +159,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('join project', function (data, state, reduce, done) {
-    assert.strictEqual(typeof data, 'object')
-    assert.strictEqual(typeof data.projectReplicationKey, 'string')
-    assert.strictEqual(typeof data.projectReadKey, 'string')
-    assert.strictEqual(typeof data.projectWriteSeed, 'string')
+    assert(typeof data === 'object')
+    assert(typeof data.projectReplicationKey === 'string')
+    assert(typeof data.projectReadKey === 'string')
+    assert(typeof data.projectWriteSeed === 'string')
     var projectReplicationKey = data.projectReplicationKey
     var projectReadKey = data.projectReadKey
     var projectWriteSeed = data.projectWriteSeed
@@ -196,18 +196,18 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   function createProject (data, callback) {
-    assert.strictEqual(typeof data, 'object')
+    assert(typeof data === 'object')
     var projectReplicationKey = data.projectReplicationKey
     var projectDiscoveryKey = data.projectDiscoveryKey
     var projectReadKey = data.projectReadKey
     var projectWriteSeed = data.projectWriteSeed
     var title = data.title
-    assert.strictEqual(typeof callback, 'function')
+    assert(typeof callback === 'function')
     if (projectReplicationKey) {
-      assert.strictEqual(typeof projectReplicationKey, 'string')
-      assert.strictEqual(typeof projectDiscoveryKey, 'string')
-      assert.strictEqual(typeof projectReadKey, 'string')
-      assert.strictEqual(typeof projectWriteSeed, 'string')
+      assert(typeof projectReplicationKey === 'string')
+      assert(typeof projectDiscoveryKey === 'string')
+      assert(typeof projectReadKey === 'string')
+      assert(typeof projectWriteSeed === 'string')
     } else {
       projectReplicationKey = crypto.makeProjectReplicationKey().toString('hex')
       projectDiscoveryKey = hashHex(projectReplicationKey)
