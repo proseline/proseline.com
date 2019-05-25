@@ -39,13 +39,13 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Logs
     var logs = db.createObjectStore('logs')
     logs.createIndex('publicKey', 'publicKey', { unique: false })
-    var TYPE_KEY_PATH = 'innerEnvelope.entry.body.type'
+    var TYPE_KEY_PATH = 'innerEnvelope.entry.type'
     logs.createIndex('type', TYPE_KEY_PATH, { unique: false })
     logs.createIndex(
       'publicKey-type', ['publicKey', TYPE_KEY_PATH], { unique: false }
     )
     // Index by parents so we can query for drafts by parent digest.
-    logs.createIndex('parents', 'innerEnvelope.entry.body.parents', {
+    logs.createIndex('parents', 'innerEnvelope.entry.parents', {
       unique: false,
       multiEntry: true
     })
@@ -53,13 +53,13 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // draft digest.
     logs.createIndex(
       'type-draft',
-      [TYPE_KEY_PATH, 'innerEnvelope.entry.body.draft'],
+      [TYPE_KEY_PATH, 'innerEnvelope.entry.draft'],
       { unique: false }
     )
     // Index by public key and identifier so we can query for marks.
     logs.createIndex(
       'publicKey-identifier',
-      ['publicKey', 'innerEnvelope.entry.body.identifier'],
+      ['publicKey', 'innerEnvelope.entry.identifier'],
       { unique: false }
     )
     // Index everything by digest, a property added just for indexing,
@@ -328,7 +328,7 @@ Project.prototype.listDraftBriefs = function (callback) {
         return function (done) {
           self.countNotes(draft.digest, function (error, notesCount) {
             if (error) return done(error)
-            var body = draft.entry.body
+            var body = draft.innerEnvelope.entry
             done(null, {
               digest: draft.digest,
               project: draft.entry.project,
@@ -376,7 +376,7 @@ Project.prototype.listMarks = function (callback) {
     callback(null, marks
       .reverse()
       .filter(function (mark) {
-        var identifier = mark.entry.body.identifier
+        var identifier = mark.innerEnvelope.entry.identifier
         if (seen.has(identifier)) {
           return false
         } else {

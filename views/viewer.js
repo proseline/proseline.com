@@ -26,7 +26,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, digest)
     div.className = 'editor'
     var editor = initializeEditor({
       element: div,
-      content: draft.entry.body.text,
+      content: draft.innerEnvelope.entry.text,
       renderNoteForm: renderNoteForm.bind(null, state, send),
       renderNote: renderNote.bind(null, state, send),
       notes: state.notesTree,
@@ -44,7 +44,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, digest)
         }
       },
       prior: state.parents.length !== 0
-        ? state.parents[0].entry.body.text
+        ? state.parents[0].innerEnvelope.entry.text
         : undefined
     })
     div.onkeydown = onKeyDown(editor, [state.draft.digest], state, send)
@@ -52,12 +52,12 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, digest)
     main.appendChild(renderDraftHeader(state, saveForm))
     main.appendChild(div)
     if (state.projectMarks.filter(function (mark) {
-      return mark.entry.body.draft === state.draft.digest
+      return mark.innerEnvelope.entry.draft === state.draft.digest
     })) {
       var bookmarkWidth = 50
       var bookmarks = document.createElementNS(SVG, 'svg')
       var marks = state.projectMarks.filter(function (mark) {
-        return mark.entry.body.draft === state.draft.digest
+        return mark.innerEnvelope.entry.draft === state.draft.digest
       })
       var othersMarks = []
       var ourMarks = []
@@ -138,12 +138,12 @@ function renderMarkForm (state, send) {
     event.stopPropagation()
     var name = input.value
     var continuing = marksICanMove.find(function (mark) {
-      return mark.entry.body.name === name
+      return mark.innerEnvelope.entry.name === name
     })
     send('mark', {
       name: name,
       identifier: continuing
-        ? continuing.entry.body.identifier
+        ? continuing.innerEnvelope.entry.identifier
         : null
     })
   })
@@ -156,7 +156,7 @@ function renderMarkForm (state, send) {
   var marksICanMove = state.projectMarks.filter(function (mark) {
     return (
       mark.publicKey === state.identity.publicKey &&
-      mark.entry.body.draft !== state.draft.digest
+      mark.innerEnvelope.entry.draft !== state.draft.digest
     )
   })
   if (marksICanMove.length !== 0) {
@@ -168,7 +168,7 @@ function renderMarkForm (state, send) {
     marksICanMove.forEach(function (mark) {
       var option = document.createElement('option')
       datalist.appendChild(option)
-      option.value = mark.entry.body.name
+      option.value = mark.innerEnvelope.entry.name
     })
   }
 
@@ -193,14 +193,14 @@ function renderNote (state, send, note) {
   p.className = 'byline'
   p.appendChild(renderIntro(state, note.publicKey))
   p.appendChild(document.createTextNode(' '))
-  p.appendChild(renderRelativeTimestamp(note.entry.body.timestamp))
+  p.appendChild(renderRelativeTimestamp(note.innerEnvelope.entry.timestamp))
   p.appendChild(document.createTextNode(':'))
   aside.appendChild(p)
 
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   aside.appendChild(blockquote)
-  blockquote.appendChild(renderText(note.entry.body.text))
+  blockquote.appendChild(renderText(note.innerEnvelope.entry.text))
 
   if (replyTo === note.digest) {
     aside.appendChild(renderNoteForm(state, send, { parent: note.digest }))

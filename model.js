@@ -472,7 +472,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }, function (error, results) {
         if (error) return done(error)
         results.draft.digest = digest
-        var parents = results.draft.entry.body.parents
+        var parents = results.draft.innerEnvelope.entry.parents
         runParallel(parents.map(function (digest) {
           return function (done) {
             db.getDraft(digest, function (error, parent) {
@@ -632,7 +632,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var latestMark = history[0]
         reduce('mark', {
           markPublicKey: latestMark.publicKey,
-          markIdentifier: latestMark.entry.body.identifier,
+          markIdentifier: latestMark.innerEnvelope.entry.identifier,
           mark: latestMark,
           markHistory: history
         })
@@ -722,7 +722,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         }))
     }
     function identifierOf (mark) {
-      return mark.entry.body.identifier
+      return mark.innerEnvelope.entry.identifier
     }
   })
 
@@ -783,7 +783,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replyTo: null,
       activity: [newNote].concat(state.activity),
       draftBriefs: state.draftBriefs.map(function (brief) {
-        if (brief.digest === newNote.entry.body.draft) {
+        if (brief.digest === newNote.innerEnvelope.entry.draft) {
           brief.notesCount++
         }
         return brief
@@ -844,7 +844,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('download', function (_, state, reduce, done) {
     saveAs(
       new Blob(
-        [JSON.stringify(state.draft.entry.body.text)],
+        [JSON.stringify(state.draft.innerEnvelope.entry.text)],
         { type: 'application/json;charset=utf-8' }
       ),
       'proseline.json',

@@ -26,8 +26,8 @@ module.exports = function (state, publicKey, options) {
   } else if (intro) {
     element.appendChild(
       document.createTextNode(
-        intro.entry.body.name +
-        ' (on ' + intro.entry.body.device + ')' +
+        intro.innerEnvelope.entry.name +
+        ' (on ' + intro.innerEnvelope.entry.device + ')' +
         (options.possessive ? '’s' : '')
       )
     )

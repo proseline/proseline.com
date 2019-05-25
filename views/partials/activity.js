@@ -10,7 +10,7 @@ module.exports = function (state, activity) {
   var ol = document.createElement('ol')
   ol.className = 'activity'
   activity.forEach(function (envelope) {
-    var body = envelope.entry.body
+    var body = envelope.innerEnvelope.entry
     var type = body.type
     var li = document.createElement('li')
     var a, brief
@@ -31,7 +31,7 @@ module.exports = function (state, activity) {
         determiner: true
       }))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(envelope.entry.body.timestamp))
+      li.appendChild(renderRelativeTimestamp(envelope.innerEnvelope.entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
       li.appendChild(renderIntro(state, envelope.publicKey, {
@@ -45,7 +45,7 @@ module.exports = function (state, activity) {
             : 'themself '
         )
       ))
-      li.appendChild(renderRelativeTimestamp(envelope.entry.body.timestamp))
+      li.appendChild(renderRelativeTimestamp(envelope.innerEnvelope.entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
       brief = state.draftBriefs.find(function (brief) {
@@ -60,7 +60,7 @@ module.exports = function (state, activity) {
       li.appendChild(document.createTextNode(' on '))
       li.appendChild(renderDraftLink(state, brief))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(envelope.entry.body.timestamp))
+      li.appendChild(renderRelativeTimestamp(envelope.innerEnvelope.entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
       brief = state.draftBriefs.find(function (brief) {
@@ -75,7 +75,7 @@ module.exports = function (state, activity) {
       li.appendChild(a)
       a.href = (
         '/projects/' + envelope.entry.project +
-        '/drafts/' + envelope.entry.body.draft +
+        '/drafts/' + envelope.innerEnvelope.entry.draft +
         '#' + envelope.digest
       )
       a.appendChild(renderNoteIcon())

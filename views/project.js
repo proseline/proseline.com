@@ -343,7 +343,7 @@ function renderGraph (state, send) {
     var marks = state.projectMarks
       .sort(byTimestamp)
       .filter(function (mark) {
-        return mark.entry.body.draft === brief.digest
+        return mark.innerEnvelope.entry.draft === brief.digest
       })
     var othersMarks = []
     var ourMarks = []
@@ -370,7 +370,7 @@ function renderGraph (state, send) {
       }
       var text = (ourMarks.length !== 0)
         ? (
-          ourMarks[0].entry.body.name +
+          ourMarks[0].innerEnvelope.entry.name +
           (marks.length > 1 ? '...' : '')
         )
         : (
@@ -451,7 +451,7 @@ function plainTextIntro (state, publicKey) {
   if (publicKey === state.identity.publicKey) return 'You'
   var intro = state.intros[publicKey]
   if (intro) {
-    return intro.entry.body.name
+    return intro.innerEnvelope.entry.name
   } else {
     return 'anonymous'
   }
