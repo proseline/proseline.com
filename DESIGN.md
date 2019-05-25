@@ -74,7 +74,7 @@ Format: Object keys sorted, JSON-encoded, encrypted with project read key, then 
 Contents:
 - signature with log key
 - signature with project write key
-- digest of prior log entry, for entries after the first
+- `crypto_generichash` digest of prior log entry, for entries after the first
 - (optional) signature with client key
 
 Inner Envelopes contain signatures showing authorization to write to the Project and to the Log.
