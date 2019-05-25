@@ -1,15 +1,10 @@
 var byTimestamp = require('./by-timestamp')
-var crypto = require('@proseline/crypto')
-var stringify = require('./stringify')
 
 module.exports = function (notes) {
   var map = {}
   notes.forEach(function (note) {
-    var digest = crypto.hash(
-      Buffer.from(stringify(note.innerEnvelope.entry))
-    ).toString('hex')
     note.children = []
-    map[digest] = note
+    map[note.digest] = note
   })
   notes.forEach(function (note) {
     var parentDigest = note.innerEnvelope.entry.parent
@@ -26,7 +21,7 @@ module.exports = function (notes) {
       return map[digest]
     })
     .filter(function (note) {
-      return !note.innerEnevelope.entry.parent
+      return !note.innerEnvelope.entry.parent
     })
   returned.sort(byTimestamp)
   returned.reverse()

@@ -42,6 +42,7 @@ var nanoraf = require('nanoraf')
 // State Management
 
 var globalState = {}
+window.globalState = globalState
 
 var actions = new EventEmitter()
   .on('error', function (error) {

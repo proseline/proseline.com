@@ -309,7 +309,7 @@ function addIndexingMetadata (outerEnvelope, projectReadKey) {
   }
   var entry = innerEnvelope.entry
   outerEnvelope.innerEnvelope = innerEnvelope
-  outerEnvelope.digest = crypto.hash(Buffer.from(stringify(entry)))
+  outerEnvelope.digest = crypto.hash(Buffer.from(stringify(entry))).toString('hex')
   outerEnvelope.added = new Date().toISOString()
 }
 

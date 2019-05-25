@@ -26,6 +26,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       identity: null,
       projectReplicationKey: null,
       projectDiscoveryKey: null,
+      projectReadKey: null,
+      projectWriteSeed: null,
       projectWriteKeyPair: null,
       persistent: null,
       title: null,
@@ -58,15 +60,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('introduce', function (data, state, reduce, done) {
     var identity = state.identity
     var userIntro = state.userIntro
-    var intro = {
+    var entry = {
       type: 'intro',
       name: userIntro.name,
       device: userIntro.device,
       timestamp: new Date().toISOString()
-    }
-    var entry = {
-      project: state.projectDiscoveryKey,
-      body: intro
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
@@ -427,6 +425,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       title: data.project.title,
       projectReplicationKey: data.project.projectReplicationKey,
       projectDiscoveryKey: data.project.projectDiscoveryKey,
+      projectReadKey: data.project.projectWriteSeed,
       projectWriteSeed: data.project.projectWriteSeed,
       projectWriteKeyPair: data.project.projectWriteKeyPair,
       persistent: data.project.persistent,
@@ -444,7 +443,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reduction('clear project', function (_, state) {
     return {
       changed: false,
+      projectReplicationKey: null,
       projectDiscoveryKey: null,
+      projectReadKey: null,
+      projectWriteSeed: null,
+      projectWriteKeyPair: null,
       projects: null,
       draftSelection: null
     }
@@ -660,15 +663,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   handler('save', function (data, state, reduce, done) {
     var identity = state.identity
-    var draft = {
+    var entry = {
       type: 'draft',
-      parents: data.parents,
+      parents: data.parents || [],
       text: data.text,
       timestamp: new Date().toISOString()
-    }
-    var entry = {
-      project: state.projectDiscoveryKey,
-      body: draft
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
@@ -679,8 +678,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           digest: digest,
           project: outerEnvelope.project,
           logPublicKey: identity.publicKey,
-          parents: draft.parents,
-          timestamp: draft.timestamp
+          parents: entry.parents,
+          timestamp: entry.timestamp
         })
         window.history.pushState(
           {}, null,
@@ -740,16 +739,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   function putMark (identifier, name, draft, state, callback) {
     identifier = identifier || crypto.randomBuffer(4).toString('hex')
     var identity = state.identity
-    var mark = {
+    var entry = {
       type: 'mark',
       identifier: identifier,
       name: name,
       timestamp: new Date().toISOString(),
       draft: draft
-    }
-    var entry = {
-      project: state.projectDiscoveryKey,
-      body: mark
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return callback(error)
@@ -764,18 +759,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   handler('note', function (data, state, reduce, done) {
     var identity = state.identity
-    var note = {
+    var entry = {
       type: 'note',
       draft: state.draft.digest,
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    if (data.parent) note.parent = data.parent
-    else if (data.range) note.range = data.range
-    var entry = {
-      project: state.projectDiscoveryKey,
-      body: note
-    }
+    if (data.parent) entry.parent = data.parent
+    else if (data.range) entry.range = data.range
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
       db.putNote(entry, identity, function (error, outerEnvelope) {

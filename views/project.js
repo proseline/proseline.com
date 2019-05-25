@@ -21,7 +21,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey) {
     }))
   }
   main.appendChild(renderDraftHeader(state))
-  var intro = state.intros[state.identity.logPublicKey]
+  var intro = state.intros[state.identity.publicKey]
   var userIntro = state.userIntro
   if (!intro) {
     if (!userIntro) {
@@ -145,7 +145,11 @@ function persistent (state, send) {
 function inviteURL (state) {
   return (
     'https://proseline.com/join#' +
-    state.replicationKey + ':' + state.writeSeed
+    [
+      state.projectReplicationKey,
+      state.projectReadKey,
+      state.projectWriteSeed
+    ].join(':')
   )
 }
 

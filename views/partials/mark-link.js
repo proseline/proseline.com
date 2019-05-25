@@ -4,7 +4,7 @@ module.exports = function (state, mark) {
   var a = document.createElement('a')
   a.className = 'draft'
   a.href = (
-    '/projects/' + mark.entry.project +
+    '/projects/' + mark.projectDiscoveryKey +
     '/marks/' + mark.logPublicKey +
     ':' + mark.innerEnvelope.entry.identifier
   )
