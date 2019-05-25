@@ -212,7 +212,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       projectReplicationKey = crypto.makeProjectReplicationKey().toString('hex')
       projectDiscoveryKey = hashHex(projectReplicationKey)
       projectReadKey = crypto.makeProjectReplicationKey().toString('hex')
-      projectWriteSeed = crypto.makeSigniningKeyPairSeed().toString('hex')
+      projectWriteSeed = crypto.makeSigningKeyPairSeed().toString('hex')
     }
     var projectWriteKeyPair = crypto.makeSigningKeyPairFromSeed(projectWriteSeed)
     projectWriteKeyPair.publicKey = projectWriteKeyPair.publicKey.toString('hex')
