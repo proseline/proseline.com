@@ -1,16 +1,12 @@
 /* globals Blob, fetch */
-var UNTITLED = require('./untitled')
 var IndexedDB = require('./db/indexeddb')
+var UNTITLED = require('./untitled')
 var assert = require('assert')
-var keyPairFromSeed = require('./crypto/key-pair-from-seed')
+var crypto = require('@proseline/crypto')
 var runParallel = require('run-parallel')
 var runSeries = require('run-series')
 var saveAs = require('file-saver').saveAs
-var sign = require('./crypto/sign')
-var stringify = require('fast-json-stable-stringify')
 
-var hashHex = require('./crypto/hash-hex')
-var random = require('./crypto/random')
 var treeifyNotes = require('./utilities/treeify-notes')
 
 // TODO: Copy draft to new project.
@@ -164,20 +160,23 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   handler('join project', function (data, state, reduce, done) {
     assert.strictEqual(typeof data, 'object')
-    assert.strictEqual(typeof data.replicationKey, 'string')
-    assert.strictEqual(typeof data.writeSeed, 'string')
-    var replicationKey = data.replicationKey
-    var writeSeed = data.writeSeed
-    var projectDiscoveryKey = hashHex(replicationKey)
+    assert.strictEqual(typeof data.projectReplicationKey, 'string')
+    assert.strictEqual(typeof data.projectReadKey, 'string')
+    assert.strictEqual(typeof data.projectWriteSeed, 'string')
+    var projectReplicationKey = data.projectReplicationKey
+    var projectReadKey = data.projectReadKey
+    var projectWriteSeed = data.projectWriteSeed
+    var projectDiscoveryKey = hashHex(projectReplicationKey)
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
       db.getProject(projectDiscoveryKey, function (error, project) {
         if (error) return done(error)
         if (project && !project.deleted) return redirect()
         createProject({
-          replicationKey,
+          projectReplicationKey,
           projectDiscoveryKey,
-          writeSeed,
+          projectReadKey,
+          projectWriteSeed,
           // If we are rejoining a project we left, reuse
           // the old title.
           title: data.title
@@ -198,25 +197,30 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   function createProject (data, callback) {
     assert.strictEqual(typeof data, 'object')
-    var replicationKey = data.replicationKey
+    var projectReplicationKey = data.projectReplicationKey
     var projectDiscoveryKey = data.projectDiscoveryKey
-    var writeSeed = data.writeSeed
+    var projectReadKey = data.projectReadKey
+    var projectWriteSeed = data.projectWriteSeed
     var title = data.title
     assert.strictEqual(typeof callback, 'function')
-    if (replicationKey) {
-      assert.strictEqual(typeof replicationKey, 'string')
+    if (projectReplicationKey) {
+      assert.strictEqual(typeof projectReplicationKey, 'string')
       assert.strictEqual(typeof projectDiscoveryKey, 'string')
-      assert.strictEqual(typeof writeSeed, 'string')
+      assert.strictEqual(typeof projectReadKey, 'string')
+      assert.strictEqual(typeof projectWriteSeed, 'string')
     } else {
-      replicationKey = random(32)
-      projectDiscoveryKey = hashHex(replicationKey)
-      writeSeed = random(32)
+      projectReplicationKey = crypto.makeProjectReplicationKey().toString('hex')
+      projectDiscoveryKey = hashHex(projectReplicationKey)
+      projectReadKey = crypto.makeProjectReplicationKey().toString('hex')
+      projectWriteSeed = crypto.makeSigniningKeyPairSeed().toString('hex')
     }
-    var writeKeyPair = keyPairFromSeed(writeSeed)
+    var writeKeyPair = crypto.makeSigningKeyPairFromSeed(projectWriteSeed)
+    writeKeyPair.publicKey = writeKeyPair.publicKey.toString('hex')
+    writeKeyPair.secretKey = writeKeyPair.secretKey.toString('hex')
     var project = {
-      replicationKey,
+      projectReplicationKey,
       projectDiscoveryKey,
-      writeSeed,
+      projectWriteSeed,
       writeKeyPair,
       title: title || UNTITLED,
       persistent: !!data.persistent
@@ -297,13 +301,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var email = data.email
         var token = data.token
         var date = new Date().toISOString()
-        var message = { token, email, date }
-        var stringified = stringify(message)
-        var order = {
-          message: message,
-          publicKey: identity.publicKey,
-          signature: sign(stringified, identity.replicationKey)
-        }
+        var entry = { token, email, date }
+        var order = { entry, publicKey: identity.publicKey }
+        crypto.sign(order, identity.projectReplicationKey, 'signature')
         fetch('https://paid.proseline.com/subscribe', {
           method: 'POST',
           mode: 'cors',
@@ -538,17 +538,16 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         db.getUserIdentity(function (error, identity) {
           if (error) return done(error)
           var email = data.email
-          var message = {
+          var entry = {
             email,
             name: data.name,
             date: new Date().toISOString()
           }
-          var stringified = stringify(message)
           var request = {
-            message,
-            publicKey: identity.publicKey,
-            signature: sign(stringified, identity.secretKey)
+            entry,
+            publicKey: identity.publicKey
           }
+          crypto.sign(request, identity.secretKey, 'signature')
           fetch('https://paid.proseline.com/add', {
             method: 'POST',
             mode: 'cors',
@@ -728,7 +727,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   function putMark (identifier, name, draft, state, callback) {
-    identifier = identifier || random(4)
+    identifier = identifier || crypto.randomBuffer(4).toString('hex')
     var identity = state.identity
     var mark = {
       type: 'mark',
@@ -907,4 +906,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       ], done)
     })
   }
+}
+
+function hashHex (hex) {
+  return crypto.hash(Buffer.from(hex, 'hex')).toString('hex')
 }

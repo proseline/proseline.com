@@ -1,10 +1,8 @@
 var Database = require('./database')
 var IDBKeyRange = require('./idbkeyrange')
 var assert = require('assert')
-var createIdentity = require('../crypto/create-identity')
 var crypto = require('@proseline/crypto')
 var debug = require('debug')
-var hash = require('../crypto/hash')
 var inherits = require('inherits')
 var pageBus = require('../page-bus')
 var runParallel = require('run-parallel')
@@ -79,11 +77,14 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
 
 Project.prototype.createIdentity = function (setDefault, callback) {
   var self = this
-  var identity = createIdentity()
-  self._put('identities', identity.publicKey, identity, function (error) {
+  var identity = crypto.makeSigningKeyPair()
+  identity.publicKey = identity.publicKey.toString('hex')
+  identity.secretKey = identity.secretKey.toString('hex')
+  var publicKey = identity.publicKey
+  self._put('identities', publicKey, identity, function (error) {
     if (error) return callback(error)
     if (setDefault) {
-      self._put('identities', 'default', identity.publicKey, function (error) {
+      self._put('identities', 'default', publicKey, function (error) {
         if (error) return callback(error)
         callback(null, identity)
       })
@@ -293,7 +294,7 @@ function addIndexingMetadata (outerEnvelope, projectReadKey) {
   }
   var message = innerEnvelope.message
   outerEnvelope.innerEnvelope = innerEnvelope
-  outerEnvelope.digest = hash(stringify(message))
+  outerEnvelope.digest = crypto.hash(Buffer.from(stringify(message)))
   outerEnvelope.added = new Date().toISOString()
 }
 
