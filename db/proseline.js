@@ -91,9 +91,7 @@ prototype.getUserIdentity = function (callback) {
     if (identity !== undefined) {
       return callback(null, identity)
     }
-    identity = crypto.makeSigningKeyPair()
-    identity.publicKey = identity.publicKey.toString('hex')
-    identity.secretKey = identity.secretKey.toString('hex')
+    identity = crypto.signingKeyPair()
     self._put('user', 'identity', identity, function (error) {
       if (error) return callback(error)
       callback(null, identity)

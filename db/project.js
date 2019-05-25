@@ -78,9 +78,7 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
 
 Project.prototype.createIdentity = function (setDefault, callback) {
   var self = this
-  var identity = crypto.makeSigningKeyPair()
-  identity.publicKey = identity.publicKey.toString('hex')
-  identity.secretKey = identity.secretKey.toString('hex')
+  var identity = crypto.signingKeyPair()
   var logPublicKey = identity.publicKey
   self._put('identities', logPublicKey, identity, function (error) {
     if (error) return callback(error)
@@ -190,22 +188,22 @@ Project.prototype._log = function (entry, identity, callback) {
     innerEnvelope.entry = entry
     crypto.sign(
       innerEnvelope,
-      Buffer.from(identity.secretKey, 'hex'),
+      identity.secretKey,
       'logSignature'
     )
     crypto.sign(
       innerEnvelope,
-      Buffer.from(self.projectWriteKeyPair.secretKey, 'hex'),
+      self.projectWriteKeyPair.secretKey,
       'projectSignature'
     )
     // Encrypt the inner envelope.
     var stringifiedInnerEnvelope = stringify(innerEnvelope)
     var encryptionNonce = crypto.randomNonce()
     var encryptedInnerEnvelope = crypto.encrypt(
-      Buffer.from(stringifiedInnerEnvelope),
+      stringifiedInnerEnvelope,
       encryptionNonce,
-      Buffer.from(self.projectReadKey, 'hex')
-    ).toString('base64')
+      self.projectReadKey
+    )
     outerEnvelope.encryptedInnerEnvelope = encryptedInnerEnvelope
     outerEnvelope.nonce = encryptionNonce.toString('hex')
     addIndexingMetadata(outerEnvelope, self.projectReadKey)
@@ -295,9 +293,9 @@ function addIndexingMetadata (outerEnvelope, projectReadKey) {
   var encryptedInnerEnvelope = outerEnvelope.encryptedInnerEnvelope
   var nonce = outerEnvelope.nonce
   var innerEnvelopeJSONBuffer = crypto.decrypt(
-    Buffer.from(encryptedInnerEnvelope, 'base64'),
-    Buffer.from(nonce, 'hex'),
-    Buffer.from(projectReadKey, 'hex')
+    encryptedInnerEnvelope,
+    nonce,
+    projectReadKey
   )
   if (!innerEnvelopeJSONBuffer) {
     throw new Error('Failed to decrypt encryptedInnerEnvelope.')
@@ -309,7 +307,7 @@ function addIndexingMetadata (outerEnvelope, projectReadKey) {
   }
   var entry = innerEnvelope.entry
   outerEnvelope.innerEnvelope = innerEnvelope
-  outerEnvelope.digest = crypto.hash(Buffer.from(stringify(entry))).toString('hex')
+  outerEnvelope.digest = crypto.hash(stringify(entry))
   outerEnvelope.added = new Date().toISOString()
 }
 

@@ -164,7 +164,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var projectReplicationKey = data.projectReplicationKey
     var projectReadKey = data.projectReadKey
     var projectWriteSeed = data.projectWriteSeed
-    var projectDiscoveryKey = hashHex(projectReplicationKey)
+    var projectDiscoveryKey = crypto.hash(projectReplicationKey)
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
       db.getProject(projectDiscoveryKey, function (error, project) {
@@ -207,16 +207,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       assert(typeof projectReadKey === 'string')
       assert(typeof projectWriteSeed === 'string')
     } else {
-      projectReplicationKey = crypto.makeProjectReplicationKey().toString('hex')
-      projectDiscoveryKey = hashHex(projectReplicationKey)
-      projectReadKey = crypto.makeProjectReplicationKey().toString('hex')
-      projectWriteSeed = crypto.makeSigningKeyPairSeed().toString('hex')
+      projectReplicationKey = crypto.projectReplicationKey()
+      projectDiscoveryKey = crypto.hash(projectReplicationKey)
+      projectReadKey = crypto.projectReplicationKey()
+      projectWriteSeed = crypto.signingKeyPairSeed()
     }
-    var projectWriteKeyPair = crypto.makeSigningKeyPairFromSeed(
-      Buffer.from(projectWriteSeed, 'hex')
-    )
-    projectWriteKeyPair.publicKey = projectWriteKeyPair.publicKey.toString('hex')
-    projectWriteKeyPair.secretKey = projectWriteKeyPair.secretKey.toString('hex')
+    var projectWriteKeyPair = crypto.signingKeyPairFromSeed(projectWriteSeed)
     var project = {
       projectReplicationKey,
       projectDiscoveryKey,
@@ -306,7 +302,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var order = { entry, publicKey: identity.publicKey }
         crypto.sign(
           order,
-          Buffer.from(identity.projectReplicationKey, 'hex'),
+          identity.projectReplicationKey,
           'signature'
         )
         fetch('https://paid.proseline.com/subscribe', {
@@ -559,7 +555,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           }
           crypto.sign(
             request,
-            Buffer.from(identity.secretKey, 'hex'),
+            identity.secretKey,
             'signature'
           )
           fetch('https://paid.proseline.com/add', {
@@ -737,7 +733,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   function putMark (identifier, name, draft, state, callback) {
-    identifier = identifier || crypto.randomBuffer(4).toString('hex')
+    identifier = identifier || crypto.random(4)
     var identity = state.identity
     var entry = {
       type: 'mark',
@@ -908,8 +904,4 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       ], done)
     })
   }
-}
-
-function hashHex (hex) {
-  return crypto.hash(Buffer.from(hex, 'hex')).toString('hex')
 }
