@@ -2,12 +2,12 @@ var Database = require('./database')
 var IDBKeyRange = require('./idbkeyrange')
 var assert = require('assert')
 var createIdentity = require('../crypto/create-identity')
+var crypto = require('@proseline/crypto')
 var debug = require('debug')
 var hash = require('../crypto/hash')
 var inherits = require('inherits')
 var pageBus = require('../page-bus')
 var runParallel = require('run-parallel')
-var sign = require('../crypto/sign')
 var stringify = require('../utilities/stringify')
 
 module.exports = Project
@@ -16,18 +16,21 @@ module.exports = Project
 function Project (data) {
   assert.strictEqual(typeof data, 'object')
   assert.strictEqual(typeof data.discoveryKey, 'string')
-  assert.strictEqual(typeof data.writeKeyPair, 'object')
-  this._writeKeyPair = data.writeKeyPair
+  assert.strictEqual(typeof data.projectReadKey, 'string')
+  assert.strictEqual(typeof data.projectWriteKeyPair, 'object')
+  var discoveryKey = data.discoveryKey
+  this.projectReadKey = data.projectReadKey
+  this.projectWriteKeyPair = data.projectWriteKeyPair
   Database.call(this, {
-    name: data.discoveryKey,
+    name: discoveryKey,
     version: CURRENT_VERSION
   })
-  this.debug = debug('proseline:db:' + data.discoveryKey)
+  this.debug = debug('proseline:db:' + discoveryKey)
 }
 
 inherits(Project, Database)
 
-var CURRENT_VERSION = 3
+var CURRENT_VERSION = 4
 
 Project.prototype._upgrade = function (db, oldVersion, callback) {
   if (oldVersion < CURRENT_VERSION) {
@@ -38,13 +41,13 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // Logs
     var logs = db.createObjectStore('logs')
     logs.createIndex('publicKey', 'publicKey', { unique: false })
-    var TYPE_KEY_PATH = 'message.body.type'
+    var TYPE_KEY_PATH = 'innerEnvelope.message.body.type'
     logs.createIndex('type', TYPE_KEY_PATH, { unique: false })
     logs.createIndex(
       'publicKey-type', ['publicKey', TYPE_KEY_PATH], { unique: false }
     )
     // Index by parents so we can query for drafts by parent digest.
-    logs.createIndex('parents', 'message.body.parents', {
+    logs.createIndex('parents', 'innerEnvelope.message.body.parents', {
       unique: false,
       multiEntry: true
     })
@@ -52,13 +55,13 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
     // draft digest.
     logs.createIndex(
       'type-draft',
-      [TYPE_KEY_PATH, 'message.body.draft'],
+      [TYPE_KEY_PATH, 'innerEnvelope.message.body.draft'],
       { unique: false }
     )
     // Index by public key and identifier so we can query for marks.
     logs.createIndex(
       'publicKey-identifier',
-      ['publicKey', 'message.body.identifier'],
+      ['publicKey', 'innerEnvelope.message.body.identifier'],
       { unique: false }
     )
     // Index everything by digest, a property added just for indexing,
@@ -159,49 +162,58 @@ Project.prototype._log = function (message, identity, callback) {
   var publicKey = identity.publicKey
   // Determine the current log head, create an envelope, and append
   // it in a single transaction.
-  var envelope
+  var outerEnvelope = {
+    publicKey: identity.publicKey,
+    local: true
+  }
+  var innerEnvelope = {}
   var transaction = self._db.transaction(['logs'], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
   }
   transaction.oncomplete = function () {
-    self._emitEnvelopeEvent(envelope)
-    callback(null, envelope, envelope.digest)
+    self._emitOuterEnvelopeEvent(outerEnvelope)
+    callback(null, outerEnvelope, outerEnvelope.digest)
   }
   requestHead(transaction, publicKey, function (head) {
     if (head === undefined) {
       // This will be the first entry in the log.
-      message.index = 0
+      outerEnvelope.index = 0
     } else {
       // This will be a later entry in the log.
-      message.index = head.message.index + 1
-      message.prior = head.digest
+      outerEnvelope.index = head.message.index + 1
+      innerEnvelope.prior = head.digest
     }
-    var stringified = stringify(message)
-    envelope = {
-      message: message,
-      publicKey: identity.publicKey,
-      signature: sign(stringified, identity.secretKey),
-      authorization: sign(stringified, self._writeKeyPair.secretKey),
-      local: true
-    }
-    addIndexingMetadata(envelope)
+    // Sign the inner envelope.
+    innerEnvelope.message = message
+    crypto.sign(innerEnvelope, identity, 'logSignature')
+    crypto.sign(innerEnvelope, self.projectWriteKeyPair, 'projectSignature')
+    // Encrypt the inner envelope.
+    var stringifiedInnerEnvelope = stringify(innerEnvelope)
+    var encryptionNonce = crypto.randomNonce()
+    var encryptedInnerEnvelope = crypto.encrypt(
+      Buffer.from(stringifiedInnerEnvelope),
+      encryptionNonce,
+      self.projectReadKey
+    )
+    outerEnvelope.encryptedInnerEnvelope = encryptedInnerEnvelope
+    addIndexingMetadata(outerEnvelope, self.projectReadKey)
     transaction
       .objectStore('logs')
-      .add(envelope, logEntryKey(envelope.publicKey, message.index))
+      .add(outerEnvelope, logEntryKey(outerEnvelope.publicKey, message.index))
   })
 }
 
-Project.prototype._emitEnvelopeEvent = function (envelope) {
-  pageBus.emit('envelope', envelope)
+Project.prototype._emitOuterEnvelopeEvent = function (outerEnvelope) {
+  pageBus.emit('outerEnvelope', outerEnvelope)
 }
 
-Project.prototype.getEnvelope = function (publicKey, index, callback) {
+Project.prototype.getOuterEnvelope = function (publicKey, index, callback) {
   var key = logEntryKey(publicKey, index)
-  this._get('logs', key, function (error, envelope) {
+  this._get('logs', key, function (error, outerEnvelope) {
     if (error) return callback(error)
-    removeIndexingMetadata(envelope)
-    callback(null, envelope)
+    removeIndexingMetadata(outerEnvelope)
+    callback(null, outerEnvelope)
   })
 }
 
@@ -221,15 +233,17 @@ function requestHead (transaction, publicKey, onResult) {
   }
 }
 
-Project.prototype.putEnvelope = function (envelope, callback) {
-  assert.strictEqual(typeof envelope, 'object')
-  assert(envelope.hasOwnProperty('message'))
-  assert(envelope.hasOwnProperty('publicKey'))
-  assert(envelope.hasOwnProperty('signature'))
+Project.prototype.putOuterEnvelope = function (outerEnvelope, callback) {
+  assert.strictEqual(typeof outerEnvelope, 'object')
+  assert(outerEnvelope.hasOwnProperty('encryptedInnerEnvelope'))
+  assert(outerEnvelope.hasOwnProperty('index'))
+  assert(outerEnvelope.hasOwnProperty('nonce'))
+  assert(outerEnvelope.hasOwnProperty('project'))
+  assert(outerEnvelope.hasOwnProperty('publicKey'))
   assert.strictEqual(typeof callback, 'function')
   var self = this
   var debug = self.debug
-  addIndexingMetadata(envelope)
+  addIndexingMetadata(outerEnvelope, self.projectReadKey)
   var transaction = self._db.transaction(['logs'], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
@@ -237,12 +251,12 @@ Project.prototype.putEnvelope = function (envelope, callback) {
   var calledBackWithError = false
   transaction.oncomplete = function () {
     if (calledBackWithError) return
-    self._emitEnvelopeEvent(envelope)
+    self._emitOuterEnvelopeEvent(outerEnvelope)
     callback()
   }
-  var index = envelope.message.index
-  var prior = envelope.message.prior
-  var publicKey = envelope.publicKey
+  var index = outerEnvelope.message.index
+  var prior = outerEnvelope.message.prior
+  var publicKey = outerEnvelope.publicKey
   requestHead(transaction, publicKey, function (head) {
     if (head) {
       if (index !== head.message.index + 1) {
@@ -259,19 +273,35 @@ Project.prototype.putEnvelope = function (envelope, callback) {
     var key = logEntryKey(publicKey, index)
     transaction
       .objectStore('logs')
-      .add(envelope, key)
+      .add(outerEnvelope, key)
   })
 }
 
-function addIndexingMetadata (envelope) {
-  envelope.digest = hash(stringify(envelope.message))
-  envelope.added = new Date().toISOString()
+function addIndexingMetadata (outerEnvelope, projectReadKey) {
+  var encryptedInnerEnvelope = outerEnvelope.encryptedInnerEnvelope
+  var nonce = outerEnvelope.nonce
+  var innerEnvelopeJSON = crypto.decrypt(
+    encryptedInnerEnvelope, nonce, projectReadKey
+  )
+  if (!innerEnvelopeJSON) {
+    throw new Error('Failed to decrypt encryptedInnerEnvelope.')
+  }
+  try {
+    var innerEnvelope = JSON.parse(innerEnvelopeJSON)
+  } catch (error) {
+    throw new Error('Failed to parse encryptedInnerEnvelope.')
+  }
+  var message = innerEnvelope.message
+  outerEnvelope.innerEnvelope = innerEnvelope
+  outerEnvelope.digest = hash(stringify(message))
+  outerEnvelope.added = new Date().toISOString()
 }
 
-function removeIndexingMetadata (envelope) {
-  delete envelope.digest
-  delete envelope.added
-  delete envelope.local
+function removeIndexingMetadata (outerEnvelope) {
+  delete outerEnvelope.innerEnvelope
+  delete outerEnvelope.digest
+  delete outerEnvelope.added
+  delete outerEnvelope.local
 }
 
 // Drafts

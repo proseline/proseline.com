@@ -39,5 +39,13 @@
     "iterators": "0.1.0",
     "prosemirror-gapcursor": "1.0.2",
     "json-protocol": "*"
-  }
+  },
+  "ignore": [
+    {
+      "scope": "proseline"
+    },
+    {
+      "author": "Kyle E. Mitchell"
+    }
+  ]
 }

@@ -1,4 +1,4 @@
-var ReplicationProtocol = require('proseline-protocol').Replication
+var Protocol = require('./protocol')
 var assert = require('assert')
 var debug = require('debug')
 var pageBus = require('../page-bus')
@@ -15,24 +15,18 @@ module.exports = function (options) {
   assert(options.database)
   var replicationKey = options.replicationKey
   var discoveryKey = options.discoveryKey
-  var publicKey = options.publicKey
-  var secretKey = options.secretKey
   var database = options.database
 
   var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + discoveryKey)
 
-  var protocol = new ReplicationProtocol({
-    encryptionKey: Buffer.from(replicationKey, 'hex'),
-    publicKey: Buffer.from(publicKey, 'hex'),
-    secretKey: Buffer.from(secretKey, 'hex')
-  })
+  var protocol = new Protocol({ key: replicationKey })
 
   var listeningToDatabase = false
 
   protocol.once('handshake', function () {
     log('received handshake')
     // Offer new envelopes as we receive them.
-    pageBus.addListener('envelope', onEnvelope)
+    pageBus.addListener('outerEnvelope', onOuterEnvelope)
     listeningToDatabase = true
     // Offer envelopes we already have.
     database.listLogs(function (error, publicKeys) {
@@ -40,19 +34,19 @@ module.exports = function (options) {
       publicKeys.forEach(function (publicKey) {
         database.getLogHead(publicKey, function (error, index) {
           if (error) return log(error)
-          offerEnvelope(publicKey, index)
+          offerOuterEnvelope(publicKey, index)
         })
       })
     })
   })
 
-  function onEnvelope (envelope) {
-    var message = envelope.message
-    if (message.project !== discoveryKey) return
-    offerEnvelope(envelope.publicKey, message.index)
+  function onOuterEnvelope (outerEnvelope) {
+    var project = outerEnvelope.project
+    if (project !== discoveryKey) return
+    offerOuterEnvelope(outerEnvelope.publicKey, outerEnvelope.index)
   }
 
-  function offerEnvelope (publicKey, index) {
+  function offerOuterEnvelope (publicKey, index) {
     var id = loggingID(publicKey, index)
     log('sending offer: %s', id)
     protocol.offer({ publicKey, index }, function (error) {
@@ -67,13 +61,13 @@ module.exports = function (options) {
     var index = request.index
     var id = loggingID(publicKey, index)
     log('received request: %s', id)
-    database.getEnvelope(publicKey, index, function (error, envelope) {
+    database.getOuterEnvelope(publicKey, index, function (error, outerEnvelope) {
       if (error) return log(error)
-      if (envelope === undefined) return
-      log('sending envelope: %s', id)
-      protocol.envelope(envelope, function (error) {
+      if (outerEnvelope === undefined) return
+      log('sending outer envelope: %s', id)
+      protocol.envelope(outerEnvelope, function (error) {
         if (error) return log(error)
-        log('sent envelope: %s', id)
+        log('sent outer envelope: %s', id)
       })
     })
   })
@@ -105,10 +99,10 @@ module.exports = function (options) {
   })
 
   // When our peer sends an envelope...
-  protocol.on('envelope', function (envelope) {
+  protocol.on('outerEnvelope', function (envelope) {
     var id = loggingID(envelope.publicKey, envelope.message.index)
     log('received envelope: %s', id)
-    database.putEnvelope(envelope, function (error) {
+    database.putOuterEnvelope(envelope, function (error) {
       if (error) return log(error)
       log('put envelope: %s', id)
     })
@@ -121,7 +115,7 @@ module.exports = function (options) {
   protocol.on('error', function (error) {
     log(error)
     if (listeningToDatabase) {
-      database.removeListener('envelope', onEnvelope)
+      database.removeListener('outerEnvelope', onOuterEnvelope)
     }
   })
 
