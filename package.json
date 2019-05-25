@@ -42,8 +42,7 @@
     "run-series": "^1.1.8",
     "signalhub": "^4.9.0",
     "simple-get": "^3.0.3",
-    "webrtc-swarm": "^2.9.0",
-    "websocket-stream": "^5.5.0"
+    "webrtc-swarm": "^2.9.0"
   },
   "devDependencies": {
     "ajv": "^6.10.0",
