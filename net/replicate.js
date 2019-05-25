@@ -8,18 +8,16 @@ var DEBUG_NAMESPACE = 'proseline:replicate:'
 
 module.exports = function (options) {
   assert.strictEqual(typeof options.peerID, 'string')
-  assert.strictEqual(typeof options.replicationKey, 'string')
+  assert.strictEqual(typeof options.projectReplicationKey, 'string')
   assert.strictEqual(typeof options.projectDiscoveryKey, 'string')
-  assert.strictEqual(typeof options.publicKey, 'string')
-  assert.strictEqual(typeof options.secretKey, 'string')
   assert(options.database)
-  var replicationKey = options.replicationKey
+  var projectReplicationKey = options.projectReplicationKey
   var projectDiscoveryKey = options.projectDiscoveryKey
   var database = options.database
 
   var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + projectDiscoveryKey)
 
-  var protocol = new Protocol({ key: replicationKey })
+  var protocol = new Protocol({ key: projectReplicationKey })
 
   var listeningToDatabase = false
 
@@ -43,13 +41,13 @@ module.exports = function (options) {
   function onOuterEnvelope (outerEnvelope) {
     var project = outerEnvelope.project
     if (project !== projectDiscoveryKey) return
-    offerOuterEnvelope(outerEnvelope.publicKey, outerEnvelope.index)
+    offerOuterEnvelope(outerEnvelope.logPublicKey, outerEnvelope.index)
   }
 
-  function offerOuterEnvelope (publicKey, index) {
-    var id = loggingID(publicKey, index)
+  function offerOuterEnvelope (logPublicKey, index) {
+    var id = loggingID(logPublicKey, index)
     log('sending offer: %s', id)
-    protocol.offer({ publicKey, index }, function (error) {
+    protocol.offer({ logPublicKey, index }, function (error) {
       if (error) return log(error)
       log('sent offer: %s', id)
     })
@@ -57,11 +55,11 @@ module.exports = function (options) {
 
   // When our peer requests an outer envelope...
   protocol.on('request', function (request) {
-    var publicKey = request.publicKey
+    var logPublicKey = request.logPublicKey
     var index = request.index
-    var id = loggingID(publicKey, index)
+    var id = loggingID(logPublicKey, index)
     log('received request: %s', id)
-    database.getOuterEnvelope(publicKey, index, function (error, outerEnvelope) {
+    database.getOuterEnvelope(logPublicKey, index, function (error, outerEnvelope) {
       if (error) return log(error)
       if (outerEnvelope === undefined) return
       log('sending outer envelope: %s', id)
@@ -76,19 +74,19 @@ module.exports = function (options) {
 
   // When our peer offers outer envelopes...
   protocol.on('offer', function (offer) {
-    var publicKey = offer.publicKey
+    var logPublicKey = offer.logPublicKey
     var offeredIndex = offer.index
-    var offeredID = loggingID(publicKey, offeredIndex)
+    var offeredID = loggingID(logPublicKey, offeredIndex)
     log('received offer: %s', offeredID)
-    database.getLogHead(publicKey, function (error, head) {
+    database.getLogHead(logPublicKey, function (error, head) {
       if (error) return log(error)
       if (head === undefined) head = -1
       var indexes = inclusiveRange(head + 1, offeredIndex)
       runSeries(indexes.map(function (index) {
-        var requestID = loggingID(publicKey, index)
+        var requestID = loggingID(logPublicKey, index)
         return function (done) {
           log('sending request: %s', requestID)
-          protocol.request({ publicKey, index }, function (error) {
+          protocol.request({ logPublicKey, index }, function (error) {
             if (error) log(error)
             else log('sent request: %s', requestID)
             done()
@@ -100,7 +98,7 @@ module.exports = function (options) {
 
   // When our peer sends an outer envelope...
   protocol.on('outerEnvelope', function (outerEnvelope) {
-    var id = loggingID(outerEnvelope.publicKey, outerEnvelope.index)
+    var id = loggingID(outerEnvelope.logPublicKey, outerEnvelope.index)
     log('received outer envelope: %s', id)
     database.putOuterEnvelope(outerEnvelope, function (error) {
       if (error) return log(error)
@@ -129,8 +127,8 @@ module.exports = function (options) {
   return protocol
 }
 
-function loggingID (publicKey, index) {
-  return publicKey + ' # ' + index
+function loggingID (logPublicKey, index) {
+  return logPublicKey + ' # ' + index
 }
 
 function inclusiveRange (from, to) {

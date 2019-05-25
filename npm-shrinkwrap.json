@@ -99,9 +99,9 @@
       }
     },
     "@proseline/schemas": {
-      "version": "1.0.0-pre.4",
-      "resolved": "https://registry.npmjs.org/@proseline/schemas/-/schemas-1.0.0-pre.4.tgz",
-      "integrity": "sha512-dn4LpALyDJvwhCSqCjMWgB3SvnIlTQGhbCNBr9CZ/puWce4ps0o0fMW52DInZIP9v8xnss6cy8Bx0kxGShry7w=="
+      "version": "1.0.0-pre.6",
+      "resolved": "https://registry.npmjs.org/@proseline/schemas/-/schemas-1.0.0-pre.6.tgz",
+      "integrity": "sha512-ZBD3waelftQVpFL3ObY3uKHgMnMkVmoRq1sZkvO1B2FAUS9Hg+tj/h4XTNIdf2WbBbUHQS7Nb0J2xUmejGIvWA=="
     },
     "@samverschueren/stream-to-observable": {
       "version": "0.3.0",

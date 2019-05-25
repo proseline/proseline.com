@@ -21,7 +21,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey) {
     }))
   }
   main.appendChild(renderDraftHeader(state))
-  var intro = state.intros[state.identity.publicKey]
+  var intro = state.intros[state.identity.logPublicKey]
   var userIntro = state.userIntro
   if (!intro) {
     if (!userIntro) {
@@ -232,7 +232,7 @@ function renderGraph (state, send) {
     author.setAttributeNS(null, 'text-anchor', 'middle')
     author.setAttributeNS(null, 'font-size', '100%')
     author.appendChild(document.createTextNode(
-      plainTextIntro(state, brief.publicKey)
+      plainTextIntro(state, brief.logPublicKey)
     ))
 
     var timestamp = document.createElementNS(SVG, 'text')
@@ -348,7 +348,7 @@ function renderGraph (state, send) {
     var othersMarks = []
     var ourMarks = []
     marks.forEach(function (mark) {
-      (mark.publicKey === state.identity.publicKey ? ourMarks : othersMarks)
+      (mark.logPublicKey === state.identity.logPublicKey ? ourMarks : othersMarks)
         .push(mark)
     })
 
@@ -447,9 +447,9 @@ function renderSVGLink (options) {
   return anchor
 }
 
-function plainTextIntro (state, publicKey) {
-  if (publicKey === state.identity.publicKey) return 'You'
-  var intro = state.intros[publicKey]
+function plainTextIntro (state, logPublicKey) {
+  if (logPublicKey === state.identity.logPublicKey) return 'You'
+  var intro = state.intros[logPublicKey]
   if (intro) {
     return intro.innerEnvelope.entry.name
   } else {

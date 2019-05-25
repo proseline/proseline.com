@@ -11,7 +11,7 @@ module.exports = function (state, draftOrBrief) {
   )
   a.title = 'Click to read the draft.'
   a.appendChild(renderDraftIcon())
-  a.appendChild(renderIntro(state, draftOrBrief.publicKey, {
+  a.appendChild(renderIntro(state, draftOrBrief.logPublicKey, {
     noIcon: true,
     possessive: true,
     plainText: true

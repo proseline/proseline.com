@@ -160,7 +160,7 @@ function render (state) {
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
     var projectDiscoveryKey = path.substr(10, 64)
     var remainder = path.substr(74)
-    var publicKey
+    var logPublicKey
     if (remainder === '' || remainder === '/') {
       return renderProject(state, send, projectDiscoveryKey)
     // New Draft
@@ -180,13 +180,13 @@ function render (state) {
       return renderViewer(state, send, projectDiscoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
-      publicKey = remainder.substr(7, 64)
+      logPublicKey = remainder.substr(7, 64)
       var identifier = remainder.substr(7 + 64 + 1, 8)
-      return renderMark(state, send, projectDiscoveryKey, publicKey, identifier)
+      return renderMark(state, send, projectDiscoveryKey, logPublicKey, identifier)
     // Member Activity
     } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
-      publicKey = remainder.substr(9, 64)
-      return renderMember(state, send, projectDiscoveryKey, publicKey)
+      logPublicKey = remainder.substr(9, 64)
+      return renderMember(state, send, projectDiscoveryKey, logPublicKey)
     } else {
       return renderNotFound(state, send)
     }

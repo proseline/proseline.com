@@ -5,7 +5,7 @@ module.exports = function (state, mark) {
   a.className = 'draft'
   a.href = (
     '/projects/' + mark.entry.project +
-    '/marks/' + mark.publicKey +
+    '/marks/' + mark.logPublicKey +
     ':' + mark.innerEnvelope.entry.identifier
   )
   a.title = 'Click to view the history of this mark.'

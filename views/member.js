@@ -5,16 +5,16 @@ var renderLoading = require('./loading')
 var renderRefreshNotice = require('./partials/refresh-notice')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, projectDiscoveryKey, publicKey) {
+module.exports = withProject(function (state, send, projectDiscoveryKey, logPublicKey) {
   state.route = 'member'
   assert.strictEqual(typeof state, 'object')
   assert.strictEqual(typeof send, 'function')
   assert.strictEqual(typeof projectDiscoveryKey, 'string')
   assert.strictEqual(projectDiscoveryKey.length, 64)
-  assert.strictEqual(typeof publicKey, 'string')
-  assert.strictEqual(publicKey.length, 64)
+  assert.strictEqual(typeof logPublicKey, 'string')
+  assert.strictEqual(logPublicKey.length, 64)
   var main = document.createElement('main')
-  if (state.member === publicKey && state.memberActivity) {
+  if (state.member === logPublicKey && state.memberActivity) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
         send('reload member', projectDiscoveryKey)
@@ -35,7 +35,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, publicK
       renderLoading(function () {
         send('load member', {
           projectDiscoveryKey,
-          publicKey: publicKey
+          logPublicKey: logPublicKey
         })
       })
     )

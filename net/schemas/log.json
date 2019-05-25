@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "publicKey": {
+    "logPublicKey": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
@@ -12,7 +12,7 @@
     }
   },
   "required": [
-    "publicKey",
+    "logPublicKey",
     "index"
   ],
   "additionalProperties": false

@@ -24,9 +24,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draft: null,
       // Project
       identity: null,
-      replicationKey: null,
+      projectReplicationKey: null,
       projectDiscoveryKey: null,
-      writeKeyPair: null,
+      projectWriteKeyPair: null,
       persistent: null,
       title: null,
       draftSelection: null,
@@ -79,7 +79,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('project intro', function (newIntro, state) {
-    state.intros[newIntro.publicKey] = newIntro
+    state.intros[newIntro.logPublicKey] = newIntro
     return {
       intros: state.intros,
       activity: [newIntro].concat(state.activity)
@@ -95,15 +95,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reloadHandler('member', loadMember)
 
   function loadMember (data, setate, reduce, done) {
-    assert.strictEqual(typeof data.publicKey, 'string')
-    assert.strictEqual(data.publicKey.length, 64)
-    var publicKey = data.publicKey
+    assert.strictEqual(typeof data.logPublicKey, 'string')
+    assert.strictEqual(data.logPublicKey.length, 64)
+    var logPublicKey = data.logPublicKey
     withIndexedDB(data.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.memberActivity(publicKey, 100, function (error, activity) {
+      db.memberActivity(logPublicKey, 100, function (error, activity) {
         if (error) return done(error)
         reduce('member', {
-          member: publicKey,
+          member: logPublicKey,
           memberActivity: activity
         })
         done()
@@ -138,9 +138,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             var stub = {
               deleted: true,
               projectDiscoveryKey: project.projectDiscoveryKey,
-              replicationKey: project.replicationKey,
+              projectReplicationKey: project.projectReplicationKey,
               title: project.title,
-              writeSeed: project.writeSeed
+              projectWriteSeed: project.projectWriteSeed
             }
             db.overwriteProject(stub, done)
           })
@@ -214,14 +214,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       projectReadKey = crypto.makeProjectReplicationKey().toString('hex')
       projectWriteSeed = crypto.makeSigniningKeyPairSeed().toString('hex')
     }
-    var writeKeyPair = crypto.makeSigningKeyPairFromSeed(projectWriteSeed)
-    writeKeyPair.publicKey = writeKeyPair.publicKey.toString('hex')
-    writeKeyPair.secretKey = writeKeyPair.secretKey.toString('hex')
+    var projectWriteKeyPair = crypto.makeSigningKeyPairFromSeed(projectWriteSeed)
+    projectWriteKeyPair.publicKey = projectWriteKeyPair.publicKey.toString('hex')
+    projectWriteKeyPair.secretKey = projectWriteKeyPair.secretKey.toString('hex')
     var project = {
       projectReplicationKey,
       projectDiscoveryKey,
       projectWriteSeed,
-      writeKeyPair,
+      projectWriteKeyPair,
       title: title || UNTITLED,
       persistent: !!data.persistent
     }
@@ -385,7 +385,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             if (error) return done(error)
             var result = {}
             intros.forEach(function (intro) {
-              result[intro.publicKey] = intro
+              result[intro.logPublicKey] = intro
             })
             done(null, result)
           })
@@ -418,10 +418,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       projects: null,
       changed: false,
       title: data.project.title,
-      replicationKey: data.project.replicationKey,
+      projectReplicationKey: data.project.projectReplicationKey,
       projectDiscoveryKey: data.project.projectDiscoveryKey,
-      writeSeed: data.project.writeSeed,
-      writeKeyPair: data.project.writeKeyPair,
+      projectWriteSeed: data.project.projectWriteSeed,
+      projectWriteKeyPair: data.project.projectWriteKeyPair,
       persistent: data.project.persistent,
       identity: data.identity,
       intros: data.intros,
@@ -623,15 +623,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   function loadMark (data, state, reduce, done) {
     assert(data.hasOwnProperty('projectDiscoveryKey'))
-    assert(data.hasOwnProperty('publicKey'))
+    assert(data.hasOwnProperty('logPublicKey'))
     assert(data.hasOwnProperty('identifier'))
     withIndexedDB(data.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.markHistory(data.publicKey, data.identifier, 100, function (error, history) {
+      db.markHistory(data.logPublicKey, data.identifier, 100, function (error, history) {
         if (error) return done(error)
         var latestMark = history[0]
         reduce('mark', {
-          markPublicKey: latestMark.publicKey,
+          markPublicKey: latestMark.logPublicKey,
           markIdentifier: latestMark.innerEnvelope.entry.identifier,
           mark: latestMark,
           markHistory: history
@@ -667,7 +667,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         reduce('push brief', {
           digest: digest,
           project: outerEnvelope.project,
-          publicKey: identity.publicKey,
+          logPublicKey: identity.publicKey,
           parents: draft.parents,
           timestamp: draft.timestamp
         })
@@ -716,7 +716,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       return [newMark]
         .concat(oldMarks.filter(function (oldMark) {
           return !(
-            oldMark.publicKey === newMark.publicKey &&
+            oldMark.logPublicKey === newMark.logPublicKey &&
             identifierOf(oldMark) === identifierOf(newMark)
           )
         }))
