@@ -255,9 +255,9 @@ Project.prototype.putOuterEnvelope = function (outerEnvelope, callback) {
     self._emitOuterEnvelopeEvent(outerEnvelope)
     callback()
   }
-  var index = outerEnvelope.entry.index
-  var prior = outerEnvelope.entry.prior
+  var index = outerEnvelope.index
   var publicKey = outerEnvelope.publicKey
+  var prior = outerEnvelope.innerEnvelope.prior
   requestHead(transaction, publicKey, function (head) {
     if (head) {
       if (index !== head.entry.index + 1) {
