@@ -205,7 +205,7 @@ Project.prototype._log = function (entry, identity, callback) {
       Buffer.from(stringifiedInnerEnvelope),
       encryptionNonce,
       Buffer.from(self.projectReadKey, 'hex')
-    )
+    ).toString('base64')
     outerEnvelope.encryptedInnerEnvelope = encryptedInnerEnvelope
     outerEnvelope.nonce = encryptionNonce.toString('hex')
     addIndexingMetadata(outerEnvelope, self.projectReadKey)
