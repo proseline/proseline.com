@@ -160,7 +160,7 @@ Project.prototype._log = function (entry, identity, callback) {
   assert.strictEqual(typeof callback, 'function')
   var self = this
   var publicKey = identity.publicKey
-  // Determine the current log head, create an envelope, and append
+  // Determine the current log head, create an outer envelope, and append
   // it in a single transaction.
   var outerEnvelope = {
     publicKey: identity.publicKey,

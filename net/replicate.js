@@ -25,10 +25,10 @@ module.exports = function (options) {
 
   protocol.once('handshake', function () {
     log('received handshake')
-    // Offer new envelopes as we receive them.
+    // Offer new outer envelopes as we receive them.
     pageBus.addListener('outerEnvelope', onOuterEnvelope)
     listeningToDatabase = true
-    // Offer envelopes we already have.
+    // Offer outer envelopes we already have.
     database.listLogs(function (error, publicKeys) {
       if (error) return log(error)
       publicKeys.forEach(function (publicKey) {
@@ -55,7 +55,7 @@ module.exports = function (options) {
     })
   }
 
-  // When our peer requests an envelope...
+  // When our peer requests an outer envelope...
   protocol.on('request', function (request) {
     var publicKey = request.publicKey
     var index = request.index
@@ -72,9 +72,9 @@ module.exports = function (options) {
     })
   })
 
-  // TODO: Prevent duplicate requests for the same envelope.
+  // TODO: Prevent duplicate requests for the same outer envelope.
 
-  // When our peer offers envelopes...
+  // When our peer offers outer envelopes...
   protocol.on('offer', function (offer) {
     var publicKey = offer.publicKey
     var offeredIndex = offer.index
@@ -98,7 +98,7 @@ module.exports = function (options) {
     })
   })
 
-  // When our peer sends an envelope...
+  // When our peer sends an outer envelope...
   protocol.on('outerEnvelope', function (outerEnvelope) {
     var id = loggingID(outerEnvelope.publicKey, outerEnvelope.index)
     log('received outer envelope: %s', id)

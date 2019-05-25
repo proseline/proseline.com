@@ -53,10 +53,10 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, publicK
 function renderMarkHistory (state) {
   var ol = document.createElement('ol')
   ol.className = 'activity'
-  state.markHistory.forEach(function (envelope) {
+  state.markHistory.forEach(function (outerEnvelope) {
     var li = document.createElement('li')
     ol.appendChild(li)
-    var body = envelope.innerEnvelope.entry
+    var body = outerEnvelope.innerEnvelope.entry
     var brief = state.draftBriefs.find(function (brief) {
       return brief.digest === body.draft
     })

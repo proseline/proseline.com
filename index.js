@@ -215,10 +215,10 @@ function network (done) {
     // TODO: Prevent clearing inputs on redraw.
     // send('peers', count)
   })
-  pageBus.on('outerEnvelope', function (envelope) {
-    // If we created this envelope, don't show an update.
-    if (envelope.local) return
-    var projectDiscoveryKey = envelope.entry.project
+  pageBus.on('outerEnvelope', function (outerEnvelope) {
+    // If we created this outerEnvelope, don't show an update.
+    if (outerEnvelope.local) return
+    var projectDiscoveryKey = outerEnvelope.project
     if (
       globalState.projectDiscoveryKey &&
       globalState.projectDiscoveryKey === projectDiscoveryKey

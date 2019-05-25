@@ -70,9 +70,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putIntro(entry, identity, function (error, envelope) {
+      db.putIntro(entry, identity, function (error, outerEnvelope) {
         if (error) return done(error)
-        reduce('project intro', envelope)
+        reduce('project intro', outerEnvelope)
         done()
       })
     })
@@ -661,12 +661,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putDraft(entry, identity, function (error, envelope, digest) {
+      db.putDraft(entry, identity, function (error, outerEnvelope, digest) {
         if (error) return done(error)
-        reduce('push draft', envelope)
+        reduce('push draft', outerEnvelope)
         reduce('push brief', {
           digest: digest,
-          project: envelope.entry.project,
+          project: outerEnvelope.project,
           publicKey: identity.publicKey,
           parents: draft.parents,
           timestamp: draft.timestamp
@@ -681,8 +681,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('push draft', function (envelope, state) {
-    return { activity: [envelope].concat(state.activity) }
+  reduction('push draft', function (outerEnvelope, state) {
+    return { activity: [outerEnvelope].concat(state.activity) }
   })
 
   reduction('push brief', function (brief, state) {
@@ -742,9 +742,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return callback(error)
-      db.putMark(entry, identity, function (error, envelope) {
+      db.putMark(entry, identity, function (error, outerEnvelope) {
         if (error) return callback(error)
-        callback(null, envelope)
+        callback(null, outerEnvelope)
       })
     })
   }
@@ -767,9 +767,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.projectDiscoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putNote(entry, identity, function (error, envelope) {
+      db.putNote(entry, identity, function (error, outerEnvelope) {
         if (error) return done(error)
-        reduce('push note', envelope)
+        reduce('push note', outerEnvelope)
         done()
       })
     })
