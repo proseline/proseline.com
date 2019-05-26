@@ -34,12 +34,12 @@ module.exports = function (options) {
     pageBus.addListener('outerEnvelope', onOuterEnvelope)
     listeningToDatabase = true
     // Offer outer envelopes we already have.
-    database.listLogs(function (error, publicKeys) {
+    database.listLogs(function (error, logPublicKeys) {
       if (error) return log(error)
-      publicKeys.forEach(function (publicKey) {
-        database.getLogHead(publicKey, function (error, index) {
+      logPublicKeys.forEach(function (logPublicKey) {
+        database.getLogHead(logPublicKey, function (error, index) {
           if (error) return log(error)
-          offerOuterEnvelope(publicKey, index)
+          offerOuterEnvelope(logPublicKey, index)
         })
       })
     })
