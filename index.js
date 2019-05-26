@@ -151,8 +151,8 @@ function render (state) {
       renderLoading(function () {
         send('join project', {
           projectReplicationKey: match[1],
-          projectReadKey: match[1],
-          projectWriteSeed: match[2]
+          projectReadKey: match[2],
+          projectWriteSeed: match[3]
         })
       }, 'Joining…')
     )
