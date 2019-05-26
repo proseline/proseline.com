@@ -23,7 +23,7 @@ module.exports = function (state, activity) {
       a = document.createElement('a')
       li.appendChild(a)
       a.href = (
-        '/projects/' + outerEnvelope.project +
+        '/projects/' + outerEnvelope.projectDiscoveryKey +
         '/drafts/' + outerEnvelope.digest
       )
       a.appendChild(renderDraftIcon())
@@ -74,7 +74,7 @@ module.exports = function (state, activity) {
       a = document.createElement('a')
       li.appendChild(a)
       a.href = (
-        '/projects/' + outerEnvelope.project +
+        '/projects/' + outerEnvelope.projectDiscoveryKey +
         '/drafts/' + outerEnvelope.innerEnvelope.entry.draft +
         '#' + outerEnvelope.digest
       )

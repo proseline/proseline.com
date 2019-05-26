@@ -22,7 +22,9 @@ module.exports = function (options) {
 
   var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + projectDiscoveryKey)
 
-  var protocol = new Protocol({ key: projectReplicationKey })
+  var protocol = new Protocol({
+    key: Buffer.from(projectReplicationKey, crypto.keyEncoding)
+  })
 
   var listeningToDatabase = false
 
@@ -44,8 +46,7 @@ module.exports = function (options) {
   })
 
   function onOuterEnvelope (outerEnvelope) {
-    var project = outerEnvelope.project
-    if (project !== projectDiscoveryKey) return
+    if (outerEnvelope.projectDiscoveryKey !== projectDiscoveryKey) return
     offerOuterEnvelope(outerEnvelope.logPublicKey, outerEnvelope.index)
   }
 
