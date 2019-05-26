@@ -153,8 +153,8 @@ function inviteURL (state) {
   )
 }
 
-var BRIEF_WIDTH = 85 * 1.5
-var BRIEF_HEIGHT = 110 * 1.5
+var BRIEF_WIDTH = 85 * 2
+var BRIEF_HEIGHT = 110 * 2
 var BOOKMARK_WIDTH = 20
 
 function renderGraph (state, send) {
