@@ -125,6 +125,7 @@ Peer.prototype.joinProject = function (
     projectReplicationKey: project.projectReplicationKey,
     projectReadKey: project.projectReadKey,
     projectDiscoveryKey,
+    projectWriteKeyPair: project.projectWriteKeyPair,
     database
   })
   if (!sharedStream) {

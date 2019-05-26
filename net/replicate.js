@@ -1,5 +1,6 @@
 var Protocol = require('./protocol')
 var assert = require('nanoassert')
+var crypto = require('@proseline/crypto')
 var debug = require('debug')
 var pageBus = require('../page-bus')
 var runSeries = require('run-series')
@@ -10,9 +11,13 @@ module.exports = function (options) {
   assert(typeof options.peerID === 'string')
   assert(typeof options.projectReplicationKey === 'string')
   assert(typeof options.projectDiscoveryKey === 'string')
+  assert(typeof options.projectReadKey === 'string')
+  assert(typeof options.projectWriteKeyPair === 'object')
   assert(options.database)
   var projectReplicationKey = options.projectReplicationKey
   var projectDiscoveryKey = options.projectDiscoveryKey
+  var projectReadKey = options.projectReadKey
+  var projectWriteKeyPair = options.projectWriteKeyPair
   var database = options.database
 
   var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + projectDiscoveryKey)
@@ -99,6 +104,36 @@ module.exports = function (options) {
   // When our peer sends an outer envelope...
   protocol.on('outerEnvelope', function (outerEnvelope) {
     var id = loggingID(outerEnvelope.logPublicKey, outerEnvelope.index)
+    // Verify envelope.
+    if (outerEnvelope.projectDiscoveryKey !== projectDiscoveryKey) {
+      return log('projectDiscoveryKey mismatch')
+    }
+    var logPublicKey = outerEnvelope.logPublicKey
+    var encryptedInnerEnvelope = outerEnvelope.encryptedInnerEnvelope
+    var nonce = outerEnvelope.nonce
+    var innerEnvelopeJSON = crypto.decrypt(
+      encryptedInnerEnvelope, nonce, projectReadKey
+    )
+    if (!innerEnvelopeJSON) {
+      throw new Error('Failed to decrypt encryptedInnerEnvelope.')
+    }
+    try {
+      var innerEnvelope = JSON.parse(innerEnvelopeJSON)
+    } catch (error) {
+      return log('Failed to parse encryptedInnerEnvelope.')
+    }
+    var validLogSignature = crypto.verify(
+      innerEnvelope, logPublicKey, 'logSignature'
+    )
+    if (!validLogSignature) {
+      return log('Log signature is invalid.')
+    }
+    var validProjectSignature = crypto.verify(
+      innerEnvelope, projectWriteKeyPair.publicKey, 'projectSignature'
+    )
+    if (!validProjectSignature) {
+      return log('Project signature is invalid.')
+    }
     log('received outer envelope: %s', id)
     database.putOuterEnvelope(outerEnvelope, function (error) {
       if (error) return log(error)

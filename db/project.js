@@ -292,16 +292,16 @@ Project.prototype.putOuterEnvelope = function (outerEnvelope, callback) {
 function addIndexingMetadata (outerEnvelope, projectReadKey) {
   var encryptedInnerEnvelope = outerEnvelope.encryptedInnerEnvelope
   var nonce = outerEnvelope.nonce
-  var innerEnvelopeJSONBuffer = crypto.decrypt(
+  var innerEnvelopeJSON = crypto.decrypt(
     encryptedInnerEnvelope,
     nonce,
     projectReadKey
   )
-  if (!innerEnvelopeJSONBuffer) {
+  if (!innerEnvelopeJSON) {
     throw new Error('Failed to decrypt encryptedInnerEnvelope.')
   }
   try {
-    var innerEnvelope = JSON.parse(innerEnvelopeJSONBuffer.toString())
+    var innerEnvelope = JSON.parse(innerEnvelopeJSON)
   } catch (error) {
     throw new Error('Failed to parse encryptedInnerEnvelope.')
   }
