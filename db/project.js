@@ -6,7 +6,7 @@ var debug = require('debug')
 var inherits = require('inherits')
 var pageBus = require('../page-bus')
 var runParallel = require('run-parallel')
-var stringify = require('../utilities/stringify')
+var stringify = require('fast-json-stable-stringify')
 
 module.exports = Project
 
