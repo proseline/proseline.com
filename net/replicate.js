@@ -69,7 +69,7 @@ module.exports = function (options) {
       if (error) return log(error)
       if (outerEnvelope === undefined) return
       log('sending outer envelope: %s', id)
-      protocol.envelope(outerEnvelope, function (error) {
+      protocol.outerEnvelope(outerEnvelope, function (error) {
         if (error) return log(error)
         log('sent outer envelope: %s', id)
       })
