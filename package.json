@@ -50,9 +50,7 @@
     "common-shakeify": "^0.6.0",
     "envify": "^4.1.0",
     "exorcist": "^1.0.1",
-    "husky": "^2.3.0",
     "licensee": "^7.0.1",
-    "lint-staged": "^8.1.7",
     "node-sass": "^4.12.0",
     "npm-run-all": "^4.1.5",
     "standard": "^12.0.1",
@@ -61,9 +59,6 @@
     "uglifyify": "^5.0.1",
     "unassertify": "^2.1.1",
     "watchify": "^3.11.1"
-  },
-  "lint-staged": {
-    "*.js": "standard"
   },
   "private": true,
   "scripts": {
@@ -76,10 +71,5 @@
     "prewatch:css": "npm run build:css",
     "watch:css": "node-sass --watch --source-map true --output build styles.sass",
     "watch:js": "NODE_ENV=development STRIPE_PUBLISHABLE_KEY=pk_test_qSIOnRX1RuPvoXtBLiMCRjGV watchify -p common-shakeify --ignore-transform unassertify --ignore-transform uglifyify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   }
 }
