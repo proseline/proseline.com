@@ -352,7 +352,7 @@ function renderGraph (state, send) {
     var othersMarks = []
     var ourMarks = []
     marks.forEach(function (mark) {
-      (mark.logPublicKey === state.identity.logPublicKey ? ourMarks : othersMarks)
+      (mark.logPublicKey === state.identity.publicKey ? ourMarks : othersMarks)
         .push(mark)
     })
 
@@ -452,7 +452,7 @@ function renderSVGLink (options) {
 }
 
 function plainTextIntro (state, logPublicKey) {
-  if (logPublicKey === state.identity.logPublicKey) return 'You'
+  if (logPublicKey === state.identity.publicKey) return 'You'
   var intro = state.intros[logPublicKey]
   if (intro) {
     return intro.innerEnvelope.entry.name
