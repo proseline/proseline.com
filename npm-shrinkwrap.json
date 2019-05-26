@@ -1892,20 +1892,13 @@
       }
     },
     "encrypted-json-protocol": {
-      "version": "2.0.0",
-      "resolved": "https://registry.npmjs.org/encrypted-json-protocol/-/encrypted-json-protocol-2.0.0.tgz",
-      "integrity": "sha512-GXSQjrjA5DBHuJiQhaD/2HgnmjZ+ZVHZvd9wEBhysdemBCnsGEG5CjCfvmKmNsl/wjOAofHYs1vbEpGtANMLtQ==",
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/encrypted-json-protocol/-/encrypted-json-protocol-2.0.1.tgz",
+      "integrity": "sha512-hW7Zg3hOF4U+2UMYvFBieF5Nte221DjuYlHPzRsjk9vWmsBxoyCFkhMKUWmHzC5EgzWIokV/xUZ1r9MCMDxZ8w==",
       "requires": {
         "inherits": "^2.0.3",
         "length-prefixed-stream": "^1.6.0",
         "nanoassert": "^2.0.0"
-      },
-      "dependencies": {
-        "nanoassert": {
-          "version": "2.0.0",
-          "resolved": "https://registry.npmjs.org/nanoassert/-/nanoassert-2.0.0.tgz",
-          "integrity": "sha512-7vO7n28+aYO4J+8w96AzhmU8G+Y/xpPDJz/se19ICsqj/momRbb9mh9ZUtkoJ5X3nTnPdhEJyc0qnM6yAsHBaA=="
-        }
       }
     },
     "end-of-stream": {
