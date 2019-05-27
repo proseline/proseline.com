@@ -192,7 +192,7 @@ Project.prototype._log = function (entry, logKeyPair, callback) {
     addIndexingMetadata(entry, self.encryptionKey)
     transaction
       .objectStore('logs')
-      .add(entry, logEntryKey(entry.logPublicKey, entry.index))
+      .add(entry, logEntryKey(logPublicKey, entry.index))
   })
 }
 
@@ -275,10 +275,10 @@ function addIndexingMetadata (entry) {
   entry.added = new Date().toISOString()
 }
 
-function removeIndexingMetadata (outerEnvelope) {
-  delete outerEnvelope.digest
-  delete outerEnvelope.added
-  delete outerEnvelope.local
+function removeIndexingMetadata (entry) {
+  delete entry.digest
+  delete entry.added
+  delete entry.local
 }
 
 // Drafts
@@ -304,11 +304,11 @@ Project.prototype.listDraftBriefs = function (callback) {
         return function (done) {
           self.countNotes(draft.digest, function (error, notesCount) {
             if (error) return done(error)
-            var body = draft.innerEnvelope.entry
+            var body = draft.entry
             done(null, {
               digest: draft.digest,
               discoveryKey: draft.discoveryKey,
-              logPublicKey: draft.logPublicKey,
+              logPublicKey: draft.envelope.logPublicKey,
               parents: body.parents,
               timestamp: body.timestamp,
               notesCount
@@ -352,7 +352,7 @@ Project.prototype.listMarks = function (callback) {
     callback(null, marks
       .reverse()
       .filter(function (mark) {
-        var identifier = mark.innerEnvelope.entry.identifier
+        var identifier = mark.identifier
         if (seen.has(identifier)) {
           return false
         } else {

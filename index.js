@@ -4,6 +4,7 @@ var Clipboard = require('clipboard')
 var IndexedDB = require('./db/indexeddb')
 var assert = require('nanoassert')
 var beforeUnload = require('./before-unload')
+var crypto = require('@proseline/crypto')
 var databases = require('./db/databases')
 var debug = require('debug')('proseline:instance')
 var domainSingleton = require('domain-singleton')
@@ -150,11 +151,11 @@ function render (state) {
     main.appendChild(
       renderLoading(function () {
         send('join project', {
-          replicationKey: hexToBase64(match[1]),
-          encryptionKey: hexToBase64(match[2]),
+          replicationKey: crypto.hexToBase64(match[1]),
+          encryptionKey: crypto.hexToBase64(match[2]),
           projectKeyPair: {
-            publicKey: hexToBase64(match[3]),
-            secretKey: hexToBase64(match[4])
+            publicKey: crypto.hexToBase64(match[3]),
+            secretKey: crypto.hexToBase64(match[4])
           }
         })
       }, 'Joining…')
@@ -162,7 +163,7 @@ function render (state) {
     return main
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
-    var discoveryKey = path.substr(10, 64)
+    var discoveryKey = crypto.hexToBase64(path.substr(10, 64))
     var remainder = path.substr(74)
     var logPublicKey
     if (remainder === '' || remainder === '/') {
@@ -172,24 +173,24 @@ function render (state) {
       return renderEditor(state, send, discoveryKey)
     // New Draft with Parents
     } else if (/^\/drafts\/new\/[a-f0-9]{64}(,[a-f0-9]{64})*$/.test(remainder)) {
-      var parents = remainder.substr(12).split(',')
+      var parents = remainder.substr(12).split(',').map(crypto.hexToBase64)
       return renderEditor(state, send, discoveryKey, parents)
     // Comparison
     } else if (/^\/drafts\/compare\/[a-f0-9]{64},[a-f0-9]{64}$/.test(remainder)) {
-      var drafts = remainder.substr(16).split(',')
+      var drafts = remainder.substr(16).split(',').map(crypto.hexToBase64)
       return renderComparison(state, send, discoveryKey, drafts)
     // View Drafts
     } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
-      var digest = remainder.substr(8, 64)
+      var digest = crypto.hexToBase64(remainder.substr(8, 64))
       return renderViewer(state, send, discoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
-      logPublicKey = remainder.substr(7, 64)
-      var identifier = remainder.substr(7 + 64 + 1, 8)
+      logPublicKey = crypto.hexToBase64(remainder.substr(7, 64))
+      var identifier = crypto.hexToBase64(remainder.substr(7 + 64 + 1, 8))
       return renderMark(state, send, discoveryKey, logPublicKey, identifier)
     // Member Activity
     } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
-      logPublicKey = remainder.substr(9, 64)
+      logPublicKey = crypto.hexToBase64(remainder.substr(9, 64))
       return renderMember(state, send, discoveryKey, logPublicKey)
     } else {
       return renderNotFound(state, send)
@@ -199,10 +200,6 @@ function render (state) {
   } else {
     return renderNotFound(state, send)
   }
-}
-
-function hexToBase64 (hex) {
-  return Buffer.from(hex, 'hex').toString('base64')
 }
 
 var PEER_COUNT_UPDATE_INTERVAL = 3 * 10000

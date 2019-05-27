@@ -67,7 +67,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putIntro(entry, logKeyPair, function (error, envelope, entry) {
+      db.putIntro(entry, logKeyPair, function (error, entry) {
         if (error) return done(error)
         reduce('project intro', entry)
         done()
@@ -76,7 +76,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('project intro', function (newIntro, state) {
-    state.intros[newIntro.logPublicKey] = newIntro
+    state.intros[newIntro.envelope.logPublicKey] = newIntro
     return {
       intros: state.intros,
       activity: [newIntro].concat(state.activity)
@@ -239,7 +239,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   }
 
   function redirectToProject (discoveryKey) {
-    window.history.pushState({}, null, '/projects/' + discoveryKey)
+    window.history.pushState({}, null, '/projects/' + crypto.base64ToHex(discoveryKey))
   }
 
   handler('rename', function (newTitle, state, reduce, done) {
@@ -382,7 +382,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             if (error) return done(error)
             var result = {}
             intros.forEach(function (intro) {
-              result[intro.logPublicKey] = intro
+              result[intro.envelope.logPublicKey] = intro
             })
             done(null, result)
           })
@@ -669,8 +669,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         })
         window.history.pushState(
           {}, null,
-          '/projects/' + state.discoveryKey +
-          '/drafts/' + digest
+          '/projects/' + crypto.base64ToHex(state.discoveryKey) +
+          '/drafts/' + crypto.base64ToHex(digest)
         )
         done()
       })

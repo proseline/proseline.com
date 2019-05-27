@@ -15,7 +15,8 @@ module.exports = function (state, activity) {
     var a, brief
     ol.appendChild(li)
     if (type === 'draft') {
-      li.appendChild(renderIntro(state, entry.logPublicKey, {
+      var logPublicKey = entry.envelope.logPublicKey
+      li.appendChild(renderIntro(state, logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(' added '))
@@ -33,13 +34,13 @@ module.exports = function (state, activity) {
       li.appendChild(renderRelativeTimestamp(entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
-      li.appendChild(renderIntro(state, entry.logPublicKey, {
+      li.appendChild(renderIntro(state, logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(
         ' introduced ' +
         (
-          entry.logPublicKey === state.logKeyPair.publicKey
+          logPublicKey === state.logKeyPair.publicKey
             ? 'yourself '
             : 'themself '
         )
@@ -51,7 +52,7 @@ module.exports = function (state, activity) {
         return brief.digest === entry.draft
       })
       if (!brief) return
-      li.appendChild(renderIntro(state, entry.logPublicKey, {
+      li.appendChild(renderIntro(state, logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(' put '))
@@ -66,7 +67,7 @@ module.exports = function (state, activity) {
         return brief.digest === entry.draft
       })
       if (!brief) return
-      li.appendChild(renderIntro(state, entry.logPublicKey, {
+      li.appendChild(renderIntro(state, logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(' added a '))

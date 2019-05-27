@@ -1,6 +1,7 @@
 var SVG = require('../svg')
 var assert = require('nanoassert')
 var classnames = require('classnames')
+var crypto = require('@proseline/crypto')
 var dagre = require('dagre')
 var identityLine = require('./partials/identity-line')
 var moment = require('moment')
@@ -150,12 +151,8 @@ function inviteURL (state) {
       state.encryptionKey,
       state.publicKey,
       state.secretKey
-    ].map(base64ToHex).join(':')
+    ].map(crypto.base64ToHex).join(':')
   )
-}
-
-function base64ToHex (base64) {
-  return Buffer.from(base64, 'base64').toString('hex')
 }
 
 var BRIEF_WIDTH = 85 * 2
@@ -168,13 +165,13 @@ function renderGraph (state, send) {
   graph.setGraph({})
   graph.setDefaultEdgeLabel(function () { return {} })
   briefs.forEach(function (brief) {
-    graph.setNode(brief.digest, {
+    graph.setNode(crypto.base64ToHex(brief.digest), {
       brief,
       width: BRIEF_WIDTH,
       height: BRIEF_HEIGHT
     })
     brief.parents.forEach(function (parent) {
-      graph.setEdge(brief.digest, parent)
+      graph.setEdge(crypto.base64ToHex(brief.digest), parent)
     })
   })
   dagre.layout(graph, {
@@ -216,7 +213,7 @@ function renderGraph (state, send) {
 
     var rect = document.createElementNS(SVG, 'rect')
     g.appendChild(rect)
-    rect.setAttributeNS(null, 'id', 'rect-' + digest)
+    rect.setAttributeNS(null, 'id', 'rect-' + crypto.base64ToHex(digest))
     var time = moment(brief.timestamp)
     var today = time.isAfter(moment().subtract(1, 'days'))
     var thisWeek = time.isAfter(moment().subtract(1, 'days'))
@@ -241,7 +238,7 @@ function renderGraph (state, send) {
     author.setAttributeNS(null, 'text-anchor', 'middle')
     author.setAttributeNS(null, 'font-size', '100%')
     author.appendChild(document.createTextNode(
-      plainTextIntro(state, brief.logPublicKey)
+      plainTextIntro(state, brief.envelope.logPublicKey)
     ))
 
     var timestamp = document.createElementNS(SVG, 'text')
@@ -357,7 +354,7 @@ function renderGraph (state, send) {
     var othersMarks = []
     var ourMarks = []
     marks.forEach(function (mark) {
-      (mark.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
+      (mark.envelope.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
         .push(mark)
     })
 
@@ -439,7 +436,7 @@ function renderSVGLink (options) {
   assert(typeof options.y === 'number')
 
   var anchor = document.createElementNS(SVG, 'a')
-  anchor.setAttributeNS(null, 'id', options.label + '-' + options.digest)
+  anchor.setAttributeNS(null, 'id', options.label + '-' + crypto.base64ToHex(options.digest))
   if (options.href) {
     anchor.setAttribute('href', options.href)
   } else if (options.onClick) {

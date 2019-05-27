@@ -62,7 +62,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
       var othersMarks = []
       var ourMarks = []
       marks.forEach(function (mark) {
-        (mark.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
+        (mark.envelope.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
           .push(mark)
       })
       bookmarks.setAttributeNS(null, 'class', BOOKMARKS_CLASS)
@@ -155,7 +155,7 @@ function renderMarkForm (state, send) {
 
   var marksICanMove = state.projectMarks.filter(function (mark) {
     return (
-      mark.logPublicKey === state.logKeyPair.publicKey &&
+      mark.envelope.logPublicKey === state.logKeyPair.publicKey &&
       mark.draft !== state.draft.digest
     )
   })
@@ -191,7 +191,7 @@ function renderNote (state, send, note) {
   // <p>
   var p = document.createElement('p')
   p.className = 'byline'
-  p.appendChild(renderIntro(state, note.logPublicKey))
+  p.appendChild(renderIntro(state, note.envelope.logPublicKey))
   p.appendChild(document.createTextNode(' '))
   p.appendChild(renderRelativeTimestamp(note.timestamp))
   p.appendChild(document.createTextNode(':'))

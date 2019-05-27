@@ -1,3 +1,4 @@
+var crypto = require('@proseline/crypto')
 var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var renderSection = require('./partials/section')
@@ -43,7 +44,7 @@ function renderActiveProjectsList (subscription, projects, send) {
     .forEach(function (project) {
       var li = document.createElement('li')
       var a = document.createElement('a')
-      a.href = '/projects/' + project.discoveryKey
+      a.href = '/projects/' + crypto.base64ToHex(project.discoveryKey)
       a.appendChild(document.createTextNode(project.title))
       li.appendChild(a)
       ul.appendChild(li)

@@ -10,7 +10,7 @@
     "@fortawesome/fontawesome": "^1.1.8",
     "@fortawesome/fontawesome-free-regular": "^5.0.13",
     "@fortawesome/fontawesome-free-solid": "^5.0.13",
-    "@proseline/crypto": "^7.2.1",
+    "@proseline/crypto": "^7.4.0",
     "@proseline/schemas": "^2.0.0",
     "classnames": "^2.2.6",
     "clipboard": "^2.0.4",
