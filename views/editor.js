@@ -6,7 +6,7 @@ var renderDraftHeader = require('./partials/draft-header')
 var renderLoading = require('./loading')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, projectDiscoveryKey, parentDigests) {
+module.exports = withProject(function (state, send, discoveryKey, parentDigests) {
   state.route = 'editor'
   assert(
     parentDigests === undefined ||
@@ -37,7 +37,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, parentD
     // TODO: Action isn't defined, and this code never seems to run.
     main.appendChild(
       renderLoading(function () {
-        send('reload parents', { projectDiscoveryKey, parentDigests })
+        send('reload parents', { discoveryKey, parentDigests })
       })
     )
   } else {
@@ -49,7 +49,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, parentD
       event.preventDefault()
       event.stopPropagation()
       send('save', {
-        projectDiscoveryKey,
+        discoveryKey,
         text: editor.state.doc.toJSON(),
         parents: parentDigests || []
       })
@@ -69,7 +69,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, parentD
     div.className = 'editor'
     var content = false
     if (parentDigests && parentDigests.length > 0) {
-      content = state.parents[0].innerEnvelope.entry.text
+      content = state.parents[0].text
     }
     // TODO: Diff starting point for merge drafts.
     var editor = initializeEditor({

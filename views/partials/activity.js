@@ -9,83 +9,82 @@ var renderRelativeTimestamp = require('./relative-timestamp')
 module.exports = function (state, activity) {
   var ol = document.createElement('ol')
   ol.className = 'activity'
-  activity.forEach(function (outerEnvelope) {
-    var body = outerEnvelope.innerEnvelope.entry
-    var type = body.type
+  activity.forEach(function (entry) {
+    var type = entry.type
     var li = document.createElement('li')
     var a, brief
     ol.appendChild(li)
     if (type === 'draft') {
-      li.appendChild(renderIntro(state, outerEnvelope.logPublicKey, {
+      li.appendChild(renderIntro(state, entry.logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(' added '))
       a = document.createElement('a')
       li.appendChild(a)
       a.href = (
-        '/projects/' + outerEnvelope.projectDiscoveryKey +
-        '/drafts/' + outerEnvelope.digest
+        '/projects/' + entry.discoveryKey +
+        '/drafts/' + entry.digest
       )
       a.appendChild(renderDraftIcon())
-      a.appendChild(renderDraftDescription(outerEnvelope, {
+      a.appendChild(renderDraftDescription(entry, {
         determiner: true
       }))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(outerEnvelope.innerEnvelope.entry.timestamp))
+      li.appendChild(renderRelativeTimestamp(entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'intro') {
-      li.appendChild(renderIntro(state, outerEnvelope.logPublicKey, {
+      li.appendChild(renderIntro(state, entry.logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(
         ' introduced ' +
         (
-          outerEnvelope.logPublicKey === state.identity.publicKey
+          entry.logPublicKey === state.identity.publicKey
             ? 'yourself '
             : 'themself '
         )
       ))
-      li.appendChild(renderRelativeTimestamp(outerEnvelope.innerEnvelope.entry.timestamp))
+      li.appendChild(renderRelativeTimestamp(entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
       brief = state.draftBriefs.find(function (brief) {
-        return brief.digest === body.draft
+        return brief.digest === entry.draft
       })
       if (!brief) return
-      li.appendChild(renderIntro(state, outerEnvelope.logPublicKey, {
+      li.appendChild(renderIntro(state, entry.logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(' put '))
-      li.appendChild(renderMarkLink(state, outerEnvelope))
+      li.appendChild(renderMarkLink(state, entry))
       li.appendChild(document.createTextNode(' on '))
       li.appendChild(renderDraftLink(state, brief))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(outerEnvelope.innerEnvelope.entry.timestamp))
+      li.appendChild(renderRelativeTimestamp(entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
       brief = state.draftBriefs.find(function (brief) {
-        return brief.digest === body.draft
+        return brief.digest === entry.draft
       })
       if (!brief) return
-      li.appendChild(renderIntro(state, outerEnvelope.logPublicKey, {
+      li.appendChild(renderIntro(state, entry.logPublicKey, {
         capitalize: true
       }))
       li.appendChild(document.createTextNode(' added a '))
       a = document.createElement('a')
       li.appendChild(a)
       a.href = (
-        '/projects/' + outerEnvelope.projectDiscoveryKey +
-        '/drafts/' + outerEnvelope.innerEnvelope.entry.draft +
-        '#' + outerEnvelope.digest
+        '/projects/' + entry.discoveryKey +
+        '/drafts/' + entry.draft +
+        '#' + entry.digest
       )
       a.appendChild(renderNoteIcon())
       a.appendChild(
-        document.createTextNode(body.parent ? 'reply' : 'note')
+        document.createTextNode(entry.parent ? 'reply' : 'note')
       )
       li.appendChild(document.createTextNode(' to '))
       li.appendChild(renderDraftLink(state, brief))
       li.appendChild(document.createTextNode(' '))
-      li.appendChild(renderRelativeTimestamp(body.timestamp))
+      li.appendChild(renderRelativeTimestamp(entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     }
   })

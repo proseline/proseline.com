@@ -4,6 +4,6 @@ module.exports = function (mark, state) {
   var span = document.createElement('span')
   span.className = 'markName'
   span.appendChild(renderMarkIcon())
-  span.appendChild(document.createTextNode(mark.innerEnvelope.entry.name))
+  span.appendChild(document.createTextNode(mark.name))
   return span
 }

@@ -6,6 +6,6 @@ module.exports = EncryptedJSONProtocol({
   messages: {
     offer: { schema: schemas.reference },
     request: { schema: schemas.reference },
-    outerEnvelope: { schema: schemas.outerEnvelope }
+    envelope: { schema: schemas.envelope }
   }
 })

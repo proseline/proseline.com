@@ -6,12 +6,12 @@ var renderRefreshNotice = require('./partials/refresh-notice')
 var renderRelativeTimestamp = require('./partials/relative-timestamp')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, projectDiscoveryKey, logPublicKey, identifier) {
+module.exports = withProject(function (state, send, discoveryKey, logPublicKey, identifier) {
   state.route = 'mark'
   assert(typeof state === 'object')
   assert(typeof send === 'function')
-  assert(typeof projectDiscoveryKey === 'string')
-  assert(projectDiscoveryKey.length === 64)
+  assert(typeof discoveryKey === 'string')
+  assert(discoveryKey.length === 64)
   assert(typeof logPublicKey === 'string')
   assert(logPublicKey.length === 64)
   assert(typeof identifier === 'string')
@@ -24,7 +24,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, logPubl
     main.appendChild(
       renderLoading(function () {
         send('load mark', {
-          projectDiscoveryKey,
+          discoveryKey,
           logPublicKey: logPublicKey,
           identifier: identifier
         })
@@ -33,7 +33,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, logPubl
   } else {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('reload mark', { projectDiscoveryKey, logPublicKey, identifier })
+        send('reload mark', { discoveryKey, logPublicKey, identifier })
       }))
     }
     main.appendChild(renderDraftHeader(state))
@@ -53,12 +53,11 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, logPubl
 function renderMarkHistory (state) {
   var ol = document.createElement('ol')
   ol.className = 'activity'
-  state.markHistory.forEach(function (outerEnvelope) {
+  state.markHistory.forEach(function (entry) {
     var li = document.createElement('li')
     ol.appendChild(li)
-    var body = outerEnvelope.innerEnvelope.entry
     var brief = state.draftBriefs.find(function (brief) {
-      return brief.digest === body.draft
+      return brief.digest === entry.draft
     })
     li.appendChild(renderDraftLink(state, brief))
     li.appendChild(document.createTextNode(' '))

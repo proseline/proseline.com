@@ -33,27 +33,27 @@ function Peer (id, transportStream) {
     log(error)
   })
 
-  plex.on('stream', function (receiveStream, projectDiscoveryKey) {
+  plex.on('stream', function (receiveStream, discoveryKey) {
     var sharedStream = duplexify(
-      plex.createStream(projectDiscoveryKey),
+      plex.createStream(discoveryKey),
       receiveStream
     )
     var proselineDatabase = databases.proseline
-    var log = debug(DEBUG_NAMESPACE + 'replication:' + projectDiscoveryKey)
-    proselineDatabase.getProject(projectDiscoveryKey, function (error, project) {
+    var log = debug(DEBUG_NAMESPACE + 'replication:' + discoveryKey)
+    proselineDatabase.getProject(discoveryKey, function (error, project) {
       if (error) {
         log(error)
         return sharedStream.destroy()
       }
       if (!project) {
-        log('unknown discovery key: %o', projectDiscoveryKey)
+        log('unknown discovery key: %o', discoveryKey)
         return sharedStream.destroy()
       }
       if (project.deleted) {
-        log('deleted project: %o', projectDiscoveryKey)
+        log('deleted project: %o', discoveryKey)
         return sharedStream.destroy()
       }
-      databases.get(projectDiscoveryKey, function (error, database) {
+      databases.get(discoveryKey, function (error, database) {
         if (error) return log(error)
         self.joinProject(project, database, sharedStream)
       })
@@ -64,22 +64,22 @@ function Peer (id, transportStream) {
 
   // Add and remove replication streams as we join and leave projects.
   var pageBusListeners = self._pageBusListeners = {
-    'added project': function (projectDiscoveryKey) {
-      proseline.getProject(projectDiscoveryKey, function (error, project) {
+    'added project': function (discoveryKey) {
+      proseline.getProject(discoveryKey, function (error, project) {
         if (error) return log(error)
-        databases.get(projectDiscoveryKey, function (error, database) {
+        databases.get(discoveryKey, function (error, database) {
           if (error) return log(error)
           self.joinProject(project, database)
         })
       })
     },
-    'deleted project': function (projectDiscoveryKey) {
-      self.leaveProject(projectDiscoveryKey)
+    'deleted project': function (discoveryKey) {
+      self.leaveProject(discoveryKey)
     },
-    'overwrote project': function (projectDiscoveryKey) {
-      proseline.getProject(projectDiscoveryKey, function (error, project) {
+    'overwrote project': function (discoveryKey) {
+      proseline.getProject(discoveryKey, function (error, project) {
         if (error) return log(error)
-        if (project.deleted) self.leaveProject(projectDiscoveryKey)
+        if (project.deleted) self.leaveProject(discoveryKey)
       })
     }
   }
@@ -102,7 +102,7 @@ Peer.prototype.joinProjects = function () {
     if (error) return log(error)
     projects.forEach(function (project) {
       if (project.deleted) return
-      databases.get(project.projectDiscoveryKey, function (error, database) {
+      databases.get(project.discoveryKey, function (error, database) {
         if (error) return log(error)
         self.joinProject(project, database)
       })
@@ -117,47 +117,47 @@ Peer.prototype.joinProject = function (
 ) {
   var self = this
   var log = self.log
-  var projectDiscoveryKey = project.projectDiscoveryKey
-  if (self._sharedStreams.has(projectDiscoveryKey)) return
-  log('joining project: %s', projectDiscoveryKey)
+  var discoveryKey = project.discoveryKey
+  if (self._sharedStreams.has(discoveryKey)) return
+  log('joining project: %s', discoveryKey)
   var replicationStream = replicate({
     peerID: self.id,
     projectReplicationKey: project.projectReplicationKey,
-    projectReadKey: project.projectReadKey,
-    projectDiscoveryKey,
+    encryptionKey: project.encryptionKey,
+    discoveryKey,
     projectWriteKeyPair: project.projectWriteKeyPair,
     database
   })
   if (!sharedStream) {
-    sharedStream = self.plex.createSharedStream(projectDiscoveryKey)
+    sharedStream = self.plex.createSharedStream(discoveryKey)
   }
-  self._addSharedStream(projectDiscoveryKey, sharedStream)
+  self._addSharedStream(discoveryKey, sharedStream)
   replicationStream
     .pipe(sharedStream)
     .pipe(replicationStream)
 }
 
-Peer.prototype._addSharedStream = function (projectDiscoveryKey, stream) {
+Peer.prototype._addSharedStream = function (discoveryKey, stream) {
   var self = this
   var log = self.log
-  self._sharedStreams.set(projectDiscoveryKey, stream)
+  self._sharedStreams.set(discoveryKey, stream)
   stream
     .once('error', function (error) {
       log(error)
-      self._sharedStreams.delete(projectDiscoveryKey)
+      self._sharedStreams.delete(discoveryKey)
     })
     .once('close', function () {
-      self._sharedStreams.delete(projectDiscoveryKey)
+      self._sharedStreams.delete(discoveryKey)
     })
 }
 
-Peer.prototype.leaveProject = function (projectDiscoveryKey) {
+Peer.prototype.leaveProject = function (discoveryKey) {
   var self = this
   var sharedStreams = self._sharedStreams
-  var sharedStream = sharedStreams.get(projectDiscoveryKey)
+  var sharedStream = sharedStreams.get(discoveryKey)
   if (sharedStream) {
     sharedStream.destroy()
-    sharedStreams.delete(projectDiscoveryKey)
+    sharedStreams.delete(discoveryKey)
   }
   if (self._sharedStreams.size === 0) {
     self.done()

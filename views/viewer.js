@@ -11,14 +11,14 @@ var renderRefreshNotice = require('./partials/refresh-notice')
 var renderRelativeTimestamp = require('./partials/relative-timestamp')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, projectDiscoveryKey, digest) {
+module.exports = withProject(function (state, send, discoveryKey, digest) {
   state.route = 'viewer'
   // <main>
   var main = document.createElement('main')
   if (state.draft && state.draft.digest === digest) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
-        send('reload draft', { projectDiscoveryKey, digest })
+        send('reload draft', { discoveryKey, digest })
       }))
     }
     var draft = state.draft
@@ -26,7 +26,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, digest)
     div.className = 'editor'
     var editor = initializeEditor({
       element: div,
-      content: draft.innerEnvelope.entry.text,
+      content: draft.text,
       renderNoteForm: renderNoteForm.bind(null, state, send),
       renderNote: renderNote.bind(null, state, send),
       notes: state.notesTree,
@@ -44,7 +44,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, digest)
         }
       },
       prior: state.parents.length !== 0
-        ? state.parents[0].innerEnvelope.entry.text
+        ? state.parents[0].text
         : undefined
     })
     div.onkeydown = onKeyDown(editor, [state.draft.digest], state, send)
@@ -52,12 +52,12 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, digest)
     main.appendChild(renderDraftHeader(state, saveForm))
     main.appendChild(div)
     if (state.projectMarks.filter(function (mark) {
-      return mark.innerEnvelope.entry.draft === state.draft.digest
+      return mark.draft === state.draft.digest
     })) {
       var bookmarkWidth = 50
       var bookmarks = document.createElementNS(SVG, 'svg')
       var marks = state.projectMarks.filter(function (mark) {
-        return mark.innerEnvelope.entry.draft === state.draft.digest
+        return mark.draft === state.draft.digest
       })
       var othersMarks = []
       var ourMarks = []
@@ -80,7 +80,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, digest)
     main.appendChild(
       renderLoading(function () {
         send('load draft', {
-          projectDiscoveryKey,
+          discoveryKey,
           digest: digest
         })
       })
@@ -100,7 +100,7 @@ function renderSaveForm (state, send, editor) {
     event.preventDefault()
     event.stopPropagation()
     send('save', {
-      projectDiscoveryKey: state.projectDiscoveryKey,
+      discoveryKey: state.discoveryKey,
       text: editor.state.doc.toJSON(),
       parents: [state.draft.digest]
     })
@@ -138,12 +138,12 @@ function renderMarkForm (state, send) {
     event.stopPropagation()
     var name = input.value
     var continuing = marksICanMove.find(function (mark) {
-      return mark.innerEnvelope.entry.name === name
+      return mark.name === name
     })
     send('mark', {
       name: name,
       identifier: continuing
-        ? continuing.innerEnvelope.entry.identifier
+        ? continuing.identifier
         : null
     })
   })
@@ -156,7 +156,7 @@ function renderMarkForm (state, send) {
   var marksICanMove = state.projectMarks.filter(function (mark) {
     return (
       mark.logPublicKey === state.identity.publicKey &&
-      mark.innerEnvelope.entry.draft !== state.draft.digest
+      mark.draft !== state.draft.digest
     )
   })
   if (marksICanMove.length !== 0) {
@@ -168,7 +168,7 @@ function renderMarkForm (state, send) {
     marksICanMove.forEach(function (mark) {
       var option = document.createElement('option')
       datalist.appendChild(option)
-      option.value = mark.innerEnvelope.entry.name
+      option.value = mark.name
     })
   }
 
@@ -193,14 +193,14 @@ function renderNote (state, send, note) {
   p.className = 'byline'
   p.appendChild(renderIntro(state, note.logPublicKey))
   p.appendChild(document.createTextNode(' '))
-  p.appendChild(renderRelativeTimestamp(note.innerEnvelope.entry.timestamp))
+  p.appendChild(renderRelativeTimestamp(note.timestamp))
   p.appendChild(document.createTextNode(':'))
   aside.appendChild(p)
 
   // <blockquote>
   var blockquote = document.createElement('blockquote')
   aside.appendChild(blockquote)
-  blockquote.appendChild(renderText(note.innerEnvelope.entry.text))
+  blockquote.appendChild(renderText(note.text))
 
   if (replyTo === note.digest) {
     aside.appendChild(renderNoteForm(state, send, { parent: note.digest }))

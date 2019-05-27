@@ -24,9 +24,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       draft: null,
       // Project
       identity: null,
-      projectReplicationKey: null,
-      projectDiscoveryKey: null,
-      projectReadKey: null,
+      replicationKey: null,
+      discoveryKey: null,
+      encryptionKey: null,
       projectWriteSeed: null,
       projectWriteKeyPair: null,
       persistent: null,
@@ -66,11 +66,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       device: userIntro.device,
       timestamp: new Date().toISOString()
     }
-    withIndexedDB(state.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putIntro(entry, identity, function (error, outerEnvelope) {
+      db.putIntro(entry, identity, function (error, envelope, entry) {
         if (error) return done(error)
-        reduce('project intro', outerEnvelope)
+        reduce('project intro', entry)
         done()
       })
     })
@@ -96,7 +96,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     assert(typeof data.logPublicKey === 'string')
     assert(data.logPublicKey.length === 64)
     var logPublicKey = data.logPublicKey
-    withIndexedDB(data.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
       db.memberActivity(logPublicKey, 100, function (error, activity) {
         if (error) return done(error)
@@ -120,23 +120,23 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var persistent = data.persistent
     createProject({ title, persistent }, function (error, project) {
       if (error) return done(error)
-      redirectToProject(project.projectDiscoveryKey)
+      redirectToProject(project.discoveryKey)
       done()
     })
   })
 
-  handler('leave project', function (projectDiscoveryKey, state, reduce, done) {
-    assert(typeof projectDiscoveryKey === 'string')
+  handler('leave project', function (discoveryKey, state, reduce, done) {
+    assert(typeof discoveryKey === 'string')
     runParallel([
       function overwriteProject (done) {
         withIndexedDB('proseline', function (error, db) {
           if (error) return done(error)
-          db.getProject(projectDiscoveryKey, function (error, project) {
+          db.getProject(discoveryKey, function (error, project) {
             if (error) return done(error)
             var stub = {
               deleted: true,
-              projectDiscoveryKey: project.projectDiscoveryKey,
-              projectReplicationKey: project.projectReplicationKey,
+              discoveryKey: project.discoveryKey,
+              replicationKey: project.replicationKey,
               title: project.title,
               projectWriteSeed: project.projectWriteSeed
             }
@@ -145,7 +145,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         })
       },
       function deleteDatabase (done) {
-        IndexedDB.deleteDatabase(projectDiscoveryKey)
+        IndexedDB.deleteDatabase(discoveryKey)
         done()
       }
     ], function (error) {
@@ -158,22 +158,22 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   handler('join project', function (data, state, reduce, done) {
     assert(typeof data === 'object')
-    assert(typeof data.projectReplicationKey === 'string')
-    assert(typeof data.projectReadKey === 'string')
+    assert(typeof data.replicationKey === 'string')
+    assert(typeof data.encryptionKey === 'string')
     assert(typeof data.projectWriteSeed === 'string')
-    var projectReplicationKey = data.projectReplicationKey
-    var projectReadKey = data.projectReadKey
+    var replicationKey = data.replicationKey
+    var encryptionKey = data.encryptionKey
     var projectWriteSeed = data.projectWriteSeed
-    var projectDiscoveryKey = crypto.hash(projectReplicationKey)
+    var discoveryKey = crypto.discoveryKey(replicationKey)
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
-      db.getProject(projectDiscoveryKey, function (error, project) {
+      db.getProject(discoveryKey, function (error, project) {
         if (error) return done(error)
         if (project && !project.deleted) return redirect()
         createProject({
-          projectReplicationKey,
-          projectDiscoveryKey,
-          projectReadKey,
+          replicationKey,
+          discoveryKey,
+          encryptionKey,
           projectWriteSeed,
           // If we are rejoining a project we left, reuse
           // the old title.
@@ -185,9 +185,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       })
     })
     function redirect () {
-      loadProject(projectDiscoveryKey, state, reduce, function (error) {
+      loadProject(discoveryKey, state, reduce, function (error) {
         if (error) return done(error)
-        redirectToProject(projectDiscoveryKey)
+        redirectToProject(discoveryKey)
         done()
       })
     }
@@ -195,28 +195,28 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   function createProject (data, callback) {
     assert(typeof data === 'object')
-    var projectReplicationKey = data.projectReplicationKey
-    var projectDiscoveryKey = data.projectDiscoveryKey
-    var projectReadKey = data.projectReadKey
+    var replicationKey = data.replicationKey
+    var discoveryKey = data.discoveryKey
+    var encryptionKey = data.encryptionKey
     var projectWriteSeed = data.projectWriteSeed
     var title = data.title
     assert(typeof callback === 'function')
-    if (projectReplicationKey) {
-      assert(typeof projectReplicationKey === 'string')
-      assert(typeof projectDiscoveryKey === 'string')
-      assert(typeof projectReadKey === 'string')
+    if (replicationKey) {
+      assert(typeof replicationKey === 'string')
+      assert(typeof discoveryKey === 'string')
+      assert(typeof encryptionKey === 'string')
       assert(typeof projectWriteSeed === 'string')
     } else {
-      projectReplicationKey = crypto.projectReplicationKey()
-      projectDiscoveryKey = crypto.hash(projectReplicationKey)
-      projectReadKey = crypto.projectReplicationKey()
-      projectWriteSeed = crypto.signingKeyPairSeed()
+      replicationKey = crypto.replicationKey()
+      discoveryKey = crypto.hash(replicationKey)
+      encryptionKey = crypto.replicationKey()
+      projectWriteSeed = crypto.keyPairSeed()
     }
-    var projectWriteKeyPair = crypto.signingKeyPairFromSeed(projectWriteSeed)
+    var projectWriteKeyPair = crypto.keyPairFromSeed(projectWriteSeed)
     var project = {
-      projectReplicationKey,
-      projectDiscoveryKey,
-      projectReadKey,
+      replicationKey,
+      discoveryKey,
+      encryptionKey,
       projectWriteSeed,
       projectWriteKeyPair,
       title: title || UNTITLED,
@@ -230,7 +230,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         })
       },
       function (done) {
-        withIndexedDB(projectDiscoveryKey, function (error, db) {
+        withIndexedDB(discoveryKey, function (error, db) {
           if (error) return done(error)
           db.createIdentity(true, done)
         })
@@ -241,14 +241,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  function redirectToProject (projectDiscoveryKey) {
-    window.history.pushState({}, null, '/projects/' + projectDiscoveryKey)
+  function redirectToProject (discoveryKey) {
+    window.history.pushState({}, null, '/projects/' + discoveryKey)
   }
 
   handler('rename', function (newTitle, state, reduce, done) {
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
-      db.getProject(state.projectDiscoveryKey, function (error, project) {
+      db.getProject(state.discoveryKey, function (error, project) {
         if (error) return done(error)
         if (!project) return done(new Error('no project to rename'))
         if (project.deleted) return done(new Error('deleted project'))
@@ -269,7 +269,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('persist', function (_, state, reduce, done) {
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
-      db.getProject(state.projectDiscoveryKey, function (error, project) {
+      db.getProject(state.discoveryKey, function (error, project) {
         if (error) return done(error)
         if (!project) return done(new Error('no project'))
         if (project.deleted) return done(new Error('deleted project'))
@@ -299,12 +299,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var token = data.token
         var date = new Date().toISOString()
         var entry = { token, email, date }
-        var order = { entry, publicKey: identity.publicKey }
-        crypto.sign(
-          order,
-          identity.projectReplicationKey,
-          'signature'
-        )
+        var order = {
+          entry,
+          publicKey: identity.publicKey,
+          signature: crypto.signJSON(entry, identity.replicationKey)
+        }
         fetch('https://paid.proseline.com/subscribe', {
           method: 'POST',
           mode: 'cors',
@@ -354,18 +353,18 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return { projects: projects }
   })
 
-  handler('load project', function (projectDiscoveryKey, state, reduce, done) {
-    loadProject(projectDiscoveryKey, state, reduce, done)
+  handler('load project', function (discoveryKey, state, reduce, done) {
+    loadProject(discoveryKey, state, reduce, done)
   })
 
-  function loadProject (projectDiscoveryKey, state, reduce, done) {
-    withIndexedDB(projectDiscoveryKey, function (error, db) {
+  function loadProject (discoveryKey, state, reduce, done) {
+    withIndexedDB(discoveryKey, function (error, db) {
       if (error) return done(error)
       runParallel({
         project: function (done) {
           withIndexedDB('proseline', function (error, db) {
             if (error) return done(error)
-            db.getProject(projectDiscoveryKey, function (error, project) {
+            db.getProject(discoveryKey, function (error, project) {
               if (error) return done(error)
               if (project.deleted) return done(new Error('deleted project'))
               done(null, project)
@@ -419,9 +418,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       projects: null,
       changed: false,
       title: data.project.title,
-      projectReplicationKey: data.project.projectReplicationKey,
-      projectDiscoveryKey: data.project.projectDiscoveryKey,
-      projectReadKey: data.project.projectWriteSeed,
+      replicationKey: data.project.replicationKey,
+      discoveryKey: data.project.discoveryKey,
+      encryptionKey: data.project.projectWriteSeed,
       projectWriteSeed: data.project.projectWriteSeed,
       projectWriteKeyPair: data.project.projectWriteKeyPair,
       persistent: data.project.persistent,
@@ -439,9 +438,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reduction('clear project', function (_, state) {
     return {
       changed: false,
-      projectReplicationKey: null,
-      projectDiscoveryKey: null,
-      projectReadKey: null,
+      replicationKey: null,
+      discoveryKey: null,
+      encryptionKey: null,
       projectWriteSeed: null,
       projectWriteKeyPair: null,
       projects: null,
@@ -455,7 +454,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   function loadDraft (data, state, reduce, done) {
     var digest = data.digest
-    withIndexedDB(data.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
       runParallel({
         draft: function (done) {
@@ -478,7 +477,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }, function (error, results) {
         if (error) return done(error)
         results.draft.digest = digest
-        var parents = results.draft.innerEnvelope.entry.parents
+        var parents = results.draft.parents
         runParallel(parents.map(function (digest) {
           return function (done) {
             db.getDraft(digest, function (error, parent) {
@@ -551,13 +550,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           }
           var request = {
             entry,
-            publicKey: identity.publicKey
+            publicKey: identity.publicKey,
+            signature: crypto.signJSON(entry, identity.secretKey)
           }
-          crypto.sign(
-            request,
-            identity.secretKey,
-            'signature'
-          )
           fetch('https://paid.proseline.com/add', {
             method: 'POST',
             mode: 'cors',
@@ -607,7 +602,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         element.length === 64
       )
     }))
-    withIndexedDB(state.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
       runParallel(parentDigests.map(function (digest) {
         return function (done) {
@@ -632,17 +627,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reloadHandler('mark', loadMark)
 
   function loadMark (data, state, reduce, done) {
-    assert(data.hasOwnProperty('projectDiscoveryKey'))
+    assert(data.hasOwnProperty('discoveryKey'))
     assert(data.hasOwnProperty('logPublicKey'))
     assert(data.hasOwnProperty('identifier'))
-    withIndexedDB(data.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
       db.markHistory(data.logPublicKey, data.identifier, 100, function (error, history) {
         if (error) return done(error)
         var latestMark = history[0]
         reduce('mark', {
           markPublicKey: latestMark.logPublicKey,
-          markIdentifier: latestMark.innerEnvelope.entry.identifier,
+          markIdentifier: latestMark.identifier,
           mark: latestMark,
           markHistory: history
         })
@@ -665,21 +660,21 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    withIndexedDB(state.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putDraft(entry, identity, function (error, outerEnvelope, digest) {
+      db.putDraft(entry, identity, function (error, entry, digest) {
         if (error) return done(error)
-        reduce('push draft', outerEnvelope)
+        reduce('push draft', entry)
         reduce('push brief', {
           digest: digest,
-          projectDiscoveryKey: outerEnvelope.projectDiscoveryKey,
+          discoveryKey: entry.discoveryKey,
           logPublicKey: identity.logPublicKey,
           parents: entry.parents,
           timestamp: entry.timestamp
         })
         window.history.pushState(
           {}, null,
-          '/projects/' + state.projectDiscoveryKey +
+          '/projects/' + state.discoveryKey +
           '/drafts/' + digest
         )
         done()
@@ -687,8 +682,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('push draft', function (outerEnvelope, state) {
-    return { activity: [outerEnvelope].concat(state.activity) }
+  reduction('push draft', function (entry, state) {
+    return { activity: [entry].concat(state.activity) }
   })
 
   reduction('push brief', function (brief, state) {
@@ -728,7 +723,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         }))
     }
     function identifierOf (mark) {
-      return mark.innerEnvelope.entry.identifier
+      return mark.identifier
     }
   })
 
@@ -742,11 +737,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       timestamp: new Date().toISOString(),
       draft: draft
     }
-    withIndexedDB(state.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return callback(error)
-      db.putMark(entry, identity, function (error, outerEnvelope) {
+      db.putMark(entry, identity, function (error, entry) {
         if (error) return callback(error)
-        callback(null, outerEnvelope)
+        callback(null, entry)
       })
     })
   }
@@ -763,11 +758,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     if (data.parent) entry.parent = data.parent
     else if (data.range) entry.range = data.range
-    withIndexedDB(state.projectDiscoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putNote(entry, identity, function (error, outerEnvelope) {
+      db.putNote(entry, identity, function (error, entry) {
         if (error) return done(error)
-        reduce('push note', outerEnvelope)
+        reduce('push note', entry)
         done()
       })
     })
@@ -781,7 +776,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replyTo: null,
       activity: [newNote].concat(state.activity),
       draftBriefs: state.draftBriefs.map(function (brief) {
-        if (brief.digest === newNote.innerEnvelope.entry.draft) {
+        if (brief.digest === newNote.draft) {
           brief.notesCount++
         }
         return brief
@@ -842,7 +837,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler('download', function (_, state, reduce, done) {
     saveAs(
       new Blob(
-        [JSON.stringify(state.draft.innerEnvelope.entry.text)],
+        [JSON.stringify(state.draft.text)],
         { type: 'application/json;charset=utf-8' }
       ),
       'proseline.json',
@@ -860,7 +855,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             runParallel(projects.map(function (project) {
               return function (done) {
                 if (project.deleted) return done(null, { project })
-                withIndexedDB(project.projectDiscoveryKey, function (error, db) {
+                withIndexedDB(project.discoveryKey, function (error, db) {
                   if (error) return done(error)
                   db.getDefaultIdentity(function (error, identity) {
                     if (error) return done(error)
@@ -899,7 +894,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           loader(data, state, reduce, done)
         },
         function (done) {
-          loadProject(data.projectDiscoveryKey, state, reduce, done)
+          loadProject(data.discoveryKey, state, reduce, done)
         }
       ], done)
     })

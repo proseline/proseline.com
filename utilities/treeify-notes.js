@@ -7,7 +7,7 @@ module.exports = function (notes) {
     map[note.digest] = note
   })
   notes.forEach(function (note) {
-    var parentDigest = note.innerEnvelope.entry.parent
+    var parentDigest = note.parent
     if (parentDigest && map[parentDigest]) {
       map[parentDigest].children.push(note)
     }
@@ -21,7 +21,7 @@ module.exports = function (notes) {
       return map[digest]
     })
     .filter(function (note) {
-      return !note.innerEnvelope.entry.parent
+      return !note.parent
     })
   returned.sort(byTimestamp)
   returned.reverse()

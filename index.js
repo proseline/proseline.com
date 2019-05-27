@@ -143,51 +143,52 @@ function render (state) {
     return renderHomePage(state, send)
   // Join Link
   } else if (path === '/join' && window.location.hash) {
-    var re = /^#([a-f0-9]{64}):([a-f0-9]{64}):([a-f0-9]{64})$/
+    var re = /^#([a-f0-9]{64}):([a-f0-9]{64}):([a-f0-9]{64}):([a-f0-9]{64})$/
     var match = re.exec(window.location.hash)
     if (!match) return renderNotFound(state, send)
     main = document.createElement('main')
     main.appendChild(
       renderLoading(function () {
         send('join project', {
-          projectReplicationKey: match[1],
-          projectReadKey: match[2],
-          projectWriteSeed: match[3]
+          replicationKey: hexToBase64(match[1]),
+          encryptionKey: hexToBase64(match[2]),
+          publicKey: hexToBase64(match[3]),
+          secretKey: hexToBase64(match[4])
         })
       }, 'Joining…')
     )
     return main
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
-    var projectDiscoveryKey = path.substr(10, 64)
+    var discoveryKey = path.substr(10, 64)
     var remainder = path.substr(74)
     var logPublicKey
     if (remainder === '' || remainder === '/') {
-      return renderProject(state, send, projectDiscoveryKey)
+      return renderProject(state, send, discoveryKey)
     // New Draft
     } else if (remainder === '/drafts/new') {
-      return renderEditor(state, send, projectDiscoveryKey)
+      return renderEditor(state, send, discoveryKey)
     // New Draft with Parents
     } else if (/^\/drafts\/new\/[a-f0-9]{64}(,[a-f0-9]{64})*$/.test(remainder)) {
       var parents = remainder.substr(12).split(',')
-      return renderEditor(state, send, projectDiscoveryKey, parents)
+      return renderEditor(state, send, discoveryKey, parents)
     // Comparison
     } else if (/^\/drafts\/compare\/[a-f0-9]{64},[a-f0-9]{64}$/.test(remainder)) {
       var drafts = remainder.substr(16).split(',')
-      return renderComparison(state, send, projectDiscoveryKey, drafts)
+      return renderComparison(state, send, discoveryKey, drafts)
     // View Drafts
     } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
       var digest = remainder.substr(8, 64)
-      return renderViewer(state, send, projectDiscoveryKey, digest)
+      return renderViewer(state, send, discoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
       logPublicKey = remainder.substr(7, 64)
       var identifier = remainder.substr(7 + 64 + 1, 8)
-      return renderMark(state, send, projectDiscoveryKey, logPublicKey, identifier)
+      return renderMark(state, send, discoveryKey, logPublicKey, identifier)
     // Member Activity
     } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
       logPublicKey = remainder.substr(9, 64)
-      return renderMember(state, send, projectDiscoveryKey, logPublicKey)
+      return renderMember(state, send, discoveryKey, logPublicKey)
     } else {
       return renderNotFound(state, send)
     }
@@ -196,6 +197,10 @@ function render (state) {
   } else {
     return renderNotFound(state, send)
   }
+}
+
+function hexToBase64 (hex) {
+  return Buffer.from(hex, 'hex').toString('base64')
 }
 
 var PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
@@ -216,24 +221,24 @@ function network (done) {
     // TODO: Prevent clearing inputs on redraw.
     // send('peers', count)
   })
-  pageBus.on('outerEnvelope', function (outerEnvelope) {
-    // If we created this outerEnvelope, don't show an update.
-    if (outerEnvelope.local) return
-    var projectDiscoveryKey = outerEnvelope.projectDiscoveryKey
+  pageBus.on('entry', function (entry) {
+    // If we created this entry, don't show an update.
+    if (entry.local) return
+    var discoveryKey = entry.discoveryKey
     if (
-      globalState.projectDiscoveryKey &&
-      globalState.projectDiscoveryKey === projectDiscoveryKey
+      globalState.discoveryKey &&
+      globalState.discoveryKey === discoveryKey
     ) return send('changed')
     if (
-      !globalState.projectDiscoveryKey &&
+      !globalState.discoveryKey &&
       !globalState.projects.some(function (project) {
-        return project.projectDiscoveryKey === projectDiscoveryKey
+        return project.discoveryKey === discoveryKey
       })
     ) return send('changed')
   })
   /*
   pageBus.on('added project', function (x) {
-    if (!globalState.projectDiscoveryKey) {
+    if (!globalState.discoveryKey) {
       console.log('changed bc added project')
       return send('changed')
     }

@@ -39,39 +39,39 @@ prototype._upgrade = function (db, oldVersion, callback) {
 
 prototype.putProject = function (project, callback) {
   assert(typeof project === 'object')
-  assert(project.hasOwnProperty('projectDiscoveryKey'))
-  assert(project.hasOwnProperty('projectReadKey'))
+  assert(project.hasOwnProperty('discoveryKey'))
+  assert(project.hasOwnProperty('encryptionKey'))
   var self = this
-  var projectDiscoveryKey = project.projectDiscoveryKey
-  self._put('projects', projectDiscoveryKey, project, function (error) {
+  var discoveryKey = project.discoveryKey
+  self._put('projects', discoveryKey, project, function (error) {
     if (error) return callback(error)
-    pageBus.emit('added project', projectDiscoveryKey)
+    pageBus.emit('added project', discoveryKey)
     callback()
   })
 }
 
 prototype.overwriteProject = function (project, callback) {
   assert(typeof project === 'object')
-  assert(project.hasOwnProperty('projectDiscoveryKey'))
-  assert(project.hasOwnProperty('projectReadKey'))
+  assert(project.hasOwnProperty('discoveryKey'))
+  assert(project.hasOwnProperty('encryptionKey'))
   var self = this
-  var projectDiscoveryKey = project.projectDiscoveryKey
-  self._put('projects', projectDiscoveryKey, project, function (error) {
+  var discoveryKey = project.discoveryKey
+  self._put('projects', discoveryKey, project, function (error) {
     if (error) return callback(error)
-    pageBus.emit('overwrote project', projectDiscoveryKey)
+    pageBus.emit('overwrote project', discoveryKey)
     callback()
   })
 }
 
-prototype.getProject = function (projectDiscoveryKey, callback) {
-  this._get('projects', projectDiscoveryKey, callback)
+prototype.getProject = function (discoveryKey, callback) {
+  this._get('projects', discoveryKey, callback)
 }
 
-prototype.deleteProject = function (projectDiscoveryKey, callback) {
+prototype.deleteProject = function (discoveryKey, callback) {
   var self = this
-  self._delete('projects', projectDiscoveryKey, function (error) {
+  self._delete('projects', discoveryKey, function (error) {
     if (error) return callback(error)
-    pageBus.emit('deleted project', projectDiscoveryKey)
+    pageBus.emit('deleted project', discoveryKey)
     callback()
   })
 }

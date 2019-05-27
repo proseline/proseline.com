@@ -12,12 +12,12 @@ var renderRefreshNotice = require('./partials/refresh-notice')
 var renderSection = require('./partials/section')
 var withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, projectDiscoveryKey) {
+module.exports = withProject(function (state, send, discoveryKey) {
   state.route = 'project'
   var main = document.createElement('main')
   if (state.changed) {
     main.appendChild(renderRefreshNotice(function () {
-      send('load project', projectDiscoveryKey)
+      send('load project', discoveryKey)
     }))
   }
   main.appendChild(renderDraftHeader(state))
@@ -70,7 +70,7 @@ function renderDeleteButton (state, send) {
   button.appendChild(document.createTextNode('Leave this project.'))
   button.addEventListener('click', function () {
     if (window.confirm(CONFIRM_DELETE)) {
-      send('leave project', state.projectDiscoveryKey)
+      send('leave project', state.discoveryKey)
     }
   })
   return button
@@ -82,7 +82,7 @@ function newDraft (state) {
   var a = document.createElement('a')
   section.appendChild(a)
   a.className = 'button'
-  a.href = '/projects/' + state.projectDiscoveryKey + '/drafts/new'
+  a.href = '/projects/' + state.discoveryKey + '/drafts/new'
   a.appendChild(document.createTextNode('Start a new draft from scratch.'))
 
   return section
@@ -146,11 +146,16 @@ function inviteURL (state) {
   return (
     'https://proseline.com/join#' +
     [
-      state.projectReplicationKey,
-      state.projectReadKey,
-      state.projectWriteSeed
-    ].join(':')
+      state.replicationKey,
+      state.encryptionKey,
+      state.publicKey,
+      state.secretKey
+    ].map(base64ToHex).join(':')
   )
+}
+
+function base64ToHex (base64) {
+  return Buffer.from(base64, 'base64').toString('hex')
 }
 
 var BRIEF_WIDTH = 85 * 2
@@ -262,7 +267,7 @@ function renderGraph (state, send) {
           x: anchorX,
           y: firstPosition,
           href: (
-            '/projects/' + state.projectDiscoveryKey +
+            '/projects/' + state.discoveryKey +
             '/drafts/' + digest
           )
         })
@@ -287,7 +292,7 @@ function renderGraph (state, send) {
           x: anchorX,
           y: firstPosition,
           href: (
-            '/projects/' + state.projectDiscoveryKey +
+            '/projects/' + state.discoveryKey +
             '/drafts/new/' + state.draftSelection
           )
         })
@@ -299,7 +304,7 @@ function renderGraph (state, send) {
           x: anchorX,
           y: secondPosition,
           href: (
-            '/projects/' + state.projectDiscoveryKey +
+            '/projects/' + state.discoveryKey +
             '/drafts/compare/' + state.draftSelection + ',' + digest
           )
         })
@@ -347,7 +352,7 @@ function renderGraph (state, send) {
     var marks = state.projectMarks
       .sort(byTimestamp)
       .filter(function (mark) {
-        return mark.innerEnvelope.entry.draft === brief.digest
+        return mark.draft === brief.digest
       })
     var othersMarks = []
     var ourMarks = []
@@ -374,7 +379,7 @@ function renderGraph (state, send) {
       }
       var text = (ourMarks.length !== 0)
         ? (
-          ourMarks[0].innerEnvelope.entry.name +
+          ourMarks[0].name +
           (marks.length > 1 ? '...' : '')
         )
         : (
@@ -455,7 +460,7 @@ function plainTextIntro (state, logPublicKey) {
   if (logPublicKey === state.identity.publicKey) return 'You'
   var intro = state.intros[logPublicKey]
   if (intro) {
-    return intro.innerEnvelope.entry.name
+    return intro.name
   } else {
     return 'anonymous'
   }

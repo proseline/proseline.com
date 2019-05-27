@@ -11,7 +11,7 @@ module.exports = function (state, logPublicKey, options) {
   } else {
     element = document.createElement('a')
     element.href = (
-      '/projects/' + state.projectDiscoveryKey +
+      '/projects/' + state.discoveryKey +
       '/members/' + logPublicKey
     )
     element.title = 'Click to view activity.'
@@ -26,8 +26,8 @@ module.exports = function (state, logPublicKey, options) {
   } else if (intro) {
     element.appendChild(
       document.createTextNode(
-        intro.innerEnvelope.entry.name +
-        ' (on ' + intro.innerEnvelope.entry.device + ')' +
+        intro.name +
+        ' (on ' + intro.device + ')' +
         (options.possessive ? '’s' : '')
       )
     )

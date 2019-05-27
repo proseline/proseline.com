@@ -8,7 +8,7 @@ var withProject = require('./with-project')
 var DOMSerializer = pmModel.DOMSerializer
 var schema = require('../editor/schema')
 
-module.exports = withProject(function (state, send, projectDiscoveryKey, drafts) {
+module.exports = withProject(function (state, send, discoveryKey, drafts) {
   state.route = 'comparison'
   var digest = drafts[0]
   var comparing = drafts[1]
@@ -22,7 +22,7 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, drafts)
     main.appendChild(
       renderLoading(function () {
         send('load draft', {
-          projectDiscoveryKey,
+          discoveryKey,
           digest,
           comparing
         })
@@ -35,13 +35,13 @@ module.exports = withProject(function (state, send, projectDiscoveryKey, drafts)
     main.appendChild(article)
 
     var serializer = DOMSerializer.fromSchema(schema)
-    var doc = schema.nodeFromJSON(state.draft.innerEnvelope.entry.text)
+    var doc = schema.nodeFromJSON(state.draft.text)
     var rendered = serializer.serializeFragment(doc.content)
     article.appendChild(rendered)
 
     var patch = diff(
-      state.draft.innerEnvelope.entry.text,
-      state.comparing.innerEnvelope.entry.text
+      state.draft.text,
+      state.comparing.text
     )
     patch.forEach(function (element) {
       var type = element.op
