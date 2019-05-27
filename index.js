@@ -152,8 +152,10 @@ function render (state) {
         send('join project', {
           replicationKey: hexToBase64(match[1]),
           encryptionKey: hexToBase64(match[2]),
-          publicKey: hexToBase64(match[3]),
-          secretKey: hexToBase64(match[4])
+          projectKeyPair: {
+            publicKey: hexToBase64(match[3]),
+            secretKey: hexToBase64(match[4])
+          }
         })
       }, 'Joining…')
     )

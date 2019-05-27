@@ -39,7 +39,7 @@ module.exports = function (state, activity) {
       li.appendChild(document.createTextNode(
         ' introduced ' +
         (
-          entry.logPublicKey === state.identity.publicKey
+          entry.logPublicKey === state.logKeyPair.publicKey
             ? 'yourself '
             : 'themself '
         )

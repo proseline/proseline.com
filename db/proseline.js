@@ -27,10 +27,10 @@ prototype._upgrade = function (db, oldVersion, callback) {
     // user is working on.
     db.createObjectStore('projects')
   }
-  if (oldVersion < 2) {
-    // The `user` database holds the user's keypair for interacting
+  if (oldVersion < 3) {
+    // The `client` database holds the user's keypair for interacting
     // with paid.proseline.com.
-    db.createObjectStore('user')
+    db.createObjectStore('client')
   }
   callback()
 }
@@ -84,35 +84,35 @@ prototype.listProjects = function (callback) {
 
 // Get the user keypair for signing messages to paid.proseline.com.
 // If the keypair doesn't exist yet, create it.
-prototype.getUserIdentity = function (callback) {
+prototype.getClientKeyPair = function (callback) {
   var self = this
-  self._get('user', 'identity', function (error, identity) {
+  self._get('client', 'keypair', function (error, clientKeyPair) {
     if (error) return callback(error)
-    if (identity !== undefined) {
-      return callback(null, identity)
+    if (clientKeyPair !== undefined) {
+      return callback(null, clientKeyPair)
     }
-    identity = crypto.signingKeyPair()
-    self._put('user', 'identity', identity, function (error) {
+    clientKeyPair = crypto.signingKeyPair()
+    self._put('client', 'keypair', clientKeyPair, function (error) {
       if (error) return callback(error)
-      callback(null, identity)
+      callback(null, clientKeyPair)
     })
   })
 }
 
 prototype.getSubscription = function (callback) {
-  this._get('user', 'subscription', callback)
+  this._get('client', 'subscription', callback)
 }
 
 prototype.setSubscription = function (subscription, callback) {
-  this._put('user', 'subscription', subscription, callback)
+  this._put('client', 'subscription', subscription, callback)
 }
 
 // Introduction
 
 prototype.getIntro = function (callback) {
-  this._get('user', 'intro', callback)
+  this._get('client', 'intro', callback)
 }
 
 prototype.setIntro = function (intro, callback) {
-  this._put('user', 'intro', intro, callback)
+  this._put('client', 'intro', intro, callback)
 }

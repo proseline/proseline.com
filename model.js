@@ -23,12 +23,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       parents: null,
       draft: null,
       // Project
-      identity: null,
+      logKeyPair: null,
       replicationKey: null,
       discoveryKey: null,
       encryptionKey: null,
-      projectWriteSeed: null,
-      projectWriteKeyPair: null,
+      projectKeyPair: null,
       persistent: null,
       title: null,
       draftSelection: null,
@@ -58,7 +57,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('introduce', function (data, state, reduce, done) {
-    var identity = state.identity
+    var logKeyPair = state.logKeyPair
     var userIntro = state.userIntro
     var entry = {
       type: 'intro',
@@ -68,7 +67,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putIntro(entry, identity, function (error, envelope, entry) {
+      db.putIntro(entry, logKeyPair, function (error, envelope, entry) {
         if (error) return done(error)
         reduce('project intro', entry)
         done()
@@ -138,7 +137,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
               discoveryKey: project.discoveryKey,
               replicationKey: project.replicationKey,
               title: project.title,
-              projectWriteSeed: project.projectWriteSeed
+              projectKeyPair: project.projectKeyPair
             }
             db.overwriteProject(stub, done)
           })
@@ -160,10 +159,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     assert(typeof data === 'object')
     assert(typeof data.replicationKey === 'string')
     assert(typeof data.encryptionKey === 'string')
-    assert(typeof data.projectWriteSeed === 'string')
+    assert(typeof data.projectKeyPair === 'string')
     var replicationKey = data.replicationKey
     var encryptionKey = data.encryptionKey
-    var projectWriteSeed = data.projectWriteSeed
+    var projectKeyPair = data.projectKeyPair
     var discoveryKey = crypto.discoveryKey(replicationKey)
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
@@ -174,7 +173,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           replicationKey,
           discoveryKey,
           encryptionKey,
-          projectWriteSeed,
+          projectKeyPair,
           // If we are rejoining a project we left, reuse
           // the old title.
           title: data.title
@@ -198,27 +197,25 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     var replicationKey = data.replicationKey
     var discoveryKey = data.discoveryKey
     var encryptionKey = data.encryptionKey
-    var projectWriteSeed = data.projectWriteSeed
+    var projectKeyPair = data.projectKeyPair
     var title = data.title
     assert(typeof callback === 'function')
     if (replicationKey) {
       assert(typeof replicationKey === 'string')
       assert(typeof discoveryKey === 'string')
       assert(typeof encryptionKey === 'string')
-      assert(typeof projectWriteSeed === 'string')
+      assert(typeof projectKeyPair === 'object')
     } else {
       replicationKey = crypto.replicationKey()
       discoveryKey = crypto.hash(replicationKey)
       encryptionKey = crypto.replicationKey()
-      projectWriteSeed = crypto.keyPairSeed()
+      projectKeyPair = crypto.keyPair()
     }
-    var projectWriteKeyPair = crypto.keyPairFromSeed(projectWriteSeed)
     var project = {
       replicationKey,
       discoveryKey,
       encryptionKey,
-      projectWriteSeed,
-      projectWriteKeyPair,
+      projectKeyPair,
       title: title || UNTITLED,
       persistent: !!data.persistent
     }
@@ -232,7 +229,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       function (done) {
         withIndexedDB(discoveryKey, function (error, db) {
           if (error) return done(error)
-          db.createIdentity(true, done)
+          db.createLogKeyPair(true, done)
         })
       }
     ], function (error) {
@@ -293,7 +290,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     // TODO: Subscribe API call
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
-      db.getUserIdentity(function (error, identity) {
+      db.getClientKeyPair(function (error, clientKeyPair) {
         if (error) return done(error)
         var email = data.email
         var token = data.token
@@ -301,8 +298,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         var entry = { token, email, date }
         var order = {
           entry,
-          publicKey: identity.publicKey,
-          signature: crypto.signJSON(entry, identity.replicationKey)
+          clientPublicKey: clientKeyPair.publicKey,
+          signature: crypto.signJSON(entry, clientKeyPair.secretKey)
         }
         fetch('https://paid.proseline.com/subscribe', {
           method: 'POST',
@@ -371,8 +368,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             })
           })
         },
-        identity: function (done) {
-          db.getDefaultIdentity(done)
+        logKeyPair: function (done) {
+          db.getDefaultLogKeyPair(done)
         },
         projectMarks: function (done) {
           db.listMarks(done)
@@ -420,11 +417,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       title: data.project.title,
       replicationKey: data.project.replicationKey,
       discoveryKey: data.project.discoveryKey,
-      encryptionKey: data.project.projectWriteSeed,
-      projectWriteSeed: data.project.projectWriteSeed,
-      projectWriteKeyPair: data.project.projectWriteKeyPair,
+      encryptionKey: data.project.encryptionKey,
+      projectKeyPair: data.project.projectKeyPair,
       persistent: data.project.persistent,
-      identity: data.identity,
+      logKeyPair: data.logKeyPair,
       intros: data.intros,
       userIntro: data.userIntro,
       projectMarks: data.projectMarks || [],
@@ -441,8 +437,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       replicationKey: null,
       discoveryKey: null,
       encryptionKey: null,
-      projectWriteSeed: null,
-      projectWriteKeyPair: null,
+      projectKeyPair: null,
       projects: null,
       draftSelection: null
     }
@@ -540,7 +535,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       assert(data.hasOwnProperty('email'))
       withIndexedDB('proseline', function (error, db) {
         if (error) return done(error)
-        db.getUserIdentity(function (error, identity) {
+        db.getClientKeyPair(function (error, clientKeyPair) {
           if (error) return done(error)
           var email = data.email
           var entry = {
@@ -550,8 +545,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           }
           var request = {
             entry,
-            publicKey: identity.publicKey,
-            signature: crypto.signJSON(entry, identity.secretKey)
+            clientPublicKey: clientKeyPair.publicKey,
+            signature: crypto.signJSON(entry, clientKeyPair.secretKey)
           }
           fetch('https://paid.proseline.com/add', {
             method: 'POST',
@@ -653,7 +648,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Drafts
 
   handler('save', function (data, state, reduce, done) {
-    var identity = state.identity
+    var logKeyPair = state.logKeyPair
     var entry = {
       type: 'draft',
       parents: data.parents || [],
@@ -662,13 +657,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putDraft(entry, identity, function (error, entry, digest) {
+      db.putDraft(entry, logKeyPair, function (error, entry, digest) {
         if (error) return done(error)
         reduce('push draft', entry)
         reduce('push brief', {
           digest: digest,
           discoveryKey: entry.discoveryKey,
-          logPublicKey: identity.logPublicKey,
+          logPublicKey: logKeyPair.publicKey,
           parents: entry.parents,
           timestamp: entry.timestamp
         })
@@ -729,7 +724,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   function putMark (identifier, name, draft, state, callback) {
     identifier = identifier || crypto.random(4)
-    var identity = state.identity
+    var logKeyPair = state.logKeyPair
     var entry = {
       type: 'mark',
       identifier: identifier,
@@ -739,7 +734,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return callback(error)
-      db.putMark(entry, identity, function (error, entry) {
+      db.putMark(entry, logKeyPair, function (error, entry) {
         if (error) return callback(error)
         callback(null, entry)
       })
@@ -749,7 +744,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Notes
 
   handler('note', function (data, state, reduce, done) {
-    var identity = state.identity
+    var logKeyPair = state.logKeyPair
     var entry = {
       type: 'note',
       draft: state.draft.digest,
@@ -760,7 +755,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     else if (data.range) entry.range = data.range
     withIndexedDB(state.discoveryKey, function (error, db) {
       if (error) return done(error)
-      db.putNote(entry, identity, function (error, entry) {
+      db.putNote(entry, logKeyPair, function (error, entry) {
         if (error) return done(error)
         reduce('push note', entry)
         done()
@@ -857,17 +852,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
                 if (project.deleted) return done(null, { project })
                 withIndexedDB(project.discoveryKey, function (error, db) {
                   if (error) return done(error)
-                  db.getDefaultIdentity(function (error, identity) {
+                  db.getDefaultLogKeyPair(function (error, logKeyPair) {
                     if (error) return done(error)
-                    done(null, { project, identity })
+                    done(null, { project, logKeyPair })
                   })
                 })
               }
             }), done)
           })
         },
-        userIdentity: function (done) {
-          db.getUserIdentity(done)
+        clientKeyPair: function (done) {
+          db.getClientKeyPair(done)
         },
         subscription: function (done) {
           db.getSubscription(done)

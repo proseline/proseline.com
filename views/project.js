@@ -21,7 +21,7 @@ module.exports = withProject(function (state, send, discoveryKey) {
     }))
   }
   main.appendChild(renderDraftHeader(state))
-  var intro = state.intros[state.identity.publicKey]
+  var intro = state.intros[state.logKeyPair.publicKey]
   var userIntro = state.userIntro
   if (!intro) {
     if (!userIntro) {
@@ -357,7 +357,7 @@ function renderGraph (state, send) {
     var othersMarks = []
     var ourMarks = []
     marks.forEach(function (mark) {
-      (mark.logPublicKey === state.identity.publicKey ? ourMarks : othersMarks)
+      (mark.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
         .push(mark)
     })
 
@@ -457,7 +457,7 @@ function renderSVGLink (options) {
 }
 
 function plainTextIntro (state, logPublicKey) {
-  if (logPublicKey === state.identity.publicKey) return 'You'
+  if (logPublicKey === state.logKeyPair.publicKey) return 'You'
   var intro = state.intros[logPublicKey]
   if (intro) {
     return intro.name

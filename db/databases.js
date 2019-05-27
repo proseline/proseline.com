@@ -38,7 +38,7 @@ function get (id, callback) {
     var db = new ProjectDatabase({
       discoveryKey: id,
       encryptionKey: project.encryptionKey,
-      projectWriteKeyPair: project.projectWriteKeyPair
+      projectKeyPair: project.projectKeyPair
     })
     cache[id] = db
     debug('initializing "' + id + '"')

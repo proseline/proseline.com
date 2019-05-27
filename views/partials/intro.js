@@ -19,7 +19,7 @@ module.exports = function (state, logPublicKey, options) {
   element.className = 'intro'
   if (!options.noIcon) element.appendChild(renderIntroIcon())
   var intro = state.intros[logPublicKey]
-  if (logPublicKey === state.identity.publicKey) {
+  if (logPublicKey === state.logKeyPair.publicKey) {
     var word = options.possessive ? 'your' : 'you'
     if (options.capitalize) word = word[0].toUpperCase() + word.slice(1)
     element.appendChild(document.createTextNode(word))

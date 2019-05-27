@@ -122,10 +122,10 @@ Peer.prototype.joinProject = function (
   log('joining project: %s', discoveryKey)
   var replicationStream = replicate({
     peerID: self.id,
-    projectReplicationKey: project.projectReplicationKey,
+    replicationKey: project.replicationKey,
     encryptionKey: project.encryptionKey,
     discoveryKey,
-    projectWriteKeyPair: project.projectWriteKeyPair,
+    projectKeyPair: project.projectKeyPair,
     database
   })
   if (!sharedStream) {

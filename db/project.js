@@ -32,9 +32,9 @@ var CURRENT_VERSION = 4
 
 Project.prototype._upgrade = function (db, oldVersion, callback) {
   if (oldVersion < CURRENT_VERSION) {
-    // Identities
-    var identities = db.createObjectStore('identities')
-    identities.createIndex('logPublicKey', 'logPublicKey', { unique: true })
+    // Log Key Pairs
+    var logKeyPairs = db.createObjectStore('logKeyPairs')
+    logKeyPairs.createIndex('logPublicKey', 'publicKey', { unique: true })
 
     // Logs
     var logs = db.createObjectStore('logs')
@@ -73,37 +73,37 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
   callback()
 }
 
-// Identities
+// Log Key Pairs
 
-Project.prototype.createIdentity = function (setDefault, callback) {
+Project.prototype.createLogKeyPair = function (setDefault, callback) {
   var self = this
-  var identity = crypto.keyPair()
-  var logPublicKey = identity.publicKey
-  self._put('identities', logPublicKey, identity, function (error) {
+  var logKeyPair = crypto.keyPair()
+  var logPublicKey = logKeyPair.publicKey
+  self._put('logKeyPairs', logPublicKey, logKeyPair, function (error) {
     if (error) return callback(error)
     if (setDefault) {
-      self._put('identities', 'default', logPublicKey, function (error) {
+      self._put('logKeyPairs', 'default', logPublicKey, function (error) {
         if (error) return callback(error)
-        callback(null, identity)
+        callback(null, logKeyPair)
       })
     } else {
-      callback(null, identity)
+      callback(null, logKeyPair)
     }
   })
 }
 
-Project.prototype.getIdentity = function (logPublicKey, callback) {
-  this._get('identities', logPublicKey, callback)
+Project.prototype.getLogKeyPair = function (logPublicKey, callback) {
+  this._get('logKeyPairs', logPublicKey, callback)
 }
 
-Project.prototype.getDefaultIdentity = function (callback) {
+Project.prototype.getDefaultLogKeyPair = function (callback) {
   var self = this
-  self.getIdentity('default', function (error, logPublicKey) {
+  self.getLogKeyPair('default', function (error, logPublicKey) {
     if (error) return callback(error)
     if (logPublicKey === undefined) {
       callback()
     } else {
-      self.getIdentity(logPublicKey, callback)
+      self.getLogKeyPair(logPublicKey, callback)
     }
   })
 }
@@ -114,11 +114,11 @@ Project.prototype.listIntros = function (callback) {
   this._indexQuery('logs', 'type', 'intro', callback)
 }
 
-Project.prototype.putIntro = function (entry, identity, callback) {
+Project.prototype.putIntro = function (entry, logKeyPair, callback) {
   assert(typeof entry === 'object')
-  assert(typeof identity === 'object')
+  assert(typeof logKeyPair === 'object')
   assert(typeof callback === 'function')
-  this._log(entry, identity, callback)
+  this._log(entry, logKeyPair, callback)
 }
 
 // Logs
@@ -283,8 +283,8 @@ function removeIndexingMetadata (outerEnvelope) {
 
 // Drafts
 
-Project.prototype.putDraft = function (entry, identity, callback) {
-  this._log(entry, identity, callback)
+Project.prototype.putDraft = function (entry, logKeyPair, callback) {
+  this._log(entry, logKeyPair, callback)
 }
 
 Project.prototype.getDraft = function (digest, callback) {
@@ -323,8 +323,8 @@ Project.prototype.listDraftBriefs = function (callback) {
 
 // Marks
 
-Project.prototype.putMark = function (entry, identity, callback) {
-  this._log(entry, identity, callback)
+Project.prototype.putMark = function (entry, logKeyPair, callback) {
+  this._log(entry, logKeyPair, callback)
 }
 
 Project.prototype.getMark = function (logPublicKey, identifier, callback) {
@@ -374,8 +374,8 @@ Project.prototype.countNotes = function (digest, callback) {
   this._indexCount('logs', 'type-draft', ['note', digest], callback)
 }
 
-Project.prototype.putNote = function (entry, identity, callback) {
-  this._log(entry, identity, callback)
+Project.prototype.putNote = function (entry, logKeyPair, callback) {
+  this._log(entry, logKeyPair, callback)
 }
 
 // Activity

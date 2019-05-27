@@ -61,7 +61,7 @@ function renderArchivedProjectsList (subscription, projects, send) {
 
   var archivedProjects = projects.filter(function (project) {
     if (!project.deleted) return false
-    return project.writeSeed && project.replicationKey
+    return project.projectKeyPair && project.replicationKey
   })
 
   if (archivedProjects.length === 0) {
