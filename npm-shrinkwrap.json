@@ -6465,9 +6465,9 @@
       }
     },
     "prosemirror-gapcursor": {
-      "version": "1.0.3",
-      "resolved": "https://registry.npmjs.org/prosemirror-gapcursor/-/prosemirror-gapcursor-1.0.3.tgz",
-      "integrity": "sha512-X+hJhr42PcHWiSWL+lI5f/UeOhXCxlBFb8M6O8aG1hssmaRrW7sS2/Fjg5jFV+pTdS1REFkmm1occh01FMdDIQ==",
+      "version": "1.1.5",
+      "resolved": "https://registry.npmjs.org/prosemirror-gapcursor/-/prosemirror-gapcursor-1.1.5.tgz",
+      "integrity": "sha512-SjbUZq5pgsBDuV3hu8GqgIpZR5eZvGLM+gPQTqjVVYSMUCfKW3EGXTEYaLHEl1bGduwqNC95O3bZflgtAb4L6w==",
       "requires": {
         "prosemirror-keymap": "^1.0.0",
         "prosemirror-model": "^1.0.0",
