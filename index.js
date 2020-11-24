@@ -134,6 +134,8 @@ const renderSubscription = require('./views/subscription')
 
 const pathOf = require('./utilities/path-of')
 
+const PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
+
 let rendered
 
 function render (state) {
@@ -201,8 +203,6 @@ function render (state) {
     return renderNotFound(state, send)
   }
 }
-
-const PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
 
 function network (done) {
   domainSingleton({
