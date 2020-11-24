@@ -149,8 +149,8 @@ function inviteURL (state) {
     [
       state.replicationKey,
       state.encryptionKey,
-      state.publicKey,
-      state.secretKey
+      state.projectKeyPair.publicKey,
+      state.projectKeyPair.secretKey
     ].map(crypto.base64ToHex).join(':')
   )
 }
