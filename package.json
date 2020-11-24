@@ -56,7 +56,7 @@
     "standard": "^12.0.1",
     "tape": "^5.0.1",
     "terser": "^4.0.0",
-    "uglifyify": "^5.0.1",
+    "uglifyify": "^5.0.2",
     "unassertify": "^2.1.1",
     "watchify": "^3.11.1"
   },
