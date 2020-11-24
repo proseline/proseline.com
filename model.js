@@ -1,13 +1,14 @@
 /* globals Blob, fetch */
-var IndexedDB = require('./db/indexeddb')
-var UNTITLED = require('./untitled')
-var assert = require('nanoassert')
-var crypto = require('@proseline/crypto')
-var runParallel = require('run-parallel')
-var runSeries = require('run-series')
-var saveAs = require('file-saver').saveAs
+const IndexedDB = require('./db/indexeddb')
+const UNTITLED = require('./untitled')
+const assert = require('nanoassert')
+const crypto = require('@proseline/crypto')
+const has = require('has')
+const runParallel = require('run-parallel')
+const runSeries = require('run-series')
+const saveAs = require('file-saver').saveAs
 
-var treeifyNotes = require('./utilities/treeify-notes')
+const treeifyNotes = require('./utilities/treeify-notes')
 
 // TODO: Copy draft to new project.
 
@@ -57,9 +58,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   handler('introduce', function (data, state, reduce, done) {
-    var logKeyPair = state.logKeyPair
-    var userIntro = state.userIntro
-    var entry = {
+    const logKeyPair = state.logKeyPair
+    const userIntro = state.userIntro
+    const entry = {
       type: 'intro',
       name: userIntro.name,
       device: userIntro.device,
@@ -94,7 +95,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   function loadMember (data, setate, reduce, done) {
     assert(typeof data.logPublicKey === 'string')
     assert(data.logPublicKey.length === 64)
-    var logPublicKey = data.logPublicKey
+    const logPublicKey = data.logPublicKey
     withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
       db.memberActivity(logPublicKey, 100, function (error, activity) {
@@ -115,8 +116,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Projects
 
   handler('create project', function (data, state, reduce, done) {
-    var title = data.title
-    var persistent = data.persistent
+    const title = data.title
+    const persistent = data.persistent
     createProject({ title, persistent }, function (error, project) {
       if (error) return done(error)
       redirectToProject(project.discoveryKey)
@@ -132,7 +133,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           if (error) return done(error)
           db.getProject(discoveryKey, function (error, project) {
             if (error) return done(error)
-            var stub = {
+            const stub = {
               deleted: true,
               discoveryKey: project.discoveryKey,
               replicationKey: project.replicationKey,
@@ -160,10 +161,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     assert(typeof data.replicationKey === 'string')
     assert(typeof data.encryptionKey === 'string')
     assert(typeof data.projectKeyPair === 'string')
-    var replicationKey = data.replicationKey
-    var encryptionKey = data.encryptionKey
-    var projectKeyPair = data.projectKeyPair
-    var discoveryKey = crypto.discoveryKey(replicationKey)
+    const replicationKey = data.replicationKey
+    const encryptionKey = data.encryptionKey
+    const projectKeyPair = data.projectKeyPair
+    const discoveryKey = crypto.discoveryKey(replicationKey)
     withIndexedDB('proseline', function (error, db) {
       if (error) return done(error)
       db.getProject(discoveryKey, function (error, project) {
@@ -194,11 +195,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   function createProject (data, callback) {
     assert(typeof data === 'object')
-    var replicationKey = data.replicationKey
-    var discoveryKey = data.discoveryKey
-    var encryptionKey = data.encryptionKey
-    var projectKeyPair = data.projectKeyPair
-    var title = data.title
+    let replicationKey = data.replicationKey
+    let discoveryKey = data.discoveryKey
+    let encryptionKey = data.encryptionKey
+    let projectKeyPair = data.projectKeyPair
+    const title = data.title
     assert(typeof callback === 'function')
     if (replicationKey) {
       assert(typeof replicationKey === 'string')
@@ -211,7 +212,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       encryptionKey = crypto.replicationKey()
       projectKeyPair = crypto.keyPair()
     }
-    var project = {
+    const project = {
       replicationKey,
       discoveryKey,
       encryptionKey,
@@ -292,11 +293,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       if (error) return done(error)
       db.getClientKeyPair(function (error, clientKeyPair) {
         if (error) return done(error)
-        var email = data.email
-        var token = data.token
-        var date = new Date().toISOString()
-        var entry = { token, email, date }
-        var order = {
+        const email = data.email
+        const token = data.token
+        const date = new Date().toISOString()
+        const entry = { token, email, date }
+        const order = {
           entry,
           clientPublicKey: clientKeyPair.publicKey,
           signature: crypto.signJSON(entry, clientKeyPair.secretKey)
@@ -312,7 +313,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         })
           .then(function (response) { return response.json() })
           .then(function (result) {
-            var subscription = { email }
+            const subscription = { email }
             db.setSubscription(subscription, function (error) {
               if (error) return done(error)
               reduce('subscription', subscription)
@@ -380,7 +381,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         intros: function (done) {
           db.listIntros(function (error, intros) {
             if (error) return done(error)
-            var result = {}
+            const result = {}
             intros.forEach(function (intro) {
               result[intro.envelope.logPublicKey] = intro
             })
@@ -448,7 +449,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   function loadDraft (data, state, reduce, done) {
-    var digest = data.digest
+    const digest = data.digest
     withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
       runParallel({
@@ -472,7 +473,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       }, function (error, results) {
         if (error) return done(error)
         results.draft.digest = digest
-        var parents = results.draft.parents
+        const parents = results.draft.parents
         runParallel(parents.map(function (digest) {
           return function (done) {
             db.getDraft(digest, function (error, parent) {
@@ -494,8 +495,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reloadHandler('draft', loadDraft)
 
   reduction('draft', function (data, state) {
-    var children = data.children || []
-    var notes = data.notes || []
+    const children = data.children || []
+    const notes = data.notes || []
     return {
       projects: null,
       draft: data.draft,
@@ -532,18 +533,18 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   handler(
     'add device to subscription',
     function (data, state, reduce, done) {
-      assert(data.hasOwnProperty('email'))
+      assert(has(data, 'email'))
       withIndexedDB('proseline', function (error, db) {
         if (error) return done(error)
         db.getClientKeyPair(function (error, clientKeyPair) {
           if (error) return done(error)
-          var email = data.email
-          var entry = {
+          const email = data.email
+          const entry = {
             email,
             name: data.name,
             date: new Date().toISOString()
           }
-          var request = {
+          const request = {
             entry,
             clientPublicKey: clientKeyPair.publicKey,
             signature: crypto.signJSON(entry, clientKeyPair.secretKey)
@@ -558,7 +559,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             body: JSON.stringify(request)
           })
             .then(function (response) {
-              var status = response.status
+              const status = response.status
               if (status !== 200) {
                 return done(new Error('server responded ' + status))
               }
@@ -566,7 +567,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             })
             .then(function (body) {
               if (body.error) return done(body.error)
-              var subscription = { email }
+              const subscription = { email }
               db.setSubscription({ email }, function (error) {
                 if (error) return done(error)
                 reduce('subscription', subscription)
@@ -587,8 +588,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reloadHandler('parents', loadParents)
 
   function loadParents (data, state, reduce, done) {
-    assert(data.hasOwnProperty('parentDigests'))
-    var parentDigests = data.parentDigests
+    assert(has(data, 'parentDigests'))
+    const parentDigests = data.parentDigests
     assert(Array.isArray(parentDigests))
     assert(parentDigests.length > 0)
     assert(parentDigests.every(function (element) {
@@ -622,14 +623,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   reloadHandler('mark', loadMark)
 
   function loadMark (data, state, reduce, done) {
-    assert(data.hasOwnProperty('discoveryKey'))
-    assert(data.hasOwnProperty('logPublicKey'))
-    assert(data.hasOwnProperty('identifier'))
+    assert(has(data, 'discoveryKey'))
+    assert(has(data, 'logPublicKey'))
+    assert(has(data, 'identifier'))
     withIndexedDB(data.discoveryKey, function (error, db) {
       if (error) return done(error)
       db.markHistory(data.logPublicKey, data.identifier, 100, function (error, history) {
         if (error) return done(error)
-        var latestMark = history[0]
+        const latestMark = history[0]
         reduce('mark', {
           markPublicKey: latestMark.logPublicKey,
           markIdentifier: latestMark.identifier,
@@ -648,8 +649,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Drafts
 
   handler('save', function (data, state, reduce, done) {
-    var logKeyPair = state.logKeyPair
-    var entry = {
+    const logKeyPair = state.logKeyPair
+    const entry = {
       type: 'draft',
       parents: data.parents || [],
       text: data.text,
@@ -724,8 +725,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   function putMark (identifier, name, draft, state, callback) {
     identifier = identifier || crypto.random(4)
-    var logKeyPair = state.logKeyPair
-    var entry = {
+    const logKeyPair = state.logKeyPair
+    const entry = {
       type: 'mark',
       identifier: identifier,
       name: name,
@@ -744,8 +745,8 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Notes
 
   handler('note', function (data, state, reduce, done) {
-    var logKeyPair = state.logKeyPair
-    var entry = {
+    const logKeyPair = state.logKeyPair
+    const entry = {
       type: 'note',
       draft: state.draft.digest,
       text: data.text,
@@ -764,7 +765,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   })
 
   reduction('push note', function (newNote, state) {
-    var notes = state.notes.concat(newNote)
+    const notes = state.notes.concat(newNote)
     return {
       notes: notes,
       notesTree: treeifyNotes(notes),

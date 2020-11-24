@@ -1,21 +1,21 @@
 module.exports = function (link) {
-  var returned = document.createDocumentFragment()
-  var first = document.createElement('p')
+  const returned = document.createDocumentFragment()
+  const first = document.createElement('p')
   returned.appendChild(first)
   first.appendChild(document.createTextNode(
     'Proseline is free to use, ' +
     'but you must be online and have proseline.com open ' +
     'in your web browser to share your work with others.'
   ))
-  var second = document.createElement('p')
+  const second = document.createElement('p')
   returned.appendChild(second)
   second.appendChild(document.createTextNode(
     'To share your work even when you ' +
     'are not online, '
   ))
-  var SUBSCRIBE = 'subscribe to Proseline’s sharing service'
+  const SUBSCRIBE = 'subscribe to Proseline’s sharing service'
   if (link) {
-    var a = document.createElement('a')
+    const a = document.createElement('a')
     second.appendChild(a)
     a.href = '/subscription'
     a.appendChild(document.createTextNode(SUBSCRIBE))

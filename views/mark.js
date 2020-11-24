@@ -1,10 +1,10 @@
-var assert = require('nanoassert')
-var renderDraftHeader = require('./partials/draft-header')
-var renderDraftLink = require('./partials/draft-link')
-var renderLoading = require('./loading')
-var renderRefreshNotice = require('./partials/refresh-notice')
-var renderRelativeTimestamp = require('./partials/relative-timestamp')
-var withProject = require('./with-project')
+const assert = require('nanoassert')
+const renderDraftHeader = require('./partials/draft-header')
+const renderDraftLink = require('./partials/draft-link')
+const renderLoading = require('./loading')
+const renderRefreshNotice = require('./partials/refresh-notice')
+const renderRelativeTimestamp = require('./partials/relative-timestamp')
+const withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, logPublicKey, identifier) {
   state.route = 'mark'
@@ -16,7 +16,7 @@ module.exports = withProject(function (state, send, discoveryKey, logPublicKey, 
   assert(logPublicKey.length === 64)
   assert(typeof identifier === 'string')
   assert(identifier.length, 8)
-  var main = document.createElement('main')
+  const main = document.createElement('main')
   if (
     state.markPublicKey !== logPublicKey ||
     state.markIdentifier !== identifier
@@ -38,10 +38,10 @@ module.exports = withProject(function (state, send, discoveryKey, logPublicKey, 
     }
     main.appendChild(renderDraftHeader(state))
 
-    var section = document.createElement('section')
+    const section = document.createElement('section')
     main.appendChild(section)
 
-    var h2 = document.createElement('h2')
+    const h2 = document.createElement('h2')
     section.appendChild(h2)
     h2.appendChild(document.createTextNode('Mark History'))
 
@@ -51,12 +51,12 @@ module.exports = withProject(function (state, send, discoveryKey, logPublicKey, 
 })
 
 function renderMarkHistory (state) {
-  var ol = document.createElement('ol')
+  const ol = document.createElement('ol')
   ol.className = 'activity'
   state.markHistory.forEach(function (entry) {
-    var li = document.createElement('li')
+    const li = document.createElement('li')
     ol.appendChild(li)
-    var brief = state.draftBriefs.find(function (brief) {
+    const brief = state.draftBriefs.find(function (brief) {
       return brief.digest === entry.draft
     })
     li.appendChild(renderDraftLink(state, brief))

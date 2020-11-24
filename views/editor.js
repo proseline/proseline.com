@@ -1,10 +1,10 @@
-var assert = require('nanoassert')
-var beforeUnload = require('../before-unload')
-var initializeEditor = require('../editor')
-var onKeyDown = require('./on-key-down')
-var renderDraftHeader = require('./partials/draft-header')
-var renderLoading = require('./loading')
-var withProject = require('./with-project')
+const assert = require('nanoassert')
+const beforeUnload = require('../before-unload')
+const initializeEditor = require('../editor')
+const onKeyDown = require('./on-key-down')
+const renderDraftHeader = require('./partials/draft-header')
+const renderLoading = require('./loading')
+const withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, parentDigests) {
   state.route = 'editor'
@@ -21,7 +21,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
       })
     )
   )
-  var main = document.createElement('main')
+  const main = document.createElement('main')
   if (
     parentDigests &&
     (
@@ -41,7 +41,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
       })
     )
   } else {
-    var form = document.createElement('form')
+    const form = document.createElement('form')
     form.className = 'saveDraftForm'
     main.appendChild(form)
 
@@ -56,7 +56,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     })
 
     // Save Button
-    var save = document.createElement('button')
+    const save = document.createElement('button')
     form.appendChild(save)
     save.className = 'button'
     save.appendChild(document.createTextNode('Save'))
@@ -64,15 +64,15 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     main.appendChild(renderDraftHeader(state, form))
 
     // Editor
-    var div = document.createElement('div')
+    const div = document.createElement('div')
     main.appendChild(div)
     div.className = 'editor'
-    var content = false
+    let content = false
     if (parentDigests && parentDigests.length > 0) {
       content = state.parents[0].text
     }
     // TODO: Diff starting point for merge drafts.
-    var editor = initializeEditor({
+    const editor = initializeEditor({
       element: div,
       content,
       dirty: function (dirty) {

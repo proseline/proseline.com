@@ -1,9 +1,9 @@
-var http = require('http')
-var fs = require('fs')
+const http = require('http')
+const fs = require('fs')
 
 http.createServer()
   .on('request', function (request, response) {
-    var url = request.url
+    const url = request.url
     if (url === '/styles.css') {
       response.setHeader('Content-Type', 'text/css')
       send('build/styles.css')

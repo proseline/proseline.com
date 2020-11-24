@@ -1,4 +1,4 @@
-var beforeUnload = require('../before-unload')
+const beforeUnload = require('../before-unload')
 
 module.exports = function (editor, parents, discoveryKey, send) {
   return function (event) {

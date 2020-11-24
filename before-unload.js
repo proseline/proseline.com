@@ -1,6 +1,6 @@
-var message = exports.message = 'Continue without saving your work?'
+const message = exports.message = 'Continue without saving your work?'
 
-var isEnabled = false
+let isEnabled = false
 
 exports.enable = function () {
   window.addEventListener('beforeunload', eventHandler)

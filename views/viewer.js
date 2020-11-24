@@ -1,30 +1,31 @@
-var SVG = require('../svg')
-var assert = require('nanoassert')
-var beforeUnload = require('../before-unload')
-var initializeEditor = require('../editor')
-var onKeyDown = require('./on-key-down')
-var renderBookmarkPath = require('./partials/bookmark-path')
-var renderDraftHeader = require('./partials/draft-header')
-var renderIntro = require('./partials/intro')
-var renderLoading = require('./loading')
-var renderRefreshNotice = require('./partials/refresh-notice')
-var renderRelativeTimestamp = require('./partials/relative-timestamp')
-var withProject = require('./with-project')
+const SVG = require('../svg')
+const assert = require('nanoassert')
+const beforeUnload = require('../before-unload')
+const has = require('has')
+const initializeEditor = require('../editor')
+const onKeyDown = require('./on-key-down')
+const renderBookmarkPath = require('./partials/bookmark-path')
+const renderDraftHeader = require('./partials/draft-header')
+const renderIntro = require('./partials/intro')
+const renderLoading = require('./loading')
+const renderRefreshNotice = require('./partials/refresh-notice')
+const renderRelativeTimestamp = require('./partials/relative-timestamp')
+const withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, digest) {
   state.route = 'viewer'
   // <main>
-  var main = document.createElement('main')
+  const main = document.createElement('main')
   if (state.draft && state.draft.digest === digest) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
         send('reload draft', { discoveryKey, digest })
       }))
     }
-    var draft = state.draft
-    var div = document.createElement('div')
+    const draft = state.draft
+    const div = document.createElement('div')
     div.className = 'editor'
-    var editor = initializeEditor({
+    const editor = initializeEditor({
       element: div,
       content: draft.text,
       renderNoteForm: renderNoteForm.bind(null, state, send),
@@ -48,19 +49,20 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
         : undefined
     })
     div.onkeydown = onKeyDown(editor, [state.draft.digest], state, send)
-    var saveForm = renderSaveForm(state, send, editor)
+    const saveForm = renderSaveForm(state, send, editor)
     main.appendChild(renderDraftHeader(state, saveForm))
     main.appendChild(div)
+    let bookmarks
     if (state.projectMarks.filter(function (mark) {
       return mark.draft === state.draft.digest
     })) {
-      var bookmarkWidth = 50
-      var bookmarks = document.createElementNS(SVG, 'svg')
-      var marks = state.projectMarks.filter(function (mark) {
+      const bookmarkWidth = 50
+      bookmarks = document.createElementNS(SVG, 'svg')
+      const marks = state.projectMarks.filter(function (mark) {
         return mark.draft === state.draft.digest
       })
-      var othersMarks = []
-      var ourMarks = []
+      const othersMarks = []
+      const ourMarks = []
       marks.forEach(function (mark) {
         (mark.envelope.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
           .push(mark)
@@ -89,12 +91,12 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
   return main
 })
 
-var SAVE_FORM_CLASS = 'saveDraftForm'
-var BOOKMARKS_CLASS = 'bookmarks'
+const SAVE_FORM_CLASS = 'saveDraftForm'
+const BOOKMARKS_CLASS = 'bookmarks'
 
 function renderSaveForm (state, send, editor) {
   // <form>
-  var form = document.createElement('form')
+  const form = document.createElement('form')
   form.className = SAVE_FORM_CLASS + ' hidden'
   form.addEventListener('submit', function (event) {
     event.preventDefault()
@@ -107,22 +109,22 @@ function renderSaveForm (state, send, editor) {
   })
 
   // <button>
-  var save = document.createElement('button')
+  const save = document.createElement('button')
   form.appendChild(save)
   save.className = 'button'
   save.appendChild(document.createTextNode('Save'))
   return form
 }
 
-var SEPARATOR = '\n\n'
+const SEPARATOR = '\n\n'
 
 function renderText (text) {
-  var fragment = document.createDocumentFragment()
+  const fragment = document.createDocumentFragment()
   text
     .split(SEPARATOR)
     .forEach(function (line) {
       // <p>
-      var p = document.createElement('p')
+      const p = document.createElement('p')
       fragment.appendChild(p)
       p.appendChild(document.createTextNode(line))
     })
@@ -131,13 +133,13 @@ function renderText (text) {
 
 function renderMarkForm (state, send) {
   // <form>
-  var form = document.createElement('form')
+  const form = document.createElement('form')
   form.id = 'markDraft'
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()
-    var name = input.value
-    var continuing = marksICanMove.find(function (mark) {
+    const name = input.value
+    const continuing = marksICanMove.find(function (mark) {
       return mark.name === name
     })
     send('mark', {
@@ -149,11 +151,11 @@ function renderMarkForm (state, send) {
   })
 
   // <input>
-  var input = document.createElement('input')
+  const input = document.createElement('input')
   input.required = true
   form.appendChild(input)
 
-  var marksICanMove = state.projectMarks.filter(function (mark) {
+  const marksICanMove = state.projectMarks.filter(function (mark) {
     return (
       mark.envelope.logPublicKey === state.logKeyPair.publicKey &&
       mark.draft !== state.draft.digest
@@ -161,19 +163,19 @@ function renderMarkForm (state, send) {
   })
   if (marksICanMove.length !== 0) {
     // <datalist>
-    var datalist = document.createElement('datalist')
+    const datalist = document.createElement('datalist')
     form.appendChild(datalist)
     datalist.id = 'marksICanMove'
     input.setAttribute('list', datalist.id)
     marksICanMove.forEach(function (mark) {
-      var option = document.createElement('option')
+      const option = document.createElement('option')
       datalist.appendChild(option)
       option.value = mark.name
     })
   }
 
   // <button>
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   button.type = 'submit'
   button.appendChild(document.createTextNode('Put a mark on this draft.'))
   form.appendChild(button)
@@ -183,13 +185,13 @@ function renderMarkForm (state, send) {
 
 function renderNote (state, send, note) {
   // <aside>
-  var aside = document.createElement('aside')
+  const aside = document.createElement('aside')
   aside.className = 'note'
   aside.id = note.digest
-  var replyTo = state.replyTo
+  const replyTo = state.replyTo
 
   // <p>
-  var p = document.createElement('p')
+  const p = document.createElement('p')
   p.className = 'byline'
   p.appendChild(renderIntro(state, note.envelope.logPublicKey))
   p.appendChild(document.createTextNode(' '))
@@ -198,7 +200,7 @@ function renderNote (state, send, note) {
   aside.appendChild(p)
 
   // <blockquote>
-  var blockquote = document.createElement('blockquote')
+  const blockquote = document.createElement('blockquote')
   aside.appendChild(blockquote)
   blockquote.appendChild(renderText(note.text))
 
@@ -206,7 +208,7 @@ function renderNote (state, send, note) {
     aside.appendChild(renderNoteForm(state, send, { parent: note.digest }))
   } else {
     // <button>
-    var button = document.createElement('button')
+    const button = document.createElement('button')
     aside.appendChild(button)
     button.addEventListener('click', function () {
       send('reply to', note.digest)
@@ -216,7 +218,7 @@ function renderNote (state, send, note) {
 
   if (note.children.length !== 0) {
     // <ol>
-    var ol = document.createElement('ol')
+    const ol = document.createElement('ol')
     note.children.forEach(function (child) {
       ol.appendChild(renderNote(state, send, child))
     })
@@ -228,24 +230,24 @@ function renderNote (state, send, note) {
 
 function renderNoteForm (state, send, options) {
   options = options || {}
-  var parent = options.parent
-  var range = options.range
-  var selected = options.selected
+  const parent = options.parent
+  const range = options.range
+  const selected = options.selected
   assert(typeof state, 'object')
   assert(!parent || typeof parent === 'string')
   assert(
     !range ||
     (
       typeof range === 'object' &&
-      range.hasOwnProperty('start') &&
-      range.hasOwnProperty('end')
+      has(range, 'start') &&
+      has(range, 'end')
     )
   )
   assert(!selected || typeof selected === 'string')
   assert(typeof send === 'function')
 
   // <form>
-  var form = document.createElement('form')
+  const form = document.createElement('form')
   form.className = 'noteForm'
   form.addEventListener('submit', function (event) {
     event.preventDefault()
@@ -254,14 +256,14 @@ function renderNoteForm (state, send, options) {
   })
 
   // <textarea>
-  var textarea = document.createElement('textarea')
+  const textarea = document.createElement('textarea')
   form.appendChild(textarea)
   textarea.required = true
   textarea.rows = 3
   textarea.autofocus = false
 
   // <button>
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   form.appendChild(button)
   button.type = 'submit'
   button.appendChild(

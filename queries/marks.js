@@ -1,16 +1,16 @@
 module.exports = function (db, digest, callback) {
-  var transaction = db.transaction(['marks'], 'readonly')
+  const transaction = db.transaction(['marks'], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore('marks')
-  var index = objectStore.index('draft')
-  var request = index.openCursor(digest)
-  var marks = []
+  const objectStore = transaction.objectStore('marks')
+  const index = objectStore.index('draft')
+  const request = index.openCursor(digest)
+  const marks = []
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (cursor) {
-      var value = cursor.value
+      const value = cursor.value
       marks.push(value)
       cursor.continue()
     } else {

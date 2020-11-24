@@ -1,5 +1,5 @@
 module.exports = function (timestamp) {
-  var span = document.createElement('span')
+  const span = document.createElement('span')
   span.className = 'timestamp'
   span.appendChild(
     document.createTextNode(

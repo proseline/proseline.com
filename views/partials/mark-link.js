@@ -1,7 +1,7 @@
-var renderMark = require('./mark')
+const renderMark = require('./mark')
 
 module.exports = function (state, mark) {
-  var a = document.createElement('a')
+  const a = document.createElement('a')
   a.className = 'draft'
   a.href = (
     '/projects/' + mark.discoveryKey +

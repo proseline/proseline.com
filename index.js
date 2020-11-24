@@ -1,16 +1,16 @@
 /* globals Element */
-var Client = require('./net/client')
-var Clipboard = require('clipboard')
-var IndexedDB = require('./db/indexeddb')
-var assert = require('nanoassert')
-var beforeUnload = require('./before-unload')
-var crypto = require('@proseline/crypto')
-var databases = require('./db/databases')
-var debug = require('debug')('proseline:instance')
-var domainSingleton = require('domain-singleton')
-var moment = require('moment')
-var pageBus = require('./page-bus')
-var runSeries = require('run-series')
+const Client = require('./net/client')
+const Clipboard = require('clipboard')
+const IndexedDB = require('./db/indexeddb')
+const assert = require('nanoassert')
+const beforeUnload = require('./before-unload')
+const crypto = require('@proseline/crypto')
+const databases = require('./db/databases')
+const debug = require('debug')('proseline:instance')
+const domainSingleton = require('domain-singleton')
+const moment = require('moment')
+const pageBus = require('./page-bus')
+const runSeries = require('run-series')
 
 runSeries([
   detectFeatures,
@@ -28,7 +28,7 @@ function detectFeatures (done) {
 
   function detectIndexedDB (done) {
     if (!IndexedDB) {
-      var error = new Error('no IndexedDB')
+      const error = new Error('no IndexedDB')
       error.userMessage = 'You must enable IndexedDB in your web browser to use Proseline.'
       done(error)
     }
@@ -36,16 +36,16 @@ function detectFeatures (done) {
   }
 }
 
-var EventEmitter = require('events').EventEmitter
-var nanomorph = require('nanomorph')
-var nanoraf = require('nanoraf')
+const EventEmitter = require('events').EventEmitter
+const nanomorph = require('nanomorph')
+const nanoraf = require('nanoraf')
 
 // State Management
 
-var globalState = {}
+const globalState = {}
 window.globalState = globalState
 
-var actions = new EventEmitter()
+const actions = new EventEmitter()
   .on('error', function (error) {
     console.error(error)
     window.alert(error.toString())
@@ -59,8 +59,8 @@ function send (/* variadic */) {
   actions.emit.apply(actions, arguments)
 }
 
-var reductions = new EventEmitter()
-var initializer
+const reductions = new EventEmitter()
+let initializer
 
 require('./model')(
   function makeInitializer (_initializer) {
@@ -103,11 +103,11 @@ function reduce (event, data) {
   reductions.emit(event, data)
 }
 
-var timestampInterval
+let timestampInterval
 
 function update () {
   clearInterval(timestampInterval)
-  var rerendered = render(globalState)
+  const rerendered = render(globalState)
   // All renderers must return a <main> or the
   // diff algorithm will fail.
   assert(rerendered instanceof Element)
@@ -121,31 +121,31 @@ function resetState () {
   Object.assign(globalState, initializer())
 }
 
-var renderComparison = require('./views/comparison')
-var renderEditor = require('./views/editor')
-var renderHomePage = require('./views/home-page')
-var renderLoading = require('./views/loading')
-var renderMark = require('./views/mark')
-var renderMember = require('./views/member')
-var renderNotFound = require('./views/not-found')
-var renderProject = require('./views/project')
-var renderViewer = require('./views/viewer')
-var renderSubscription = require('./views/subscription')
+const renderComparison = require('./views/comparison')
+const renderEditor = require('./views/editor')
+const renderHomePage = require('./views/home-page')
+const renderLoading = require('./views/loading')
+const renderMark = require('./views/mark')
+const renderMember = require('./views/member')
+const renderNotFound = require('./views/not-found')
+const renderProject = require('./views/project')
+const renderViewer = require('./views/viewer')
+const renderSubscription = require('./views/subscription')
 
-var pathOf = require('./utilities/path-of')
+const pathOf = require('./utilities/path-of')
 
-var rendered
+let rendered
 
 function render (state) {
-  var path = pathOf(window.location.href)
-  var main
+  const path = pathOf(window.location.href)
+  let main
   // Home
   if (path === '' || path === '/') {
     return renderHomePage(state, send)
   // Join Link
   } else if (path === '/join' && window.location.hash) {
-    var re = /^#([a-f0-9]{64}):([a-f0-9]{64}):([a-f0-9]{64}):([a-f0-9]{64})$/
-    var match = re.exec(window.location.hash)
+    const re = /^#([a-f0-9]{64}):([a-f0-9]{64}):([a-f0-9]{64}):([a-f0-9]{64})$/
+    const match = re.exec(window.location.hash)
     if (!match) return renderNotFound(state, send)
     main = document.createElement('main')
     main.appendChild(
@@ -163,9 +163,9 @@ function render (state) {
     return main
   // /project/{discovery key}
   } else if (/^\/projects\/[a-f0-9]{64}/.test(path)) {
-    var discoveryKey = crypto.hexToBase64(path.substr(10, 64))
-    var remainder = path.substr(74)
-    var logPublicKey
+    const discoveryKey = crypto.hexToBase64(path.substr(10, 64))
+    const remainder = path.substr(74)
+    let logPublicKey
     if (remainder === '' || remainder === '/') {
       return renderProject(state, send, discoveryKey)
     // New Draft
@@ -173,20 +173,20 @@ function render (state) {
       return renderEditor(state, send, discoveryKey)
     // New Draft with Parents
     } else if (/^\/drafts\/new\/[a-f0-9]{64}(,[a-f0-9]{64})*$/.test(remainder)) {
-      var parents = remainder.substr(12).split(',').map(crypto.hexToBase64)
+      const parents = remainder.substr(12).split(',').map(crypto.hexToBase64)
       return renderEditor(state, send, discoveryKey, parents)
     // Comparison
     } else if (/^\/drafts\/compare\/[a-f0-9]{64},[a-f0-9]{64}$/.test(remainder)) {
-      var drafts = remainder.substr(16).split(',').map(crypto.hexToBase64)
+      const drafts = remainder.substr(16).split(',').map(crypto.hexToBase64)
       return renderComparison(state, send, discoveryKey, drafts)
     // View Drafts
     } else if (/^\/drafts\/[a-f0-9]{64}$/.test(remainder)) {
-      var digest = crypto.hexToBase64(remainder.substr(8, 64))
+      const digest = crypto.hexToBase64(remainder.substr(8, 64))
       return renderViewer(state, send, discoveryKey, digest)
     // Mark
     } else if (/^\/marks\/[a-f0-9]{64}:[a-f0-9]{8}$/.test(remainder)) {
       logPublicKey = crypto.hexToBase64(remainder.substr(7, 64))
-      var identifier = crypto.hexToBase64(remainder.substr(7 + 64 + 1, 8))
+      const identifier = crypto.hexToBase64(remainder.substr(7 + 64 + 1, 8))
       return renderMark(state, send, discoveryKey, logPublicKey, identifier)
     // Member Activity
     } else if (/^\/members\/[a-f0-9]{64}$/.test(remainder)) {
@@ -202,7 +202,7 @@ function render (state) {
   }
 }
 
-var PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
+const PEER_COUNT_UPDATE_INTERVAL = 3 * 10000
 
 function network (done) {
   domainSingleton({
@@ -210,7 +210,7 @@ function network (done) {
     task: 'proseline-peer',
     onAppointed: function () {
       debug('appointed peer')
-      var client = new Client()
+      const client = new Client()
       setInterval(function () {
         pageBus.emit('peers', client.countPeers())
       }, PEER_COUNT_UPDATE_INTERVAL)
@@ -223,7 +223,7 @@ function network (done) {
   pageBus.on('entry', function (entry) {
     // If we created this entry, don't show an update.
     if (entry.local) return
-    var discoveryKey = entry.discoveryKey
+    const discoveryKey = entry.discoveryKey
     if (
       globalState.discoveryKey &&
       globalState.discoveryKey === discoveryKey
@@ -256,14 +256,14 @@ function launchApplication (done) {
 
 // Trap hyperlinks.
 
-var findLocalLinkAnchor = require('./utilities/find-local-link-anchor')
+const findLocalLinkAnchor = require('./utilities/find-local-link-anchor')
 
 window.addEventListener('click', function (event) {
   if (event.which === 2) return
-  var node = findLocalLinkAnchor(event.target)
+  const node = findLocalLinkAnchor(event.target)
   if (node) {
     event.preventDefault()
-    var href = node.href
+    let href = node.href
     if (href.baseVal) href = href.baseVal
     if (
       beforeUnload.isEnabled() &&
@@ -272,9 +272,9 @@ window.addEventListener('click', function (event) {
     window.history.pushState({}, null, pathOf(href) || '/')
     update()
     setTimeout(function () {
-      var match = /#([a-f0-9]{64})$/.exec(href)
+      const match = /#([a-f0-9]{64})$/.exec(href)
       if (match) {
-        var anchor = document.getElementById(match[1])
+        const anchor = document.getElementById(match[1])
         if (anchor) {
           anchor.scrollIntoView()
         }
@@ -298,10 +298,10 @@ window.databases = databases
 // Timestamps
 
 function updateTimestamps () {
-  var elements = document.getElementsByClassName('relativeTimestamp')
-  for (var index = 0; index < elements.length; index++) {
-    var element = elements[index]
-    var timestamp = element.dataset.timestamp
+  const elements = document.getElementsByClassName('relativeTimestamp')
+  for (let index = 0; index < elements.length; index++) {
+    const element = elements[index]
+    const timestamp = element.dataset.timestamp
     if (timestamp) {
       element.innerText = moment(timestamp).fromNow()
     }

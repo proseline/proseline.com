@@ -1,11 +1,11 @@
-var assert = require('nanoassert')
-var renderIntroIcon = require('./intro-icon')
+const assert = require('nanoassert')
+const renderIntroIcon = require('./intro-icon')
 
 module.exports = function (state, logPublicKey, options) {
   assert(typeof state === 'object')
   assert(typeof logPublicKey === 'string')
   options = options || {}
-  var element
+  let element
   if (options.plainText) {
     element = document.createElement('span')
   } else {
@@ -18,9 +18,9 @@ module.exports = function (state, logPublicKey, options) {
   }
   element.className = 'intro'
   if (!options.noIcon) element.appendChild(renderIntroIcon())
-  var intro = state.intros[logPublicKey]
+  const intro = state.intros[logPublicKey]
   if (logPublicKey === state.logKeyPair.publicKey) {
-    var word = options.possessive ? 'your' : 'you'
+    let word = options.possessive ? 'your' : 'you'
     if (options.capitalize) word = word[0].toUpperCase() + word.slice(1)
     element.appendChild(document.createTextNode(word))
   } else if (intro) {

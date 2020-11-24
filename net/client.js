@@ -1,14 +1,14 @@
-var EventEmitter = require('events').EventEmitter
-var HUBS = require('./hubs')
-var Peer = require('./peer')
-var assert = require('nanoassert')
-var databases = require('../db/databases')
-var debug = require('debug')('proseline:client')
-var inherits = require('inherits')
-var pageBus = require('../page-bus')
-var signalhub = require('signalhub')
-var simpleGet = require('simple-get')
-var webRTCSwarm = require('webrtc-swarm')
+const EventEmitter = require('events').EventEmitter
+const HUBS = require('./hubs')
+const Peer = require('./peer')
+const assert = require('nanoassert')
+const databases = require('../db/databases')
+const debug = require('debug')('proseline:client')
+const inherits = require('inherits')
+const pageBus = require('../page-bus')
+const signalhub = require('signalhub')
+const simpleGet = require('simple-get')
+const webRTCSwarm = require('webrtc-swarm')
 
 // TODO: tune maxPeers by last access time
 
@@ -16,7 +16,7 @@ module.exports = Client
 
 function Client () {
   if (!(this instanceof Client)) return new Client()
-  var self = this
+  const self = this
   self._peers = new Set()
   self._swarms = new Set()
   self._joinSwarms()
@@ -34,8 +34,8 @@ function Client () {
 inherits(Client, EventEmitter)
 
 Client.prototype._joinSwarms = function () {
-  var self = this
-  var proselineDB = databases.proseline
+  const self = this
+  const proselineDB = databases.proseline
   proselineDB.listProjects(function (error, projects) {
     if (error) return debug(error)
     projects.forEach(function (project) {
@@ -50,9 +50,9 @@ Client.prototype._joinSwarms = function () {
 
 Client.prototype._joinSwarm = function (project) {
   assert(typeof project === 'object')
-  var self = this
-  var discoveryKey = project.discoveryKey
-  var alreadyJoined = Array.from(self._swarms).some(function (swarm) {
+  const self = this
+  const discoveryKey = project.discoveryKey
+  const alreadyJoined = Array.from(self._swarms).some(function (swarm) {
     return swarm.project.discoveryKey === discoveryKey
   })
   if (alreadyJoined) return
@@ -62,13 +62,13 @@ Client.prototype._joinSwarm = function (project) {
       url: 'https://iceservers.proseline.com/_servers',
       timeout: 6000
     }, function (error, response, data) {
-      var options = { maxPeers: 3 }
+      const options = { maxPeers: 3 }
       if (!error) options.config = data
-      var hub = signalhub('proseline-' + project.discoveryKey, HUBS)
-      var swarm = webRTCSwarm(hub, options)
+      const hub = signalhub('proseline-' + project.discoveryKey, HUBS)
+      const swarm = webRTCSwarm(hub, options)
       swarm.on('peer', function (transportStream, id) {
         debug('peer: %o', id)
-        var alreadyConnected = Array.from(self._peers)
+        const alreadyConnected = Array.from(self._peers)
           .some(function (peer) {
             return peer.id === id
           })
@@ -76,7 +76,7 @@ Client.prototype._joinSwarm = function (project) {
           debug('already connected: %o', id)
           return
         }
-        var peer = new Peer(id, transportStream)
+        const peer = new Peer(id, transportStream)
         peer
           .on('update', function (discoveryKey) {
             self.emit('update', discoveryKey)
@@ -98,8 +98,8 @@ Client.prototype._joinSwarm = function (project) {
 
 Client.prototype._leaveSwarm = function (discoveryKey) {
   assert(typeof discoveryKey === 'string')
-  var swarms = this._swarms
-  var swarm = Array.from(swarms).find(function (element) {
+  const swarms = this._swarms
+  const swarm = Array.from(swarms).find(function (element) {
     return element.project.discoveryKey === discoveryKey
   })
   if (swarm) {

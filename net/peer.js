@@ -1,20 +1,20 @@
-var EventEmitter = require('events').EventEmitter
-var databases = require('../db/databases')
-var debug = require('debug')
-var duplexify = require('duplexify')
-var inherits = require('inherits')
-var multiplex = require('multiplex')
-var pageBus = require('../page-bus')
-var replicate = require('./replicate')
+const EventEmitter = require('events').EventEmitter
+const databases = require('../db/databases')
+const debug = require('debug')
+const duplexify = require('duplexify')
+const inherits = require('inherits')
+const multiplex = require('multiplex')
+const pageBus = require('../page-bus')
+const replicate = require('./replicate')
 
-var DEBUG_NAMESPACE = 'proseline:peer:'
+const DEBUG_NAMESPACE = 'proseline:peer:'
 
 module.exports = Peer
 
 function Peer (id, transportStream) {
   if (!(this instanceof Peer)) return new Peer(id)
-  var self = this
-  var log = self.log = debug(DEBUG_NAMESPACE + id)
+  const self = this
+  const log = self.log = debug(DEBUG_NAMESPACE + id)
   self.id = id
   self.transportStream = transportStream
   transportStream
@@ -27,19 +27,19 @@ function Peer (id, transportStream) {
     })
 
   // Multiplex replication streams over the transport stream.
-  var plex = self.plex = multiplex()
+  const plex = self.plex = multiplex()
   self._sharedStreams = new Map()
   plex.on('error', function (error) {
     log(error)
   })
 
   plex.on('stream', function (receiveStream, discoveryKey) {
-    var sharedStream = duplexify(
+    const sharedStream = duplexify(
       plex.createStream(discoveryKey),
       receiveStream
     )
-    var proselineDatabase = databases.proseline
-    var log = debug(DEBUG_NAMESPACE + 'replication:' + discoveryKey)
+    const proselineDatabase = databases.proseline
+    const log = debug(DEBUG_NAMESPACE + 'replication:' + discoveryKey)
     proselineDatabase.getProject(discoveryKey, function (error, project) {
       if (error) {
         log(error)
@@ -60,10 +60,10 @@ function Peer (id, transportStream) {
     })
   })
 
-  var proseline = databases.proseline
+  const proseline = databases.proseline
 
   // Add and remove replication streams as we join and leave projects.
-  var pageBusListeners = self._pageBusListeners = {
+  const pageBusListeners = self._pageBusListeners = {
     'added project': function (discoveryKey) {
       proseline.getProject(discoveryKey, function (error, project) {
         if (error) return log(error)
@@ -94,10 +94,10 @@ function Peer (id, transportStream) {
 inherits(Peer, EventEmitter)
 
 Peer.prototype.joinProjects = function () {
-  var self = this
-  var log = self.log
+  const self = this
+  const log = self.log
   log('joining projects')
-  var proselineDB = databases.proseline
+  const proselineDB = databases.proseline
   proselineDB.listProjects(function (error, projects) {
     if (error) return log(error)
     projects.forEach(function (project) {
@@ -115,12 +115,12 @@ Peer.prototype.joinProject = function (
   database,
   sharedStream // optional
 ) {
-  var self = this
-  var log = self.log
-  var discoveryKey = project.discoveryKey
+  const self = this
+  const log = self.log
+  const discoveryKey = project.discoveryKey
   if (self._sharedStreams.has(discoveryKey)) return
   log('joining project: %s', discoveryKey)
-  var replicationStream = replicate({
+  const replicationStream = replicate({
     peerID: self.id,
     replicationKey: project.replicationKey,
     encryptionKey: project.encryptionKey,
@@ -138,8 +138,8 @@ Peer.prototype.joinProject = function (
 }
 
 Peer.prototype._addSharedStream = function (discoveryKey, stream) {
-  var self = this
-  var log = self.log
+  const self = this
+  const log = self.log
   self._sharedStreams.set(discoveryKey, stream)
   stream
     .once('error', function (error) {
@@ -152,9 +152,9 @@ Peer.prototype._addSharedStream = function (discoveryKey, stream) {
 }
 
 Peer.prototype.leaveProject = function (discoveryKey) {
-  var self = this
-  var sharedStreams = self._sharedStreams
-  var sharedStream = sharedStreams.get(discoveryKey)
+  const self = this
+  const sharedStreams = self._sharedStreams
+  const sharedStream = sharedStreams.get(discoveryKey)
   if (sharedStream) {
     sharedStream.destroy()
     sharedStreams.delete(discoveryKey)
@@ -170,7 +170,7 @@ Peer.prototype.done = function () {
 }
 
 Peer.prototype._removePageBusListeners = function () {
-  var pageBusListeners = this._pageBusListeners
+  const pageBusListeners = this._pageBusListeners
   Object.keys(pageBusListeners).forEach(function (eventName) {
     pageBus.removeListener(eventName, pageBusListeners[eventName])
   })

@@ -1,14 +1,14 @@
-var stripe = require('../stripe')
+const stripe = require('../stripe')
 
-var renderDraftHeader = require('./partials/draft-header')
-var renderLoading = require('./loading')
-var renderPayment = require('./partials/payment')
-var renderSection = require('./partials/section')
-var renderSharing = require('./partials/sharing')
+const renderDraftHeader = require('./partials/draft-header')
+const renderLoading = require('./loading')
+const renderPayment = require('./partials/payment')
+const renderSection = require('./partials/section')
+const renderSharing = require('./partials/sharing')
 
 module.exports = function (state, send) {
   state.route = 'home'
-  var main = document.createElement('main')
+  const main = document.createElement('main')
   if (!state.subscription) {
     main.appendChild(
       renderLoading(function () {
@@ -17,7 +17,7 @@ module.exports = function (state, send) {
     )
   } else {
     main.appendChild(renderDraftHeader(state))
-    var subscription = state.subscription
+    const subscription = state.subscription
     if (subscription.email) {
       main.appendChild(renderCurrentSubscription(subscription))
     } else {
@@ -30,22 +30,22 @@ module.exports = function (state, send) {
 }
 
 function renderCurrentSubscription (subscription) {
-  var section = renderSection('Your Subscription')
+  const section = renderSection('Your Subscription')
 
-  var emailParagraph = document.createElement('p')
+  const emailParagraph = document.createElement('p')
   section.appendChild(emailParagraph)
   emailParagraph.appendChild(document.createTextNode(
     'The e-mail address for your subscription is ' +
     subscription.email + '.'
   ))
 
-  var cancelParagraph = document.createElement('p')
+  const cancelParagraph = document.createElement('p')
   section.appendChild(cancelParagraph)
   cancelParagraph.appendChild(document.createTextNode(
     'To cancel your subscription, visit '
   ))
 
-  var cancelLink = document.createElement('a')
+  const cancelLink = document.createElement('a')
   cancelParagraph.appendChild(cancelLink)
   cancelLink.href = 'https://paid.proseline.com/cancel'
   cancelLink.target = '_blank'
@@ -59,21 +59,21 @@ function renderCurrentSubscription (subscription) {
 }
 
 function renderOverviewSection (state) {
-  var section = renderSection('Subscription')
+  const section = renderSection('Subscription')
   section.appendChild(renderSharing())
   return section
 }
 
 function renderSubscribeSection (send) {
   // TODO: Load price dynamically.
-  var section = renderSection('Subscribe')
+  const section = renderSection('Subscribe')
 
-  var price = document.createElement('p')
+  const price = document.createElement('p')
   section.appendChild(price)
   price.className = 'price'
   price.appendChild(document.createTextNode('$7 per month'))
 
-  var billing = document.createElement('p')
+  const billing = document.createElement('p')
   section.appendChild(billing)
   billing.className = 'billing'
   billing.appendChild(document.createTextNode(
@@ -84,28 +84,28 @@ function renderSubscribeSection (send) {
 
   section.appendChild(renderEMailInput('subscribe-email'))
 
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   section.appendChild(button)
   button.onclick = function () {
-    var card = document.getElementById('card').card
+    const card = document.getElementById('card').card
     stripe.createToken(card)
       .then(function (result) {
         if (result.error) {
-          var errors = document.getElementById('card-errors')
+          const errors = document.getElementById('card-errors')
           errors.textContent = result.error.entry
           return
         }
-        var token = result.token.id
+        const token = result.token.id
         card.clear()
-        var input = document.getElementById('subscribe-email')
-        var email = input.value
+        const input = document.getElementById('subscribe-email')
+        const email = input.value
         input.value = ''
         send('subscribe', { token, email })
       })
   }
   button.appendChild(document.createTextNode('Subscribe'))
 
-  var next = document.createElement('p')
+  const next = document.createElement('p')
   section.appendChild(next)
   next.appendChild(document.createTextNode(
     'Proseline will send you an e-mail with a link to ' +
@@ -116,16 +116,16 @@ function renderSubscribeSection (send) {
 }
 
 function renderAddDeviceSection (send) {
-  var section = renderSection('Add To Subscription')
+  const section = renderSection('Add To Subscription')
 
-  var explanation = document.createElement('p')
+  const explanation = document.createElement('p')
   section.appendChild(explanation)
   explanation.appendChild(document.createTextNode(
     'If you already have a Proseline subscription, ' +
     'you can add this device to your account.'
   ))
 
-  var form = document.createElement('form')
+  const form = document.createElement('form')
   section.appendChild(form)
 
   form.appendChild(renderEMailInput())
@@ -134,18 +134,18 @@ function renderAddDeviceSection (send) {
   form.onsubmit = function (event) {
     event.preventDefault()
     event.stopPropagation()
-    var email = this.elements.email.value
-    var name = this.elements.name.value
+    const email = this.elements.email.value
+    const name = this.elements.name.value
     send('add device to subscription', { email, name })
     this.elements.email.value = ''
   }
 
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   form.appendChild(button)
   button.type = 'submit'
   button.appendChild(document.createTextNode('Add to Account'))
 
-  var next = document.createElement('p')
+  const next = document.createElement('p')
   form.appendChild(next)
   next.appendChild(document.createTextNode(
     'Proseline will send an e-mail to your address ' +
@@ -156,10 +156,10 @@ function renderAddDeviceSection (send) {
 }
 
 function renderEMailInput (id) {
-  var label = document.createElement('label')
+  const label = document.createElement('label')
   label.appendChild(document.createTextNode('Your E-Mail Address:'))
 
-  var input = document.createElement('input')
+  const input = document.createElement('input')
   label.appendChild(input)
   input.type = 'email'
   input.required = true
@@ -171,10 +171,10 @@ function renderEMailInput (id) {
 }
 
 function renderDeviceNameInput () {
-  var label = document.createElement('label')
+  const label = document.createElement('label')
   label.appendChild(document.createTextNode('Name for this Device:'))
 
-  var input = document.createElement('input')
+  const input = document.createElement('input')
   label.appendChild(input)
   input.type = 'text'
   input.required = true

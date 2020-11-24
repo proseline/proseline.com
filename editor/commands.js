@@ -1,11 +1,11 @@
-var eachHeadingLevel = require('./each-heading-level')
-var pmCommands = require('prosemirror-commands')
-var schema = require('./schema')
+const eachHeadingLevel = require('./each-heading-level')
+const pmCommands = require('prosemirror-commands')
+const schema = require('./schema')
 
-var chainCommands = pmCommands.chainCommands
-var exitCode = pmCommands.exitCode
-var setBlockType = pmCommands.setBlockType
-var lift = pmCommands.lift
+const chainCommands = pmCommands.chainCommands
+const exitCode = pmCommands.exitCode
+const setBlockType = pmCommands.setBlockType
+const lift = pmCommands.lift
 
 exports.backspace = chainCommands(
   pmCommands.deleteSelection,
@@ -59,11 +59,11 @@ exports.hr = function (state, dispatch) {
 }
 
 function canInsert (state, type) {
-  var $from = state.selection.$from
-  var depth = $from.depth
+  const $from = state.selection.$from
+  let depth = $from.depth
   while (depth > 0) {
     depth--
-    var index = $from.index(depth)
+    const index = $from.index(depth)
     if ($from.node(depth).canReplaceWith(index, index, type)) {
       return true
     }
@@ -72,7 +72,7 @@ function canInsert (state, type) {
 }
 
 eachHeadingLevel(function (level) {
-  var name = 'h' + level
+  const name = 'h' + level
   exports[name] = setBlockType(schema.nodes.heading, { level })
 })
 

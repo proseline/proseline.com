@@ -1,11 +1,11 @@
-var Protocol = require('./protocol')
-var assert = require('nanoassert')
-var crypto = require('@proseline/crypto')
-var debug = require('debug')
-var pageBus = require('../page-bus')
-var runSeries = require('run-series')
+const Protocol = require('./protocol')
+const assert = require('nanoassert')
+const crypto = require('@proseline/crypto')
+const debug = require('debug')
+const pageBus = require('../page-bus')
+const runSeries = require('run-series')
 
-var DEBUG_NAMESPACE = 'proseline:replicate:'
+const DEBUG_NAMESPACE = 'proseline:replicate:'
 
 module.exports = function (options) {
   assert(typeof options.peerID === 'string')
@@ -14,19 +14,19 @@ module.exports = function (options) {
   assert(typeof options.encryptionKey === 'string')
   assert(typeof options.projectPublicKey === 'object')
   assert(options.database)
-  var replicationKey = options.replicationKey
-  var discoveryKey = options.discoveryKey
-  var encryptionKey = options.encryptionKey
-  var projectPublicKey = options.projectPublicKey
-  var database = options.database
+  const replicationKey = options.replicationKey
+  const discoveryKey = options.discoveryKey
+  const encryptionKey = options.encryptionKey
+  const projectPublicKey = options.projectPublicKey
+  const database = options.database
 
-  var log = debug(DEBUG_NAMESPACE + options.peerID + ':' + discoveryKey)
+  const log = debug(DEBUG_NAMESPACE + options.peerID + ':' + discoveryKey)
 
-  var protocol = new Protocol({
+  const protocol = new Protocol({
     key: Buffer.from(replicationKey, 'base64')
   })
 
-  var listeningToDatabase = false
+  let listeningToDatabase = false
 
   protocol.once('handshake', function () {
     log('received handshake')
@@ -51,7 +51,7 @@ module.exports = function (options) {
   }
 
   function offerEnvelope (logPublicKey, index) {
-    var id = loggingID(logPublicKey, index)
+    const id = loggingID(logPublicKey, index)
     log('sending offer: %s', id)
     protocol.offer({ logPublicKey, index }, function (error) {
       if (error) return log(error)
@@ -61,9 +61,9 @@ module.exports = function (options) {
 
   // When our peer requests an outer envelope...
   protocol.on('request', function (request) {
-    var logPublicKey = request.logPublicKey
-    var index = request.index
-    var id = loggingID(logPublicKey, index)
+    const logPublicKey = request.logPublicKey
+    const index = request.index
+    const id = loggingID(logPublicKey, index)
     log('received request: %s', id)
     database.getEntry(logPublicKey, index, function (error, entry) {
       if (error) return log(error)
@@ -80,16 +80,16 @@ module.exports = function (options) {
 
   // When our peer offers outer envelopes...
   protocol.on('offer', function (offer) {
-    var logPublicKey = offer.logPublicKey
-    var offeredIndex = offer.index
-    var offeredID = loggingID(logPublicKey, offeredIndex)
+    const logPublicKey = offer.logPublicKey
+    const offeredIndex = offer.index
+    const offeredID = loggingID(logPublicKey, offeredIndex)
     log('received offer: %s', offeredID)
     database.getLogHead(logPublicKey, function (error, head) {
       if (error) return log(error)
       if (head === undefined) head = -1
-      var indexes = inclusiveRange(head + 1, offeredIndex)
+      const indexes = inclusiveRange(head + 1, offeredIndex)
       runSeries(indexes.map(function (index) {
-        var requestID = loggingID(logPublicKey, index)
+        const requestID = loggingID(logPublicKey, index)
         return function (done) {
           log('sending request: %s', requestID)
           protocol.request({ logPublicKey, index }, function (error) {
@@ -104,8 +104,8 @@ module.exports = function (options) {
 
   // When our peer sends an outer envelope...
   protocol.on('envelope', function (envelope) {
-    var id = loggingID(envelope.logPublicKey, envelope.index)
-    var errors = crypto.validateEnvelope({
+    const id = loggingID(envelope.logPublicKey, envelope.index)
+    const errors = crypto.validateEnvelope({
       envelope,
       projectPublicKey,
       encryptionKey
@@ -113,7 +113,7 @@ module.exports = function (options) {
     if (errors.length !== 0) {
       throw new Error('Failed to validate envelope.')
     }
-    var entry = crypto.decryptJSON(
+    const entry = crypto.decryptJSON(
       envelope.entry.ciphertext,
       envelope.entry.nonce,
       encryptionKey
@@ -153,8 +153,8 @@ function loggingID (logPublicKey, index) {
 function inclusiveRange (from, to) {
   if (from > to) return []
   if (from === to) return [from]
-  var returned = []
-  for (var index = from; index <= to; index++) {
+  const returned = []
+  for (let index = from; index <= to; index++) {
     returned.push(index)
   }
   return returned

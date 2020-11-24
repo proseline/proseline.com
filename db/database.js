@@ -1,7 +1,7 @@
-var EventEmitter = require('events').EventEmitter
-var IDBKeyRange = require('./idbkeyrange')
-var IndexedDB = require('./indexeddb')
-var inherits = require('inherits')
+const EventEmitter = require('events').EventEmitter
+const IDBKeyRange = require('./idbkeyrange')
+const IndexedDB = require('./indexeddb')
+const inherits = require('inherits')
 
 // Database serves as base prototype for wrappers around IndexedDB
 // databases. Other database wrapper prototypes extend Database.
@@ -16,12 +16,12 @@ function Database (options) {
 
 inherits(Database, EventEmitter)
 
-var prototype = Database.prototype
+const prototype = Database.prototype
 
 prototype.init = function (callback) {
-  var self = this
+  const self = this
   if (self._initialized) return
-  var request = IndexedDB.open(this._name, this._version)
+  const request = IndexedDB.open(this._name, this._version)
   request.onsuccess = function () {
     self._db = request.result
     self.ready = true
@@ -37,64 +37,64 @@ prototype.init = function (callback) {
 }
 
 prototype._get = function (store, key, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
+  const transaction = this._db.transaction([store], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(store)
-  var request = objectStore.get(key)
+  const objectStore = transaction.objectStore(store)
+  const request = objectStore.get(key)
   request.onsuccess = function () {
     callback(null, request.result)
   }
 }
 
 prototype._getFromIndex = function (store, indexName, key, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
+  const transaction = this._db.transaction([store], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(store)
-  var index = objectStore.index(indexName)
-  var request = index.get(key)
+  const objectStore = transaction.objectStore(store)
+  const index = objectStore.index(indexName)
+  const request = index.get(key)
   request.onsuccess = function () {
     callback(null, request.result)
   }
 }
 
 prototype._put = function (store, key, value, callback) {
-  var transaction = this._db.transaction([store], 'readwrite')
+  const transaction = this._db.transaction([store], 'readwrite')
   transaction.oncomplete = function () {
     callback()
   }
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(store)
+  const objectStore = transaction.objectStore(store)
   objectStore.put(value, key)
 }
 
 prototype._delete = function (store, key, callback) {
-  var transaction = this._db.transaction([store], 'readwrite')
+  const transaction = this._db.transaction([store], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(store)
-  var request = objectStore.delete(key)
+  const objectStore = transaction.objectStore(store)
+  const request = objectStore.delete(key)
   request.onsuccess = function () {
     callback()
   }
 }
 
 prototype._list = function (store, iterator, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
+  const transaction = this._db.transaction([store], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(store)
-  var request = objectStore.openCursor()
-  var results = []
+  const objectStore = transaction.objectStore(store)
+  const request = objectStore.openCursor()
+  const results = []
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (cursor) {
       results.push(iterator(cursor))
       cursor.continue()
@@ -105,18 +105,18 @@ prototype._list = function (store, iterator, callback) {
 }
 
 prototype._listIndexedValues = function (store, indexName, callback) {
-  var transaction = this._db.transaction([store], 'readonly')
+  const transaction = this._db.transaction([store], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(store)
-  var index = objectStore.index(indexName)
-  var request = index.openKeyCursor()
-  var results = []
+  const objectStore = transaction.objectStore(store)
+  const index = objectStore.index(indexName)
+  const request = index.openKeyCursor()
+  const results = []
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (cursor) {
-      var key = cursor.key
+      const key = cursor.key
       if (results.indexOf(key) === -1) results.push(key)
       cursor.continue()
     } else {
@@ -132,28 +132,28 @@ prototype._listValues = function (store, callback) {
 }
 
 prototype._count = function (storeName, lower, upper, callback) {
-  var transaction = this._db.transaction([storeName], 'readonly')
+  const transaction = this._db.transaction([storeName], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(storeName)
-  var request = objectStore.count(IDBKeyRange.bound(lower, upper))
+  const objectStore = transaction.objectStore(storeName)
+  const request = objectStore.count(IDBKeyRange.bound(lower, upper))
   request.onsuccess = function () {
     callback(null, request.result)
   }
 }
 
 prototype._indexQuery = function (storeName, indexName, key, callback) {
-  var transaction = this._db.transaction([storeName], 'readonly')
+  const transaction = this._db.transaction([storeName], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(storeName)
-  var index = objectStore.index(indexName)
-  var request = index.openCursor(IDBKeyRange.only(key))
-  var results = []
+  const objectStore = transaction.objectStore(storeName)
+  const index = objectStore.index(indexName)
+  const request = index.openCursor(IDBKeyRange.only(key))
+  const results = []
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (cursor) {
       results.push(cursor.value)
       cursor.continue()
@@ -164,13 +164,13 @@ prototype._indexQuery = function (storeName, indexName, key, callback) {
 }
 
 prototype._indexCount = function (storeName, indexName, key, callback) {
-  var transaction = this._db.transaction([storeName], 'readonly')
+  const transaction = this._db.transaction([storeName], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore(storeName)
-  var index = objectStore.index(indexName)
-  var request = index.count(key)
+  const objectStore = transaction.objectStore(storeName)
+  const index = objectStore.index(indexName)
+  const request = index.count(key)
   request.onsuccess = function () {
     callback(null, request.result)
   }

@@ -1,5 +1,5 @@
-var assert = require('nanoassert')
-var renderLoading = require('./loading')
+const assert = require('nanoassert')
+const renderLoading = require('./loading')
 
 module.exports = function (view) {
   return function (state, send, discoveryKey) {
@@ -7,7 +7,7 @@ module.exports = function (view) {
     assert(typeof send === 'function')
     assert(typeof view === 'function')
     if (discoveryKey && state.discoveryKey !== discoveryKey) {
-      var main = document.createElement('main')
+      const main = document.createElement('main')
       main.appendChild(
         renderLoading(function () {
           send('load project', discoveryKey)

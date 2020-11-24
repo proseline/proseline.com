@@ -1,9 +1,9 @@
-var assert = require('nanoassert')
-var renderActivity = require('./partials/activity')
-var renderDraftHeader = require('./partials/draft-header')
-var renderLoading = require('./loading')
-var renderRefreshNotice = require('./partials/refresh-notice')
-var withProject = require('./with-project')
+const assert = require('nanoassert')
+const renderActivity = require('./partials/activity')
+const renderDraftHeader = require('./partials/draft-header')
+const renderLoading = require('./loading')
+const renderRefreshNotice = require('./partials/refresh-notice')
+const withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey, logPublicKey) {
   state.route = 'member'
@@ -13,7 +13,7 @@ module.exports = withProject(function (state, send, discoveryKey, logPublicKey) 
   assert(discoveryKey.length === 64)
   assert(typeof logPublicKey === 'string')
   assert(logPublicKey.length === 64)
-  var main = document.createElement('main')
+  const main = document.createElement('main')
   if (state.member === logPublicKey && state.memberActivity) {
     if (state.changed) {
       main.appendChild(renderRefreshNotice(function () {
@@ -22,10 +22,10 @@ module.exports = withProject(function (state, send, discoveryKey, logPublicKey) 
     }
     main.appendChild(renderDraftHeader(state))
 
-    var section = document.createElement('section')
+    const section = document.createElement('section')
     main.appendChild(section)
 
-    var h2 = document.createElement('h2')
+    const h2 = document.createElement('h2')
     section.appendChild(h2)
     h2.appendChild(document.createTextNode('Member Activity'))
 

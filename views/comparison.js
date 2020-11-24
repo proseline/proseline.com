@@ -1,18 +1,18 @@
 /* globals Text */
-var diff = require('rfc6902-json-diff')
-var pmModel = require('prosemirror-model')
-var renderDraftHeader = require('./partials/draft-header')
-var renderLoading = require('./loading')
-var withProject = require('./with-project')
+const diff = require('rfc6902-json-diff')
+const pmModel = require('prosemirror-model')
+const renderDraftHeader = require('./partials/draft-header')
+const renderLoading = require('./loading')
+const withProject = require('./with-project')
 
-var DOMSerializer = pmModel.DOMSerializer
-var schema = require('../editor/schema')
+const DOMSerializer = pmModel.DOMSerializer
+const schema = require('../editor/schema')
 
 module.exports = withProject(function (state, send, discoveryKey, drafts) {
   state.route = 'comparison'
-  var digest = drafts[0]
-  var comparing = drafts[1]
-  var main = document.createElement('main')
+  const digest = drafts[0]
+  const comparing = drafts[1]
+  const main = document.createElement('main')
   if (
     !state.draft ||
     state.draft.digest !== digest ||
@@ -31,26 +31,26 @@ module.exports = withProject(function (state, send, discoveryKey, drafts) {
   } else {
     main.appendChild(renderDraftHeader(state))
 
-    var article = document.createElement('article')
+    const article = document.createElement('article')
     main.appendChild(article)
 
-    var serializer = DOMSerializer.fromSchema(schema)
-    var doc = schema.nodeFromJSON(state.draft.text)
-    var rendered = serializer.serializeFragment(doc.content)
+    const serializer = DOMSerializer.fromSchema(schema)
+    const doc = schema.nodeFromJSON(state.draft.text)
+    const rendered = serializer.serializeFragment(doc.content)
     article.appendChild(rendered)
 
-    var patch = diff(
+    const patch = diff(
       state.draft.text,
       state.comparing.text
     )
     patch.forEach(function (element) {
-      var type = element.op
+      const type = element.op
       if (type === 'replace') {
         if (element.path.endsWith('/text')) {
-          var descended = descend(article, element.path)
+          const descended = descend(article, element.path)
           descended.parentNode.insertBefore(
             (function () {
-              var del = document.createElement('del')
+              const del = document.createElement('del')
               del.appendChild(document.createTextNode(element.value))
               return del
             })(),
@@ -58,13 +58,13 @@ module.exports = withProject(function (state, send, discoveryKey, drafts) {
           )
           descended.parentNode.replaceChild(
             (function () {
-              var ins = document.createElement('ins')
+              const ins = document.createElement('ins')
               if (descended instanceof Text) {
                 ins.appendChild(document.createTextNode(descended.wholeText))
               } else {
-                var childNodes = descended.childNodes
-                for (var index = 0; index < childNodes.length; index++) {
-                  var child = childNodes[index]
+                const childNodes = descended.childNodes
+                for (let index = 0; index < childNodes.length; index++) {
+                  const child = childNodes[index]
                   ins.appendChild(child.cloneNode())
                 }
               }
@@ -80,10 +80,10 @@ module.exports = withProject(function (state, send, discoveryKey, drafts) {
 })
 
 function descend (node, path) {
-  var split = path.split('/').slice(1)
-  var offset = 0
+  const split = path.split('/').slice(1)
+  let offset = 0
   while (split[offset] === 'content') {
-    var childIndex = parseInt(split[offset + 1])
+    const childIndex = parseInt(split[offset + 1])
     node = node.childNodes[childIndex]
     offset += 2
   }

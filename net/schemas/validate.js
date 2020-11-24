@@ -1,5 +1,5 @@
-var AJV = require('ajv')
-var ajv = new AJV()
+const AJV = require('ajv')
+const ajv = new AJV()
 
 exports.handshake = ajv.compile(require('./handshake'))
 exports.log = ajv.compile(require('./log'))

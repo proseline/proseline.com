@@ -1,12 +1,12 @@
-var crypto = require('@proseline/crypto')
-var renderDraftHeader = require('./partials/draft-header')
-var renderLoading = require('./loading')
-var renderSection = require('./partials/section')
-var renderSharing = require('./partials/sharing')
+const crypto = require('@proseline/crypto')
+const renderDraftHeader = require('./partials/draft-header')
+const renderLoading = require('./loading')
+const renderSection = require('./partials/section')
+const renderSharing = require('./partials/sharing')
 
 module.exports = function (state, send) {
   state.route = 'home'
-  var main = document.createElement('main')
+  const main = document.createElement('main')
   if (!state.projects) {
     main.appendChild(
       renderLoading(function () {
@@ -24,32 +24,32 @@ module.exports = function (state, send) {
 }
 
 function renderActiveProjectsList (subscription, projects, send) {
-  var section = renderSection('Active Projects')
+  const section = renderSection('Active Projects')
 
-  var activeProjects = projects.filter(function (project) {
+  const activeProjects = projects.filter(function (project) {
     return !project.deleted
   })
 
   if (activeProjects.length === 0) {
-    var p = document.createElement('p')
+    const p = document.createElement('p')
     p.appendChild(document.createTextNode('You do not have any active projects.'))
     section.appendChild(p)
   }
-  var ul = document.createElement('ul')
+  const ul = document.createElement('ul')
   ul.className = 'activeProjects'
   activeProjects
     .sort(function byTitle (a, b) {
       return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
     })
     .forEach(function (project) {
-      var li = document.createElement('li')
-      var a = document.createElement('a')
+      const li = document.createElement('li')
+      const a = document.createElement('a')
       a.href = '/projects/' + crypto.base64ToHex(project.discoveryKey)
       a.appendChild(document.createTextNode(project.title))
       li.appendChild(a)
       ul.appendChild(li)
     })
-  var createProjectLI = document.createElement('li')
+  const createProjectLI = document.createElement('li')
   ul.appendChild(createProjectLI)
   createProjectLI.appendChild(renderCreateProject(subscription, send))
   section.appendChild(ul)
@@ -58,29 +58,29 @@ function renderActiveProjectsList (subscription, projects, send) {
 }
 
 function renderArchivedProjectsList (subscription, projects, send) {
-  var section = renderSection('Archived Projects')
+  const section = renderSection('Archived Projects')
 
-  var archivedProjects = projects.filter(function (project) {
+  const archivedProjects = projects.filter(function (project) {
     if (!project.deleted) return false
     return project.projectKeyPair && project.replicationKey
   })
 
   if (archivedProjects.length === 0) {
-    var p = document.createElement('p')
+    const p = document.createElement('p')
     p.appendChild(document.createTextNode('You do not have any archived projects.'))
     section.appendChild(p)
   }
-  var ul = document.createElement('ul')
+  const ul = document.createElement('ul')
   ul.className = 'archivedProjects'
   archivedProjects
     .sort(function byTitle (a, b) {
       return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
     })
     .forEach(function (project) {
-      var li = document.createElement('li')
-      var a = document.createElement('a')
+      const li = document.createElement('li')
+      const a = document.createElement('a')
       a.appendChild(document.createTextNode(project.title))
-      var button = document.createElement('button')
+      const button = document.createElement('button')
       button.addEventListener('click', function () {
         send('join project', project)
       })
@@ -95,34 +95,34 @@ function renderArchivedProjectsList (subscription, projects, send) {
 }
 
 function renderCreateProject (subscription, send) {
-  var form = document.createElement('form')
+  const form = document.createElement('form')
   form.onsubmit = function (event) {
     event.stopPropagation()
     event.preventDefault()
-    var data = { title: this.elements.title.value }
+    const data = { title: this.elements.title.value }
     if (this.elements.persistent) {
       data.persistent = this.elements.persistent.value
     }
     send('create project', data)
   }
 
-  var input = document.createElement('input')
+  const input = document.createElement('input')
   form.appendChild(input)
   input.name = 'title'
   input.required = true
   input.placeholder = 'Project Title'
 
   if (subscription.email) {
-    var label = document.createElement('label')
+    const label = document.createElement('label')
     form.appendChild(label)
-    var checkbox = document.createElement('input')
+    const checkbox = document.createElement('input')
     label.appendChild(checkbox)
     checkbox.type = 'checkbox'
     checkbox.name = 'persistent'
     label.appendChild(document.createTextNode('Share when you’re offline.'))
   }
 
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   form.appendChild(button)
   button.type = 'submit'
   button.appendChild(document.createTextNode('Create a project.'))
@@ -131,14 +131,14 @@ function renderCreateProject (subscription, send) {
 }
 
 function renderSubscriptionSection () {
-  var section = renderSection('Subscription')
+  const section = renderSection('Subscription')
   section.appendChild(renderSharing(true))
   return section
 }
 
 function renderBackupSection (send) {
-  var section = renderSection('Backup')
-  var button = document.createElement('button')
+  const section = renderSection('Backup')
+  const button = document.createElement('button')
   button.addEventListener('click', function () {
     send('backup')
   })

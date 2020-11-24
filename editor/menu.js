@@ -1,15 +1,15 @@
-var commands = require('./commands')
-var eachHeadingLevel = require('./each-heading-level')
-var pmMenu = require('prosemirror-menu')
-var schema = require('./schema')
+const commands = require('./commands')
+const eachHeadingLevel = require('./each-heading-level')
+const pmMenu = require('prosemirror-menu')
+const schema = require('./schema')
 
-var Dropdown = pmMenu.Dropdown
-var MenuItem = pmMenu.MenuItem
-var icons = pmMenu.icons
-var wrapItem = pmMenu.wrapItem
+const Dropdown = pmMenu.Dropdown
+const MenuItem = pmMenu.MenuItem
+const icons = pmMenu.icons
+const wrapItem = pmMenu.wrapItem
 
-var PARAGRAPH_ICON = require('@fortawesome/fontawesome-free-solid/faParagraph').icon
-var CODE_ICON = require('@fortawesome/fontawesome-free-solid/faCode').icon
+const PARAGRAPH_ICON = require('@fortawesome/fontawesome-free-solid/faParagraph').icon
+const CODE_ICON = require('@fortawesome/fontawesome-free-solid/faCode').icon
 
 module.exports = pmMenu.menuBar({
   floating: true,
@@ -86,7 +86,7 @@ module.exports = pmMenu.menuBar({
       }),
       new Dropdown(
         eachHeadingLevel(function (level) {
-          var name = 'h' + level
+          const name = 'h' + level
           return new MenuItem({
             title: 'Heading ' + level,
             label: 'Level ' + level,
@@ -112,13 +112,13 @@ module.exports = pmMenu.menuBar({
 })
 
 function isMarkActive (state, type) {
-  var empty = state.selection.empty
-  var $from = state.selection.$from
+  const empty = state.selection.empty
+  const $from = state.selection.$from
   if (empty) {
     return type.isInSet(state.storedMarks || $from.marks())
   }
-  var from = state.selection.from
-  var to = state.selection.to
+  const from = state.selection.from
+  const to = state.selection.to
   return state.doc.rangeHasMark(from, to, type)
 }
 

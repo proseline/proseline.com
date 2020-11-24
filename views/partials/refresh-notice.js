@@ -1,5 +1,5 @@
 module.exports = function (onclick) {
-  var div = document.createElement('div')
+  const div = document.createElement('div')
   div.addEventListener('click', function () {
     onclick()
   })

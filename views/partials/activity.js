@@ -1,21 +1,21 @@
-var renderDraftDescription = require('./draft-description')
-var renderDraftIcon = require('./draft-icon')
-var renderDraftLink = require('./draft-link')
-var renderIntro = require('./intro')
-var renderMarkLink = require('./mark-link')
-var renderNoteIcon = require('./note-icon')
-var renderRelativeTimestamp = require('./relative-timestamp')
+const renderDraftDescription = require('./draft-description')
+const renderDraftIcon = require('./draft-icon')
+const renderDraftLink = require('./draft-link')
+const renderIntro = require('./intro')
+const renderMarkLink = require('./mark-link')
+const renderNoteIcon = require('./note-icon')
+const renderRelativeTimestamp = require('./relative-timestamp')
 
 module.exports = function (state, activity) {
-  var ol = document.createElement('ol')
+  const ol = document.createElement('ol')
   ol.className = 'activity'
   activity.forEach(function (entry) {
-    var type = entry.type
-    var li = document.createElement('li')
-    var a, brief
+    const type = entry.type
+    const li = document.createElement('li')
+    let a, brief
     ol.appendChild(li)
+    const logPublicKey = entry.envelope.logPublicKey
     if (type === 'draft') {
-      var logPublicKey = entry.envelope.logPublicKey
       li.appendChild(renderIntro(state, logPublicKey, {
         capitalize: true
       }))

@@ -1,66 +1,66 @@
 /* globals Node */
-var assert = require('nanoassert')
-var dropCursor = require('prosemirror-dropcursor').dropCursor
-var gapCursor = require('prosemirror-gapcursor').gapCursor
-var keyMap = require('./key-map')
-var menu = require('./menu')
-var pmHistory = require('prosemirror-history')
-var pmState = require('prosemirror-state')
-var pmView = require('prosemirror-view')
-var schema = require('./schema')
+const assert = require('nanoassert')
+const dropCursor = require('prosemirror-dropcursor').dropCursor
+const gapCursor = require('prosemirror-gapcursor').gapCursor
+const keyMap = require('./key-map')
+const menu = require('./menu')
+const pmHistory = require('prosemirror-history')
+const pmState = require('prosemirror-state')
+const pmView = require('prosemirror-view')
+const schema = require('./schema')
 
-var Decoration = pmView.Decoration
-var DecorationSet = pmView.DecorationSet
-var EditorState = pmState.EditorState
-var EditorView = pmView.EditorView
-var Plugin = pmState.Plugin
-var PluginKey = pmState.PluginKey
-var history = pmHistory.history
+const Decoration = pmView.Decoration
+const DecorationSet = pmView.DecorationSet
+const EditorState = pmState.EditorState
+const EditorView = pmView.EditorView
+const Plugin = pmState.Plugin
+const PluginKey = pmState.PluginKey
+const history = pmHistory.history
 
 module.exports = function (options) {
-  var element = options.element
+  const element = options.element
   assert(element instanceof Node)
-  var content = options.content
-  var renderNoteForm = options.renderNoteForm
+  const content = options.content
+  const renderNoteForm = options.renderNoteForm
   assert(!renderNoteForm || typeof renderNoteForm === 'function')
-  var renderNote = options.renderNote
+  const renderNote = options.renderNote
   assert(!renderNote || typeof renderNote === 'function')
-  var renderMarkForm = options.renderMarkForm
+  const renderMarkForm = options.renderMarkForm
   assert(!renderMarkForm || typeof renderMarkForm === 'function')
-  var notes = options.notes
+  const notes = options.notes
   assert(!notes || Array.isArray(notes))
-  var dirty = options.dirty
+  const dirty = options.dirty
   assert(!dirty || typeof dirty === 'function')
-  var prior = options.prior
+  const prior = options.prior
   assert(!prior || typeof prior === 'object')
 
-  var originalDocument = content
+  const originalDocument = content
     ? schema.nodeFromJSON(content)
     : schema.node('doc', null, [
       schema.node('paragraph', null, [])
     ])
-  var plugins = [
+  const plugins = [
     menu,
     history(),
     keyMap,
     dropCursor(),
     gapCursor()
   ]
-  var ignore = {
+  const ignore = {
     stopEvent: function () { return true },
     ignoreMutation: function () { return true }
   }
 
   if (renderNoteForm) {
-    var inlineNotePlugin = new Plugin({
+    const inlineNotePlugin = new Plugin({
       props: {
         decorations: function (state) {
           if (modifiedPlugin.getState(state)) return
-          var decorations = []
-          var selection = state.selection
+          const decorations = []
+          const selection = state.selection
           if (!selection.empty) {
-            var $to = selection.$to
-            var $from = selection.$from
+            const $to = selection.$to
+            const $from = selection.$from
             decorations.push(
               Decoration.widget(
                 $to.after(),
@@ -77,14 +77,14 @@ module.exports = function (options) {
   }
 
   if (notes) {
-    var notesPlugin = new Plugin({
+    const notesPlugin = new Plugin({
       props: {
         decorations: function (state) {
           if (modifiedPlugin.getState(state)) return
-          var decorations = []
+          const decorations = []
           notes.forEach(function (note) {
-            var $start = state.doc.resolve(note.range.start)
-            var $end = state.doc.resolve(note.range.end)
+            const $start = state.doc.resolve(note.range.start)
+            const $end = state.doc.resolve(note.range.end)
             decorations.push(
               Decoration.widget(
                 $end.after(),
@@ -123,12 +123,12 @@ module.exports = function (options) {
     )
   }
 
-  var modifiedPlugin = new Plugin({
+  const modifiedPlugin = new Plugin({
     key: new PluginKey('modified'),
     state: {
       init: function () { return false },
       apply: function (tr, oldState, newState) {
-        var modified = !newState.doc.eq(originalDocument)
+        const modified = !newState.doc.eq(originalDocument)
         return oldState || modified
       }
     },

@@ -1,7 +1,7 @@
 module.exports = function (draftOrBrief, options) {
   options = options || {}
-  var parents = draftOrBrief.parents || draftOrBrief.parents
-  var text
+  const parents = draftOrBrief.parents || draftOrBrief.parents
+  let text
   if (parents.length === 0) text = 'original draft'
   else if (parents.length === 1) text = 'revising draft'
   else text = 'combining draft'

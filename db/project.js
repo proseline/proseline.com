@@ -1,11 +1,12 @@
-var Database = require('./database')
-var IDBKeyRange = require('./idbkeyrange')
-var assert = require('nanoassert')
-var crypto = require('@proseline/crypto')
-var debug = require('debug')
-var inherits = require('inherits')
-var pageBus = require('../page-bus')
-var runParallel = require('run-parallel')
+const Database = require('./database')
+const IDBKeyRange = require('./idbkeyrange')
+const assert = require('nanoassert')
+const crypto = require('@proseline/crypto')
+const debug = require('debug')
+const has = require('has')
+const inherits = require('inherits')
+const pageBus = require('../page-bus')
+const runParallel = require('run-parallel')
 
 module.exports = Project
 
@@ -15,7 +16,7 @@ function Project (data) {
   assert(typeof data.discoveryKey === 'string')
   assert(typeof data.encryptionKey === 'string')
   assert(typeof data.projectKeyPair === 'object')
-  var discoveryKey = data.discoveryKey
+  const discoveryKey = data.discoveryKey
   this.discoveryKey = discoveryKey
   this.encryptionKey = data.encryptionKey
   this.projectKeyPair = data.projectKeyPair
@@ -28,18 +29,18 @@ function Project (data) {
 
 inherits(Project, Database)
 
-var CURRENT_VERSION = 4
+const CURRENT_VERSION = 4
 
 Project.prototype._upgrade = function (db, oldVersion, callback) {
   if (oldVersion < CURRENT_VERSION) {
     // Log Key Pairs
-    var logKeyPairs = db.createObjectStore('logKeyPairs')
+    const logKeyPairs = db.createObjectStore('logKeyPairs')
     logKeyPairs.createIndex('logPublicKey', 'publicKey', { unique: true })
 
     // Logs
-    var logs = db.createObjectStore('logs')
+    const logs = db.createObjectStore('logs')
     logs.createIndex('logPublicKey', 'logPublicKey', { unique: false })
-    var TYPE_KEY_PATH = 'type'
+    const TYPE_KEY_PATH = 'type'
     logs.createIndex('type', TYPE_KEY_PATH, { unique: false })
     logs.createIndex(
       'logPublicKey-type', ['logPublicKey', TYPE_KEY_PATH], { unique: false }
@@ -76,9 +77,9 @@ Project.prototype._upgrade = function (db, oldVersion, callback) {
 // Log Key Pairs
 
 Project.prototype.createLogKeyPair = function (setDefault, callback) {
-  var self = this
-  var logKeyPair = crypto.keyPair()
-  var logPublicKey = logKeyPair.publicKey
+  const self = this
+  const logKeyPair = crypto.keyPair()
+  const logPublicKey = logKeyPair.publicKey
   self._put('logKeyPairs', logPublicKey, logKeyPair, function (error) {
     if (error) return callback(error)
     if (setDefault) {
@@ -97,7 +98,7 @@ Project.prototype.getLogKeyPair = function (logPublicKey, callback) {
 }
 
 Project.prototype.getDefaultLogKeyPair = function (callback) {
-  var self = this
+  const self = this
   self.getLogKeyPair('default', function (error, logPublicKey) {
     if (error) return callback(error)
     if (logPublicKey === undefined) {
@@ -140,9 +141,9 @@ Project.prototype.listLogs = function (callback) {
   this._listIndexedValues('logs', 'logPublicKey', callback)
 }
 
-var MIN_INDEX = 0
-var INDEX_DIGITS = 5
-var MAX_INDEX = Number('9'.repeat(INDEX_DIGITS))
+const MIN_INDEX = 0
+const INDEX_DIGITS = 5
+const MAX_INDEX = Number('9'.repeat(INDEX_DIGITS))
 
 function logEntryKey (logPublicKey, index) {
   return logPublicKey + ':' + formatEntryIndex(index)
@@ -156,11 +157,11 @@ Project.prototype._log = function (entry, logKeyPair, callback) {
   assert(typeof entry === 'object')
   assert(typeof logKeyPair === 'object')
   assert(typeof callback === 'function')
-  var self = this
-  var logPublicKey = logKeyPair.publicKey
+  const self = this
+  const logPublicKey = logKeyPair.publicKey
   // Determine the current log head, create an envelope, and append
   // it in a single transaction.
-  var transaction = self._db.transaction(['logs'], 'readwrite')
+  const transaction = self._db.transaction(['logs'], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
   }
@@ -169,7 +170,7 @@ Project.prototype._log = function (entry, logKeyPair, callback) {
     callback(null, entry, entry.digest)
   }
   requestHead(transaction, logPublicKey, function (head) {
-    var index, prior
+    let index, prior
     if (head === undefined) {
       // This will be the first entry in the log.
       index = 0
@@ -178,7 +179,7 @@ Project.prototype._log = function (entry, logKeyPair, callback) {
       index = head.index + 1
       prior = head.digest
     }
-    var envelope = crypto.envelope({
+    const envelope = crypto.envelope({
       discoveryKey: self.discoveryKey,
       entry,
       logKeyPair: logKeyPair,
@@ -201,7 +202,7 @@ Project.prototype._emitEntryEvent = function (entry) {
 }
 
 Project.prototype.getEntry = function (logPublicKey, index, callback) {
-  var key = logEntryKey(logPublicKey, index)
+  const key = logEntryKey(logPublicKey, index)
   this._get('logs', key, function (error, entry) {
     if (error) return callback(error)
     removeIndexingMetadata(entry)
@@ -213,13 +214,13 @@ function requestHead (transaction, logPublicKey, onResult) {
   assert(typeof transaction === 'object')
   assert(typeof logPublicKey === 'string')
   assert(typeof onResult === 'function')
-  var lower = logEntryKey(logPublicKey, MIN_INDEX)
-  var upper = logEntryKey(logPublicKey, MAX_INDEX)
-  var request = transaction
+  const lower = logEntryKey(logPublicKey, MIN_INDEX)
+  const upper = logEntryKey(logPublicKey, MAX_INDEX)
+  const request = transaction
     .objectStore('logs')
     .openCursor(IDBKeyRange.bound(lower, upper), 'prev')
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (!cursor) return onResult(undefined)
     onResult(cursor.value)
   }
@@ -227,27 +228,27 @@ function requestHead (transaction, logPublicKey, onResult) {
 
 Project.prototype.putEnvelope = function (envelope, entry, callback) {
   assert(typeof envelope === 'object')
-  assert(envelope.hasOwnProperty('encryptedInnerEnvelope'))
-  assert(envelope.hasOwnProperty('index'))
-  assert(envelope.hasOwnProperty('nonce'))
-  assert(envelope.hasOwnProperty('discoveryKey'))
-  assert(envelope.hasOwnProperty('logPublicKey'))
+  assert(has(envelope, 'encryptedInnerEnvelope'))
+  assert(has(envelope, 'index'))
+  assert(has(envelope, 'nonce'))
+  assert(has(envelope, 'discoveryKey'))
+  assert(has(envelope, 'logPublicKey'))
   assert(typeof callback === 'function')
-  var self = this
-  var debug = self.debug
-  var transaction = self._db.transaction(['logs'], 'readwrite')
+  const self = this
+  const debug = self.debug
+  const transaction = self._db.transaction(['logs'], 'readwrite')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var calledBackWithError = false
+  let calledBackWithError = false
   transaction.oncomplete = function () {
     if (calledBackWithError) return
     self._emitEntryEvent(entry)
     callback()
   }
-  var index = envelope.index
-  var logPublicKey = envelope.logPublicKey
-  var prior = envelope.prior
+  const index = envelope.index
+  const logPublicKey = envelope.logPublicKey
+  const prior = envelope.prior
   requestHead(transaction, logPublicKey, function (head) {
     if (head) {
       if (index !== head.index + 1) {
@@ -263,7 +264,7 @@ Project.prototype.putEnvelope = function (envelope, entry, callback) {
     }
     addIndexingMetadata(entry)
     entry.envelope = envelope
-    var key = logEntryKey(logPublicKey, index)
+    const key = logEntryKey(logPublicKey, index)
     transaction
       .objectStore('logs')
       .add(entry, key)
@@ -296,7 +297,7 @@ Project.prototype.getChildren = function (digest, callback) {
 }
 
 Project.prototype.listDraftBriefs = function (callback) {
-  var self = this
+  const self = this
   self._indexQuery('logs', 'type', 'draft', function (error, drafts) {
     if (error) return callback(error)
     runParallel(
@@ -304,7 +305,7 @@ Project.prototype.listDraftBriefs = function (callback) {
         return function (done) {
           self.countNotes(draft.digest, function (error, notesCount) {
             if (error) return done(error)
-            var body = draft.entry
+            const body = draft.entry
             done(null, {
               digest: draft.digest,
               discoveryKey: draft.discoveryKey,
@@ -328,15 +329,15 @@ Project.prototype.putMark = function (entry, logKeyPair, callback) {
 }
 
 Project.prototype.getMark = function (logPublicKey, identifier, callback) {
-  var transaction = this._db.transaction(['logs'], 'readonly')
+  const transaction = this._db.transaction(['logs'], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore('logs')
-  var index = objectStore.index('logPublicKey-identifier')
-  var request = index.openCursor([logPublicKey, identifier], 'prev')
+  const objectStore = transaction.objectStore('logs')
+  const index = objectStore.index('logPublicKey-identifier')
+  const request = index.openCursor([logPublicKey, identifier], 'prev')
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     callback(null, cursor ? cursor.value : undefined)
   }
 }
@@ -348,11 +349,11 @@ Project.prototype.getMarks = function (digest, callback) {
 Project.prototype.listMarks = function (callback) {
   this._indexQuery('logs', 'type', 'mark', function (error, marks) {
     if (error) return callback(error)
-    var seen = new Set()
+    const seen = new Set()
     callback(null, marks
       .reverse()
       .filter(function (mark) {
-        var identifier = mark.identifier
+        const identifier = mark.identifier
         if (seen.has(identifier)) {
           return false
         } else {
@@ -383,16 +384,16 @@ Project.prototype.putNote = function (entry, logKeyPair, callback) {
 Project.prototype.activity = function (count, callback) {
   assert(Number.isInteger(count))
   assert(count > 0)
-  var transaction = this._db.transaction(['logs'], 'readonly')
+  const transaction = this._db.transaction(['logs'], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore('logs')
-  var index = objectStore.index('added')
-  var request = index.openCursor(null, 'prev') // reverse
-  var results = []
+  const objectStore = transaction.objectStore('logs')
+  const index = objectStore.index('added')
+  const request = index.openCursor(null, 'prev') // reverse
+  const results = []
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (cursor) {
       results.push(cursor.value)
       if (results.length === count) {
@@ -411,16 +412,16 @@ Project.prototype.memberActivity = function (logPublicKey, count, callback) {
   assert(logPublicKey.length === 64)
   assert(Number.isInteger(count))
   assert(count > 0)
-  var transaction = this._db.transaction(['logs'], 'readonly')
+  const transaction = this._db.transaction(['logs'], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore('logs')
-  var index = objectStore.index('logPublicKey')
-  var request = index.openCursor(logPublicKey, 'prev') // reverse
-  var results = []
+  const objectStore = transaction.objectStore('logs')
+  const index = objectStore.index('logPublicKey')
+  const request = index.openCursor(logPublicKey, 'prev') // reverse
+  const results = []
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (cursor) {
       results.push(cursor.value)
       if (results.length === count) {
@@ -441,16 +442,16 @@ Project.prototype.markHistory = function (logPublicKey, identifier, count, callb
   assert(typeof identifier === 'string')
   assert(identifier.length === 8)
   assert(count > 0)
-  var transaction = this._db.transaction(['logs'], 'readonly')
+  const transaction = this._db.transaction(['logs'], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)
   }
-  var objectStore = transaction.objectStore('logs')
-  var index = objectStore.index('logPublicKey-identifier')
-  var request = index.openCursor([logPublicKey, identifier], 'prev')
-  var results = []
+  const objectStore = transaction.objectStore('logs')
+  const index = objectStore.index('logPublicKey-identifier')
+  const request = index.openCursor([logPublicKey, identifier], 'prev')
+  const results = []
   request.onsuccess = function () {
-    var cursor = request.result
+    const cursor = request.result
     if (cursor) {
       results.push(cursor.value)
       if (results.length === count) {

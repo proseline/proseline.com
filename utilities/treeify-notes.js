@@ -1,13 +1,13 @@
-var byTimestamp = require('./by-timestamp')
+const byTimestamp = require('./by-timestamp')
 
 module.exports = function (notes) {
-  var map = {}
+  const map = {}
   notes.forEach(function (note) {
     note.children = []
     map[note.digest] = note
   })
   notes.forEach(function (note) {
-    var parentDigest = note.parent
+    const parentDigest = note.parent
     if (parentDigest && map[parentDigest]) {
       map[parentDigest].children.push(note)
     }
@@ -16,7 +16,7 @@ module.exports = function (notes) {
     note.children.sort(byTimestamp)
     note.children.reverse()
   })
-  var returned = Object.keys(map)
+  const returned = Object.keys(map)
     .map(function (digest) {
       return map[digest]
     })

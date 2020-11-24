@@ -1,9 +1,9 @@
 module.exports = function (send) {
-  var form = document.createElement('form')
+  const form = document.createElement('form')
   form.className = 'intro'
 
   // Name
-  var input = document.createElement('input')
+  const input = document.createElement('input')
   input.type = 'text'
   input.placeholder = 'Enter your name.'
   input.required = true
@@ -12,14 +12,14 @@ module.exports = function (send) {
   form.appendChild(document.createTextNode('on'))
 
   // Device
-  var select = document.createElement('select')
-  var devices = [
+  const select = document.createElement('select')
+  const devices = [
     'desktop', 'laptop', 'phone', 'tablet'
   ]
   select.appendChild(document.createElement('option'))
   select.required = true
   devices.forEach(function (device) {
-    var option = document.createElement('option')
+    const option = document.createElement('option')
     option.value = device
     option.appendChild(document.createTextNode(device))
     select.appendChild(option)
@@ -27,7 +27,7 @@ module.exports = function (send) {
   form.appendChild(select)
 
   // Button
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   button.type = 'submit'
   button.appendChild(document.createTextNode('Introduce yourself.'))
   form.appendChild(button)

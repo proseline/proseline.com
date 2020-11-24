@@ -1,8 +1,9 @@
-var Database = require('./database')
-var assert = require('nanoassert')
-var crypto = require('@proseline/crypto')
-var inherits = require('inherits')
-var pageBus = require('../page-bus')
+const Database = require('./database')
+const assert = require('nanoassert')
+const crypto = require('@proseline/crypto')
+const has = require('has')
+const inherits = require('inherits')
+const pageBus = require('../page-bus')
 
 // Proseline wraps a single IndexedDB database that stores
 // client-global data, including data about other IndexedDB
@@ -19,7 +20,7 @@ function Proseline () {
 
 inherits(Proseline, Database)
 
-var prototype = Proseline.prototype
+const prototype = Proseline.prototype
 
 prototype._upgrade = function (db, oldVersion, callback) {
   if (oldVersion < 1) {
@@ -39,10 +40,10 @@ prototype._upgrade = function (db, oldVersion, callback) {
 
 prototype.putProject = function (project, callback) {
   assert(typeof project === 'object')
-  assert(project.hasOwnProperty('discoveryKey'))
-  assert(project.hasOwnProperty('encryptionKey'))
-  var self = this
-  var discoveryKey = project.discoveryKey
+  assert(has(project, 'discoveryKey'))
+  assert(has(project, 'encryptionKey'))
+  const self = this
+  const discoveryKey = project.discoveryKey
   self._put('projects', discoveryKey, project, function (error) {
     if (error) return callback(error)
     pageBus.emit('added project', discoveryKey)
@@ -52,10 +53,10 @@ prototype.putProject = function (project, callback) {
 
 prototype.overwriteProject = function (project, callback) {
   assert(typeof project === 'object')
-  assert(project.hasOwnProperty('discoveryKey'))
-  assert(project.hasOwnProperty('encryptionKey'))
-  var self = this
-  var discoveryKey = project.discoveryKey
+  assert(has(project, 'discoveryKey'))
+  assert(has(project, 'encryptionKey'))
+  const self = this
+  const discoveryKey = project.discoveryKey
   self._put('projects', discoveryKey, project, function (error) {
     if (error) return callback(error)
     pageBus.emit('overwrote project', discoveryKey)
@@ -68,7 +69,7 @@ prototype.getProject = function (discoveryKey, callback) {
 }
 
 prototype.deleteProject = function (discoveryKey, callback) {
-  var self = this
+  const self = this
   self._delete('projects', discoveryKey, function (error) {
     if (error) return callback(error)
     pageBus.emit('deleted project', discoveryKey)
@@ -85,7 +86,7 @@ prototype.listProjects = function (callback) {
 // Get the user keypair for signing messages to paid.proseline.com.
 // If the keypair doesn't exist yet, create it.
 prototype.getClientKeyPair = function (callback) {
-  var self = this
+  const self = this
   self._get('client', 'keypair', function (error, clientKeyPair) {
     if (error) return callback(error)
     if (clientKeyPair !== undefined) {

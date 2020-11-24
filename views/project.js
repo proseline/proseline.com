@@ -1,32 +1,32 @@
-var SVG = require('../svg')
-var assert = require('nanoassert')
-var classnames = require('classnames')
-var crypto = require('@proseline/crypto')
-var dagre = require('dagre')
-var identityLine = require('./partials/identity-line')
-var moment = require('moment')
-var renderActivity = require('./partials/activity')
-var renderBookmarkPath = require('./partials/bookmark-path')
-var renderDraftHeader = require('./partials/draft-header')
-var renderLoading = require('./loading')
-var renderRefreshNotice = require('./partials/refresh-notice')
-var renderSection = require('./partials/section')
-var withProject = require('./with-project')
+const SVG = require('../svg')
+const assert = require('nanoassert')
+const classnames = require('classnames')
+const crypto = require('@proseline/crypto')
+const dagre = require('dagre')
+const identityLine = require('./partials/identity-line')
+const moment = require('moment')
+const renderActivity = require('./partials/activity')
+const renderBookmarkPath = require('./partials/bookmark-path')
+const renderDraftHeader = require('./partials/draft-header')
+const renderLoading = require('./loading')
+const renderRefreshNotice = require('./partials/refresh-notice')
+const renderSection = require('./partials/section')
+const withProject = require('./with-project')
 
 module.exports = withProject(function (state, send, discoveryKey) {
   state.route = 'project'
-  var main = document.createElement('main')
+  const main = document.createElement('main')
   if (state.changed) {
     main.appendChild(renderRefreshNotice(function () {
       send('load project', discoveryKey)
     }))
   }
   main.appendChild(renderDraftHeader(state))
-  var intro = state.intros[state.logKeyPair.publicKey]
-  var userIntro = state.userIntro
+  const intro = state.intros[state.logKeyPair.publicKey]
+  const userIntro = state.userIntro
   if (!intro) {
     if (!userIntro) {
-      var introSection = renderSection('Introduce Yourself')
+      const introSection = renderSection('Introduce Yourself')
       main.appendChild(introSection)
       introSection.appendChild(identityLine(send))
     } else {
@@ -37,12 +37,12 @@ module.exports = withProject(function (state, send, discoveryKey) {
   } else {
     main.appendChild(renderWhatsNew(state))
     if (state.draftBriefs.length !== 0) {
-      var graphSection = renderSection('Project Map')
+      const graphSection = renderSection('Project Map')
       main.appendChild(graphSection)
       graphSection.appendChild(renderGraph(state, send))
     }
     // TODO: Move draft-from-scratch link into graph.
-    var newSection = renderSection('Start from Scratch')
+    const newSection = renderSection('Start from Scratch')
     main.appendChild(newSection)
     newSection.appendChild(newDraft(state))
     main.appendChild(renderShareSection(state, send))
@@ -53,7 +53,7 @@ module.exports = withProject(function (state, send, discoveryKey) {
 })
 
 function renderDeleteExplanation () {
-  var p = document.createElement('p')
+  const p = document.createElement('p')
   p.appendChild(document.createTextNode(
     'Leaving this project deletes it from your computer. ' +
     'To see the project again, you will need an invitation link. ' +
@@ -63,10 +63,10 @@ function renderDeleteExplanation () {
   return p
 }
 
-var CONFIRM_DELETE = 'Do you really want to delete this project?'
+const CONFIRM_DELETE = 'Do you really want to delete this project?'
 
 function renderDeleteButton (state, send) {
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   button.id = 'deleteProject'
   button.appendChild(document.createTextNode('Leave this project.'))
   button.addEventListener('click', function () {
@@ -78,9 +78,9 @@ function renderDeleteButton (state, send) {
 }
 
 function newDraft (state) {
-  var section = document.createElement('section')
+  const section = document.createElement('section')
 
-  var a = document.createElement('a')
+  const a = document.createElement('a')
   section.appendChild(a)
   a.className = 'button'
   a.href = '/projects/' + state.discoveryKey + '/drafts/new'
@@ -90,7 +90,7 @@ function newDraft (state) {
 }
 
 function inviteExplanation () {
-  var p = document.createElement('p')
+  const p = document.createElement('p')
   p.appendChild(document.createTextNode(
     'To invite others to join your project, ' +
     'send them a link with a secret code. ' +
@@ -102,9 +102,9 @@ function inviteExplanation () {
 }
 
 function inviteViaEMail (state) {
-  var a = document.createElement('a')
+  const a = document.createElement('a')
   a.className = 'button'
-  var url = inviteURL(state)
+  const url = inviteURL(state)
   a.href = (
     'mailto:' +
     '?subject=' + encodeURIComponent('Proseline Project') +
@@ -117,9 +117,9 @@ function inviteViaEMail (state) {
 }
 
 function copyInvitation (state) {
-  var a = document.createElement('a')
+  const a = document.createElement('a')
   a.className = 'clipboard button'
-  var url = inviteURL(state)
+  const url = inviteURL(state)
   a.setAttribute('data-clipboard-text', url)
   a.appendChild(document.createTextNode('Copy a link for joining this project.'))
   return a
@@ -127,13 +127,13 @@ function copyInvitation (state) {
 
 function persistent (state, send) {
   if (state.persistent) {
-    var p = document.createElement('p')
+    const p = document.createElement('p')
     p.appendChild(document.createTextNode(
       'You are sharing this project through your subscription.'
     ))
     return p
   }
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   button.onclick = function () {
     send('persist')
   }
@@ -155,13 +155,13 @@ function inviteURL (state) {
   )
 }
 
-var BRIEF_WIDTH = 85 * 2
-var BRIEF_HEIGHT = 110 * 2
-var BOOKMARK_WIDTH = 20
+const BRIEF_WIDTH = 85 * 2
+const BRIEF_HEIGHT = 110 * 2
+const BOOKMARK_WIDTH = 20
 
 function renderGraph (state, send) {
-  var briefs = withoutOrphans(state.draftBriefs)
-  var graph = new dagre.graphlib.Graph({ directed: true })
+  const briefs = withoutOrphans(state.draftBriefs)
+  const graph = new dagre.graphlib.Graph({ directed: true })
   graph.setGraph({})
   graph.setDefaultEdgeLabel(function () { return {} })
   briefs.forEach(function (brief) {
@@ -181,42 +181,42 @@ function renderGraph (state, send) {
     edgesep: 10
   })
 
-  var draftSelection = state.draftSelection
+  const draftSelection = state.draftSelection
 
-  var MARGIN = 20
+  const MARGIN = 20
 
   // <svg>
-  var svg = document.createElementNS(SVG, 'svg')
-  var boxWidth = graph.graph().width + (2 * MARGIN)
-  var boxHeight = graph.graph().height + (2 * MARGIN)
+  const svg = document.createElementNS(SVG, 'svg')
+  const boxWidth = graph.graph().width + (2 * MARGIN)
+  const boxHeight = graph.graph().height + (2 * MARGIN)
   svg.setAttributeNS(null, 'viewBox', '0 0 ' + boxWidth + ' ' + boxHeight)
   svg.setAttributeNS(null, 'height', boxHeight)
   svg.setAttributeNS(null, 'width', boxWidth)
   svg.setAttribute('class', 'graph')
 
   // <title>
-  var title = document.createElementNS(SVG, 'title')
+  const title = document.createElementNS(SVG, 'title')
   svg.appendChild(title)
   title.appendChild(document.createTextNode('Graph of Drafts'))
 
   // Render nodes.
   graph.nodes().forEach(function (name) {
-    var node = graph.node(name)
-    var x = node.x + MARGIN - (node.width / 2)
-    var y = node.y + MARGIN - (node.height / 2)
-    var brief = node.brief
-    var digest = brief.digest
-    var selected = state.draftSelection === digest
+    const node = graph.node(name)
+    const x = node.x + MARGIN - (node.width / 2)
+    const y = node.y + MARGIN - (node.height / 2)
+    const brief = node.brief
+    const digest = brief.digest
+    const selected = state.draftSelection === digest
 
-    var g = document.createElementNS(SVG, 'g')
+    const g = document.createElementNS(SVG, 'g')
     svg.appendChild(g)
 
-    var rect = document.createElementNS(SVG, 'rect')
+    const rect = document.createElementNS(SVG, 'rect')
     g.appendChild(rect)
     rect.setAttributeNS(null, 'id', 'rect-' + crypto.base64ToHex(digest))
-    var time = moment(brief.timestamp)
-    var today = time.isAfter(moment().subtract(1, 'days'))
-    var thisWeek = time.isAfter(moment().subtract(1, 'days'))
+    const time = moment(brief.timestamp)
+    const today = time.isAfter(moment().subtract(1, 'days'))
+    const thisWeek = time.isAfter(moment().subtract(1, 'days'))
     rect.setAttributeNS(null, 'class', classnames({
       draft: true,
       selected,
@@ -231,7 +231,7 @@ function renderGraph (state, send) {
     rect.setAttributeNS(null, 'stroke', 'black')
     rect.setAttributeNS(null, 'stroke-width', 2)
 
-    var author = document.createElementNS(SVG, 'text')
+    const author = document.createElementNS(SVG, 'text')
     g.appendChild(author)
     author.setAttributeNS(null, 'x', node.x + MARGIN)
     author.setAttributeNS(null, 'y', node.y - 2 * (node.height / 6) + MARGIN)
@@ -241,7 +241,7 @@ function renderGraph (state, send) {
       plainTextIntro(state, brief.envelope.logPublicKey)
     ))
 
-    var timestamp = document.createElementNS(SVG, 'text')
+    const timestamp = document.createElementNS(SVG, 'text')
     g.appendChild(timestamp)
     timestamp.setAttributeNS(null, 'class', 'relativeTimestamp')
     timestamp.setAttributeNS(null, 'x', node.x + MARGIN)
@@ -252,9 +252,9 @@ function renderGraph (state, send) {
       moment(brief.timestamp).fromNow()
     ))
 
-    var anchorX = node.x + MARGIN
-    var firstPosition = node.y + MARGIN
-    var secondPosition = node.y + (node.height / 6) + MARGIN
+    const anchorX = node.x + MARGIN
+    const firstPosition = node.y + MARGIN
+    const secondPosition = node.y + (node.height / 6) + MARGIN
 
     if (selected || !draftSelection) {
       g.appendChild(
@@ -319,12 +319,12 @@ function renderGraph (state, send) {
     }
 
     if (brief.notesCount && brief.notesCount !== 0) {
-      var notesWidth = 36
-      var noteOffset = 5
-      var notesX = node.x + MARGIN + (node.width / 2) - notesWidth - noteOffset
-      var notesY = node.y + MARGIN + (node.height / 2) - (notesWidth / 2)
+      const notesWidth = 36
+      const noteOffset = 5
+      const notesX = node.x + MARGIN + (node.width / 2) - notesWidth - noteOffset
+      const notesY = node.y + MARGIN + (node.height / 2) - (notesWidth / 2)
 
-      var notesRect = document.createElementNS(SVG, 'rect')
+      const notesRect = document.createElementNS(SVG, 'rect')
       g.appendChild(notesRect)
       notesRect.setAttributeNS(null, 'x', notesX)
       notesRect.setAttributeNS(null, 'y', notesY)
@@ -334,9 +334,9 @@ function renderGraph (state, send) {
       notesRect.setAttributeNS(null, 'stroke-width', 2)
       notesRect.setAttributeNS(null, 'fill', '#ffffa5')
 
-      var notesCountFontSize = 14
+      const notesCountFontSize = 14
 
-      var notesCount = document.createElementNS(SVG, 'text')
+      const notesCount = document.createElementNS(SVG, 'text')
       svg.appendChild(notesCount)
       notesCount.setAttributeNS(null, 'x', notesX + (notesWidth / 2))
       notesCount.setAttributeNS(null, 'y', notesY + (notesWidth / 2) + (notesCountFontSize / 2))
@@ -346,13 +346,13 @@ function renderGraph (state, send) {
       notesCount.appendChild(document.createTextNode(brief.notesCount))
     }
 
-    var marks = state.projectMarks
+    const marks = state.projectMarks
       .sort(byTimestamp)
       .filter(function (mark) {
         return mark.draft === brief.digest
       })
-    var othersMarks = []
-    var ourMarks = []
+    const othersMarks = []
+    const ourMarks = []
     marks.forEach(function (mark) {
       (mark.envelope.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
         .push(mark)
@@ -365,7 +365,7 @@ function renderGraph (state, send) {
         Math.max(othersMarks.length, 1)
       )
     ) {
-      var marksCount = document.createElementNS(SVG, 'text')
+      const marksCount = document.createElementNS(SVG, 'text')
       g.appendChild(marksCount)
       marksCount.setAttributeNS(null, 'x', node.x + MARGIN)
       marksCount.setAttributeNS(null, 'y', node.y + 2 * (node.height / 6) + MARGIN)
@@ -374,15 +374,15 @@ function renderGraph (state, send) {
       if (ourMarks.length !== 0) {
         marksCount.setAttributeNS(null, 'font-weight', 'bold')
       }
-      var text = (ourMarks.length !== 0)
+      const text = (ourMarks.length !== 0)
         ? (
-          ourMarks[0].name +
+            ourMarks[0].name +
           (marks.length > 1 ? '...' : '')
-        )
+          )
         : (
-          marks.length + ' ' +
+            marks.length + ' ' +
           (marks.length === 1 ? 'mark' : 'marks')
-        )
+          )
       marksCount.appendChild(document.createTextNode(text))
     }
 
@@ -411,10 +411,10 @@ function renderGraph (state, send) {
 
   // Render edges.
   graph.edges().forEach(function (nodes) {
-    var edge = graph.edge(nodes)
-    var polyline = document.createElementNS(SVG, 'polyline')
+    const edge = graph.edge(nodes)
+    const polyline = document.createElementNS(SVG, 'polyline')
     svg.appendChild(polyline)
-    var points = edge.points
+    const points = edge.points
       .map(function (point) {
         return (point.x + MARGIN) + ' ' + (point.y + MARGIN)
       })
@@ -435,7 +435,7 @@ function renderSVGLink (options) {
   assert(typeof options.x === 'number')
   assert(typeof options.y === 'number')
 
-  var anchor = document.createElementNS(SVG, 'a')
+  const anchor = document.createElementNS(SVG, 'a')
   anchor.setAttributeNS(null, 'id', options.label + '-' + crypto.base64ToHex(options.digest))
   if (options.href) {
     anchor.setAttribute('href', options.href)
@@ -443,7 +443,7 @@ function renderSVGLink (options) {
     anchor.addEventListener('click', options.onClick)
   }
 
-  var text = document.createElementNS(SVG, 'text')
+  const text = document.createElementNS(SVG, 'text')
   anchor.appendChild(text)
   text.appendChild(document.createTextNode(options.label))
   text.setAttributeNS(null, 'x', options.x)
@@ -455,7 +455,7 @@ function renderSVGLink (options) {
 
 function plainTextIntro (state, logPublicKey) {
   if (logPublicKey === state.logKeyPair.publicKey) return 'You'
-  var intro = state.intros[logPublicKey]
+  const intro = state.intros[logPublicKey]
   if (intro) {
     return intro.name
   } else {
@@ -464,7 +464,7 @@ function plainTextIntro (state, logPublicKey) {
 }
 
 function withoutOrphans (briefs) {
-  var digestsSeen = new Set()
+  const digestsSeen = new Set()
   return briefs
     .sort(byTimestamp)
     .filter(function removeOrphans (brief) {
@@ -479,7 +479,7 @@ function withoutOrphans (briefs) {
 }
 
 function renderShareSection (state, send) {
-  var section = renderSection('Share')
+  const section = renderSection('Share')
   section.appendChild(inviteExplanation())
   section.appendChild(inviteViaEMail(state))
   section.appendChild(copyInvitation(state))
@@ -490,21 +490,21 @@ function renderShareSection (state, send) {
 }
 
 function renderOrganizeSection (state, send) {
-  var section = renderSection('Organize')
+  const section = renderSection('Organize')
   section.appendChild(renderDeleteExplanation())
   section.appendChild(renderDeleteButton(state, send))
   return section
 }
 
 function renderRenameSection (state, send) {
-  var section = renderSection('Rename')
+  const section = renderSection('Rename')
   section.appendChild(renderRenameExplanation())
   section.appendChild(renderRename(state, send))
   return section
 }
 
 function renderRenameExplanation () {
-  var p = document.createElement('p')
+  const p = document.createElement('p')
   p.appendChild(document.createTextNode(
     'Renaming the project changes your name for the project. ' +
     'Other members of the project cannot see the name you use.'
@@ -513,19 +513,19 @@ function renderRenameExplanation () {
 }
 
 function renderRename (state, send) {
-  var form = document.createElement('form')
+  const form = document.createElement('form')
   form.addEventListener('submit', function (event) {
     event.preventDefault()
     event.stopPropagation()
     send('rename', input.value)
   })
 
-  var input = document.createElement('input')
+  const input = document.createElement('input')
   form.appendChild(input)
   input.requred = true
   input.value = state.title
 
-  var button = document.createElement('button')
+  const button = document.createElement('button')
   form.appendChild(button)
   button.type = 'submit'
   button.appendChild(document.createTextNode('Rename this project.'))
@@ -534,7 +534,7 @@ function renderRename (state, send) {
 }
 
 function renderWhatsNew (state) {
-  var section = renderSection('What’s New')
+  const section = renderSection('What’s New')
   section.appendChild(renderActivity(state, state.activity))
   return section
 }

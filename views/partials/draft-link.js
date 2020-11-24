@@ -1,9 +1,9 @@
-var renderDraftDescription = require('./draft-description')
-var renderDraftIcon = require('./draft-icon')
-var renderIntro = require('./intro')
+const renderDraftDescription = require('./draft-description')
+const renderDraftIcon = require('./draft-icon')
+const renderIntro = require('./intro')
 
 module.exports = function (state, draftOrBrief) {
-  var a = document.createElement('a')
+  const a = document.createElement('a')
   a.className = 'draft'
   a.href = (
     '/projects/' + draftOrBrief.project +

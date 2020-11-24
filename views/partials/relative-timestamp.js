@@ -1,7 +1,7 @@
-var moment = require('moment')
+const moment = require('moment')
 
 module.exports = function (timestamp) {
-  var span = document.createElement('span')
+  const span = document.createElement('span')
   span.className = 'relativeTimestamp'
   span.dataset.timestamp = timestamp
   span.appendChild(document.createTextNode(

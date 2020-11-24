@@ -1,6 +1,6 @@
-var pmModel = require('prosemirror-model')
+const pmModel = require('prosemirror-model')
 
-var Schema = pmModel.Schema
+const Schema = pmModel.Schema
 
 module.exports = new Schema({
   nodes: {
@@ -21,7 +21,7 @@ module.exports = new Schema({
       parseDOM: new Array(6)
         .fill()
         .map(function (index) {
-          var level = index + 1
+          const level = index + 1
           return { tag: 'h' + level, attrs: { level } }
         }),
       toDOM: function (node) { return ['h' + node.attrs.level, 0] }

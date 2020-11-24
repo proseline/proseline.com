@@ -1,5 +1,5 @@
-var EncryptedJSONProtocol = require('encrypted-json-protocol')
-var schemas = require('@proseline/schemas')
+const EncryptedJSONProtocol = require('encrypted-json-protocol')
+const schemas = require('@proseline/schemas')
 
 module.exports = EncryptedJSONProtocol({
   version: 3,

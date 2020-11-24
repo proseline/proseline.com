@@ -1,10 +1,10 @@
-var SVG = require('../../svg')
+const SVG = require('../../svg')
 
 module.exports = function (x, y, color, width) {
-  var bookmarkHeight = width * 2
-  var bookmarkNotch = width / 2
-  var bookmark = document.createElementNS(SVG, 'path')
-  var commands = [
+  const bookmarkHeight = width * 2
+  const bookmarkNotch = width / 2
+  const bookmark = document.createElementNS(SVG, 'path')
+  const commands = [
     ['M', x, y],
     ['l', width, 0],
     ['l', 0, bookmarkHeight],

@@ -1,13 +1,14 @@
-var ProjectDatabase = require('./project')
-var ProselineDatabase = require('./proseline')
-var debug = require('debug')('proseline:databases')
+const ProjectDatabase = require('./project')
+const ProselineDatabase = require('./proseline')
+const debug = require('debug')('proseline:databases')
+const has = require('has')
 
 // Initialize the main proseline database immediately.
 // This database stores information on other project databases.
-var proseline = new ProselineDatabase()
+const proseline = new ProselineDatabase()
 
 // A cache of Database instances, stored by name.
-var cache = { proseline }
+const cache = { proseline }
 
 module.exports = { proseline, setup, get }
 
@@ -22,8 +23,8 @@ function setup (done) {
 // cache the instance.
 function get (id, callback) {
   // If cached...
-  if (cache.hasOwnProperty(id)) {
-    var cached = cache[id]
+  if (has(cache, id)) {
+    const cached = cache[id]
     if (cached.ready) return callback(null, cached)
     cached.once('ready', function () {
       callback(null, cached)
@@ -35,14 +36,14 @@ function get (id, callback) {
     if (project && project.deleted) {
       return callback(new Error('deleted project'))
     }
-    var db = new ProjectDatabase({
+    const db = new ProjectDatabase({
       discoveryKey: id,
       encryptionKey: project.encryptionKey,
       projectKeyPair: project.projectKeyPair
     })
     cache[id] = db
     debug('initializing "' + id + '"')
-    var errored = false
+    let errored = false
     db.once('ready', function () {
       if (!errored) callback(null, db)
     })
