@@ -39,7 +39,7 @@
     "prosemirror-view": "^1.16.3",
     "rfc6902-json-diff": "^0.2.1",
     "run-parallel": "^1.1.10",
-    "run-series": "^1.1.8",
+    "run-series": "^1.1.9",
     "signalhub": "^4.9.0",
     "simple-get": "^3.0.3",
     "webrtc-swarm": "^2.9.0"
