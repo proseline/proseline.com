@@ -17,7 +17,7 @@
     "dagre": "^0.8.5",
     "debug": "^4.3.1",
     "domain-singleton": "^3.0.0",
-    "duplexify": "^4.0.0",
+    "duplexify": "^4.1.1",
     "encrypted-json-protocol": "^2.0.3",
     "fast-json-stable-stringify": "^2.0.0",
     "file-saver": "^2.0.2",
