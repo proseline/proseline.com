@@ -21,7 +21,7 @@
     "encrypted-json-protocol": "^2.0.3",
     "fast-json-stable-stringify": "^2.1.0",
     "file-saver": "^2.0.5",
-    "inherits": "^2.0.3",
+    "inherits": "^2.0.4",
     "moment": "^2.24.0",
     "multiplex": "^6.7.0",
     "nanoassert": "^2.0.0",
