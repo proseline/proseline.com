@@ -19,7 +19,7 @@
     "domain-singleton": "^3.0.0",
     "duplexify": "^4.1.1",
     "encrypted-json-protocol": "^2.0.3",
-    "fast-json-stable-stringify": "^2.0.0",
+    "fast-json-stable-stringify": "^2.1.0",
     "file-saver": "^2.0.2",
     "inherits": "^2.0.3",
     "moment": "^2.24.0",
