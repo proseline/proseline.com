@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "ajv": "^6.12.6",
-    "browserify": "^16.2.3",
+    "browserify": "^17.0.0",
     "common-shakeify": "^0.6.0",
     "envify": "^4.1.0",
     "exorcist": "^1.0.1",
