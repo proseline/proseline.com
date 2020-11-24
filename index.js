@@ -23,7 +23,8 @@ runSeries([
 
 function detectFeatures (done) {
   runSeries([
-    detectIndexedDB
+    detectIndexedDB,
+    persistStorage
   ], done)
 
   function detectIndexedDB (done) {
@@ -33,6 +34,19 @@ function detectFeatures (done) {
       done(error)
     }
     done()
+  }
+
+  function persistStorage (done) {
+    if (navigator && navigator.storage.persist) {
+      navigator.storage.persist().then(function (succeeded) {
+        if (!succeeded) {
+          console.error('Could not secure persistent storage.')
+        }
+        done()
+      })
+    } else {
+      done()
+    }
   }
 }
 
