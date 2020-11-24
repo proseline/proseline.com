@@ -2,7 +2,7 @@ const renderHomeLink = require('./home-link')
 const renderPeersIcon = require('./peers-icon')
 const renderProjectLink = require('./project-link')
 
-module.exports = function (state, addition) {
+module.exports = (state, addition) => {
   const header = document.createElement('header')
   header.className = 'draftHeader'
   header.appendChild(renderHomeLink())

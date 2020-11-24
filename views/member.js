@@ -5,7 +5,7 @@ const renderLoading = require('./loading')
 const renderRefreshNotice = require('./partials/refresh-notice')
 const withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey, logPublicKey) {
+module.exports = withProject((state, send, discoveryKey, logPublicKey) => {
   state.route = 'member'
   assert(typeof state === 'object')
   assert(typeof send === 'function')

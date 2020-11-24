@@ -1,6 +1,6 @@
 const assert = require('nanoassert')
 
-module.exports = function (onLoadEvent, text) {
+module.exports = (onLoadEvent, text) => {
   assert(typeof onLoadEvent === 'function')
   if (text) assert(typeof text === 'string')
   onLoadEvent()

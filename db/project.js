@@ -31,7 +31,7 @@ inherits(Project, Database)
 
 const CURRENT_VERSION = 4
 
-Project.prototype._upgrade = function (db, oldVersion, callback) {
+Project.prototype._upgrade = (db, oldVersion, callback) => {
   if (oldVersion < CURRENT_VERSION) {
     // Log Key Pairs
     const logKeyPairs = db.createObjectStore('logKeyPairs')
@@ -80,10 +80,10 @@ Project.prototype.createLogKeyPair = function (setDefault, callback) {
   const self = this
   const logKeyPair = crypto.keyPair()
   const logPublicKey = logKeyPair.publicKey
-  self._put('logKeyPairs', logPublicKey, logKeyPair, function (error) {
+  self._put('logKeyPairs', logPublicKey, logKeyPair, error => {
     if (error) return callback(error)
     if (setDefault) {
-      self._put('logKeyPairs', 'default', logPublicKey, function (error) {
+      self._put('logKeyPairs', 'default', logPublicKey, error => {
         if (error) return callback(error)
         callback(null, logKeyPair)
       })
@@ -99,7 +99,7 @@ Project.prototype.getLogKeyPair = function (logPublicKey, callback) {
 
 Project.prototype.getDefaultLogKeyPair = function (callback) {
   const self = this
-  self.getLogKeyPair('default', function (error, logPublicKey) {
+  self.getLogKeyPair('default', (error, logPublicKey) => {
     if (error) return callback(error)
     if (logPublicKey === undefined) {
       callback()
@@ -129,7 +129,7 @@ Project.prototype.getLogHead = function (logPublicKey, callback) {
     'logs',
     logEntryKey(logPublicKey, MIN_INDEX),
     logEntryKey(logPublicKey, MAX_INDEX),
-    function (error, count) {
+    (error, count) => {
       if (error) return callback(error)
       if (count === 0) return callback(null, undefined)
       return callback(null, count - 1)
@@ -169,7 +169,7 @@ Project.prototype._log = function (entry, logKeyPair, callback) {
     self._emitEntryEvent(entry)
     callback(null, entry, entry.digest)
   }
-  requestHead(transaction, logPublicKey, function (head) {
+  requestHead(transaction, logPublicKey, head => {
     let index, prior
     if (head === undefined) {
       // This will be the first entry in the log.
@@ -197,13 +197,13 @@ Project.prototype._log = function (entry, logKeyPair, callback) {
   })
 }
 
-Project.prototype._emitEntryEvent = function (entry) {
+Project.prototype._emitEntryEvent = entry => {
   pageBus.emit('entry', entry)
 }
 
 Project.prototype.getEntry = function (logPublicKey, index, callback) {
   const key = logEntryKey(logPublicKey, index)
-  this._get('logs', key, function (error, entry) {
+  this._get('logs', key, (error, entry) => {
     if (error) return callback(error)
     removeIndexingMetadata(entry)
     callback(null, entry)
@@ -249,7 +249,7 @@ Project.prototype.putEnvelope = function (envelope, entry, callback) {
   const index = envelope.index
   const logPublicKey = envelope.logPublicKey
   const prior = envelope.prior
-  requestHead(transaction, logPublicKey, function (head) {
+  requestHead(transaction, logPublicKey, head => {
     if (head) {
       if (index !== head.index + 1) {
         calledBackWithError = true
@@ -298,12 +298,12 @@ Project.prototype.getChildren = function (digest, callback) {
 
 Project.prototype.listDraftBriefs = function (callback) {
   const self = this
-  self._indexQuery('logs', 'type', 'draft', function (error, drafts) {
+  self._indexQuery('logs', 'type', 'draft', (error, drafts) => {
     if (error) return callback(error)
     runParallel(
-      drafts.map(function (draft) {
-        return function (done) {
-          self.countNotes(draft.digest, function (error, notesCount) {
+      drafts.map(draft => {
+        return done => {
+          self.countNotes(draft.digest, (error, notesCount) => {
             if (error) return done(error)
             const body = draft.entry
             done(null, {
@@ -347,12 +347,12 @@ Project.prototype.getMarks = function (digest, callback) {
 }
 
 Project.prototype.listMarks = function (callback) {
-  this._indexQuery('logs', 'type', 'mark', function (error, marks) {
+  this._indexQuery('logs', 'type', 'mark', (error, marks) => {
     if (error) return callback(error)
     const seen = new Set()
     callback(null, marks
       .reverse()
-      .filter(function (mark) {
+      .filter(mark => {
         const identifier = mark.identifier
         if (seen.has(identifier)) {
           return false

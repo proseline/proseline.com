@@ -1,7 +1,7 @@
 const beforeUnload = require('../before-unload')
 
-module.exports = function (editor, parents, discoveryKey, send) {
-  return function (event) {
+module.exports = (editor, parents, discoveryKey, send) => {
+  return event => {
     if (event.ctrlKey || (navigator.platform.match('Mac') && event.metaKey)) {
       // Ctrl + S
       if (event.keyCode === 83 && beforeUnload.isEnabled()) {

@@ -1,4 +1,4 @@
-module.exports = function (link) {
+module.exports = link => {
   const returned = document.createDocumentFragment()
   const first = document.createElement('p')
   returned.appendChild(first)

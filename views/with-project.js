@@ -2,7 +2,7 @@ const assert = require('nanoassert')
 const renderLoading = require('./loading')
 
 module.exports = function (view) {
-  return function (state, send, discoveryKey) {
+  return (state, send, discoveryKey) => {
     assert(typeof state === 'object')
     assert(typeof send === 'function')
     assert(typeof view === 'function')

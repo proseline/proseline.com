@@ -1,6 +1,6 @@
 const renderMark = require('./mark')
 
-module.exports = function (state, mark) {
+module.exports = (state, mark) => {
   const a = document.createElement('a')
   a.className = 'draft'
   a.href = (

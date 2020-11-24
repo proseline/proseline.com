@@ -34,7 +34,7 @@ exports.enter = chainCommands(
 
 exports.br = chainCommands(
   exitCode,
-  function (state, dispatch) {
+  (state, dispatch) => {
     if (dispatch) {
       dispatch(
         state.tr
@@ -46,7 +46,7 @@ exports.br = chainCommands(
   }
 )
 
-exports.hr = function (state, dispatch) {
+exports.hr = (state, dispatch) => {
   if (!canInsert(state, schema.nodes.hr)) return false
   if (dispatch) {
     dispatch(
@@ -71,7 +71,7 @@ function canInsert (state, type) {
   return false
 }
 
-eachHeadingLevel(function (level) {
+eachHeadingLevel(level => {
   const name = 'h' + level
   exports[name] = setBlockType(schema.nodes.heading, { level })
 })

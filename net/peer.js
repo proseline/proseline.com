@@ -21,7 +21,7 @@ function Peer (id, transportStream) {
     .on('end', function () {
       self.done()
     })
-    .on('error', function (error) {
+    .on('error', error => {
       log(error)
       self.done()
     })
@@ -29,18 +29,18 @@ function Peer (id, transportStream) {
   // Multiplex replication streams over the transport stream.
   const plex = self.plex = multiplex()
   self._sharedStreams = new Map()
-  plex.on('error', function (error) {
+  plex.on('error', error => {
     log(error)
   })
 
-  plex.on('stream', function (receiveStream, discoveryKey) {
+  plex.on('stream', (receiveStream, discoveryKey) => {
     const sharedStream = duplexify(
       plex.createStream(discoveryKey),
       receiveStream
     )
     const proselineDatabase = databases.proseline
     const log = debug(DEBUG_NAMESPACE + 'replication:' + discoveryKey)
-    proselineDatabase.getProject(discoveryKey, function (error, project) {
+    proselineDatabase.getProject(discoveryKey, (error, project) => {
       if (error) {
         log(error)
         return sharedStream.destroy()
@@ -53,7 +53,7 @@ function Peer (id, transportStream) {
         log('deleted project: %o', discoveryKey)
         return sharedStream.destroy()
       }
-      databases.get(discoveryKey, function (error, database) {
+      databases.get(discoveryKey, (error, database) => {
         if (error) return log(error)
         self.joinProject(project, database, sharedStream)
       })
@@ -64,27 +64,27 @@ function Peer (id, transportStream) {
 
   // Add and remove replication streams as we join and leave projects.
   const pageBusListeners = self._pageBusListeners = {
-    'added project': function (discoveryKey) {
-      proseline.getProject(discoveryKey, function (error, project) {
+    'added project': discoveryKey => {
+      proseline.getProject(discoveryKey, (error, project) => {
         if (error) return log(error)
-        databases.get(discoveryKey, function (error, database) {
+        databases.get(discoveryKey, (error, database) => {
           if (error) return log(error)
           self.joinProject(project, database)
         })
       })
     },
-    'deleted project': function (discoveryKey) {
+    'deleted project': discoveryKey => {
       self.leaveProject(discoveryKey)
     },
-    'overwrote project': function (discoveryKey) {
-      proseline.getProject(discoveryKey, function (error, project) {
+    'overwrote project': discoveryKey => {
+      proseline.getProject(discoveryKey, (error, project) => {
         if (error) return log(error)
         if (project.deleted) self.leaveProject(discoveryKey)
       })
     }
   }
 
-  Object.keys(pageBusListeners).forEach(function (eventName) {
+  Object.keys(pageBusListeners).forEach(eventName => {
     pageBus.addListener(eventName, pageBusListeners[eventName])
   })
 
@@ -98,11 +98,11 @@ Peer.prototype.joinProjects = function () {
   const log = self.log
   log('joining projects')
   const proselineDB = databases.proseline
-  proselineDB.listProjects(function (error, projects) {
+  proselineDB.listProjects((error, projects) => {
     if (error) return log(error)
-    projects.forEach(function (project) {
+    projects.forEach(project => {
       if (project.deleted) return
-      databases.get(project.discoveryKey, function (error, database) {
+      databases.get(project.discoveryKey, (error, database) => {
         if (error) return log(error)
         self.joinProject(project, database)
       })
@@ -142,7 +142,7 @@ Peer.prototype._addSharedStream = function (discoveryKey, stream) {
   const log = self.log
   self._sharedStreams.set(discoveryKey, stream)
   stream
-    .once('error', function (error) {
+    .once('error', error => {
       log(error)
       self._sharedStreams.delete(discoveryKey)
     })
@@ -171,7 +171,7 @@ Peer.prototype.done = function () {
 
 Peer.prototype._removePageBusListeners = function () {
   const pageBusListeners = this._pageBusListeners
-  Object.keys(pageBusListeners).forEach(function (eventName) {
+  Object.keys(pageBusListeners).forEach(eventName => {
     pageBus.removeListener(eventName, pageBusListeners[eventName])
   })
 }

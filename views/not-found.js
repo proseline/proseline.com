@@ -1,4 +1,4 @@
-module.exports = function (state) {
+module.exports = state => {
   state.route = 'not found'
   const main = document.createElement('main')
   main.appendChild(document.createTextNode('Not Found'))

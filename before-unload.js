@@ -2,17 +2,17 @@ const message = exports.message = 'Continue without saving your work?'
 
 let isEnabled = false
 
-exports.enable = function () {
+exports.enable = () => {
   window.addEventListener('beforeunload', eventHandler)
   isEnabled = true
 }
 
-exports.disable = function () {
+exports.disable = () => {
   window.removeEventListener('beforeunload', eventHandler)
   isEnabled = false
 }
 
-exports.isEnabled = function () {
+exports.isEnabled = () => {
   return isEnabled
 }
 

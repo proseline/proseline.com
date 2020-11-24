@@ -6,7 +6,7 @@ const renderPayment = require('./partials/payment')
 const renderSection = require('./partials/section')
 const renderSharing = require('./partials/sharing')
 
-module.exports = function (state, send) {
+module.exports = (state, send) => {
   state.route = 'home'
   const main = document.createElement('main')
   if (!state.subscription) {
@@ -89,7 +89,7 @@ function renderSubscribeSection (send) {
   button.onclick = function () {
     const card = document.getElementById('card').card
     stripe.createToken(card)
-      .then(function (result) {
+      .then(result => {
         if (result.error) {
           const errors = document.getElementById('card-errors')
           errors.textContent = result.error.entry

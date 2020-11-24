@@ -31,7 +31,7 @@ function get (id, callback) {
     })
   }
   // Otherwise...
-  proseline.getProject(id, function (error, project) {
+  proseline.getProject(id, (error, project) => {
     if (error) return callback(error)
     if (project && project.deleted) {
       return callback(new Error('deleted project'))
@@ -47,7 +47,7 @@ function get (id, callback) {
     db.once('ready', function () {
       if (!errored) callback(null, db)
     })
-    db.init(function (error) {
+    db.init(error => {
       if (error) {
         errored = true
         delete cache[id]

@@ -1,6 +1,6 @@
 const moment = require('moment')
 
-module.exports = function (timestamp) {
+module.exports = timestamp => {
   const span = document.createElement('span')
   span.className = 'relativeTimestamp'
   span.dataset.timestamp = timestamp

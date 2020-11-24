@@ -22,7 +22,7 @@ inherits(Proseline, Database)
 
 const prototype = Proseline.prototype
 
-prototype._upgrade = function (db, oldVersion, callback) {
+prototype._upgrade = (db, oldVersion, callback) => {
   if (oldVersion < 1) {
     // The `projects` database holds information on projects the
     // user is working on.
@@ -44,7 +44,7 @@ prototype.putProject = function (project, callback) {
   assert(has(project, 'encryptionKey'))
   const self = this
   const discoveryKey = project.discoveryKey
-  self._put('projects', discoveryKey, project, function (error) {
+  self._put('projects', discoveryKey, project, error => {
     if (error) return callback(error)
     pageBus.emit('added project', discoveryKey)
     callback()
@@ -57,7 +57,7 @@ prototype.overwriteProject = function (project, callback) {
   assert(has(project, 'encryptionKey'))
   const self = this
   const discoveryKey = project.discoveryKey
-  self._put('projects', discoveryKey, project, function (error) {
+  self._put('projects', discoveryKey, project, error => {
     if (error) return callback(error)
     pageBus.emit('overwrote project', discoveryKey)
     callback()
@@ -70,7 +70,7 @@ prototype.getProject = function (discoveryKey, callback) {
 
 prototype.deleteProject = function (discoveryKey, callback) {
   const self = this
-  self._delete('projects', discoveryKey, function (error) {
+  self._delete('projects', discoveryKey, error => {
     if (error) return callback(error)
     pageBus.emit('deleted project', discoveryKey)
     callback()
@@ -87,13 +87,13 @@ prototype.listProjects = function (callback) {
 // If the keypair doesn't exist yet, create it.
 prototype.getClientKeyPair = function (callback) {
   const self = this
-  self._get('client', 'keypair', function (error, clientKeyPair) {
+  self._get('client', 'keypair', (error, clientKeyPair) => {
     if (error) return callback(error)
     if (clientKeyPair !== undefined) {
       return callback(null, clientKeyPair)
     }
     clientKeyPair = crypto.signingKeyPair()
-    self._put('client', 'keypair', clientKeyPair, function (error) {
+    self._put('client', 'keypair', clientKeyPair, error => {
       if (error) return callback(error)
       callback(null, clientKeyPair)
     })

@@ -8,7 +8,7 @@ const withProject = require('./with-project')
 const DOMSerializer = pmModel.DOMSerializer
 const schema = require('../editor/schema')
 
-module.exports = withProject(function (state, send, discoveryKey, drafts) {
+module.exports = withProject((state, send, discoveryKey, drafts) => {
   state.route = 'comparison'
   const digest = drafts[0]
   const comparing = drafts[1]
@@ -43,7 +43,7 @@ module.exports = withProject(function (state, send, discoveryKey, drafts) {
       state.draft.text,
       state.comparing.text
     )
-    patch.forEach(function (element) {
+    patch.forEach(element => {
       const type = element.op
       if (type === 'replace') {
         if (element.path.endsWith('/text')) {

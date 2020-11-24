@@ -1,4 +1,4 @@
-module.exports = function (db, store, key, callback) {
+module.exports = (db, store, key, callback) => {
   const transaction = db.transaction([store], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)

@@ -1,4 +1,4 @@
-module.exports = function (onclick) {
+module.exports = onclick => {
   const div = document.createElement('div')
   div.addEventListener('click', function () {
     onclick()

@@ -7,9 +7,9 @@ const inherits = require('inherits')
 // databases. Other database wrapper prototypes extend Database.
 module.exports = Database
 
-function Database (options) {
-  this._name = options.name
-  this._version = options.version
+function Database ({ name, version }) {
+  this._name = name
+  this._version = version
   this._initialized = false
   this.ready = false
 }
@@ -28,7 +28,7 @@ prototype.init = function (callback) {
     self.emit('ready')
     callback()
   }
-  request.onupgradeneeded = function (event) {
+  request.onupgradeneeded = event => {
     self._upgrade(request.result, event.oldVersion, function () { })
   }
   request.onerror = function () {
@@ -126,7 +126,7 @@ prototype._listIndexedValues = function (store, indexName, callback) {
 }
 
 prototype._listValues = function (store, callback) {
-  this._list(store, function (cursor) {
+  this._list(store, cursor => {
     return cursor.value
   }, callback)
 }

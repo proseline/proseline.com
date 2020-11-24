@@ -1,4 +1,4 @@
-module.exports = function (send) {
+module.exports = send => {
   const form = document.createElement('form')
   form.className = 'intro'
 
@@ -18,7 +18,7 @@ module.exports = function (send) {
   ]
   select.appendChild(document.createElement('option'))
   select.required = true
-  devices.forEach(function (device) {
+  devices.forEach(device => {
     const option = document.createElement('option')
     option.value = device
     option.appendChild(document.createTextNode(device))
@@ -32,7 +32,7 @@ module.exports = function (send) {
   button.appendChild(document.createTextNode('Introduce yourself.'))
   form.appendChild(button)
 
-  form.addEventListener('submit', function (event) {
+  form.addEventListener('submit', event => {
     event.preventDefault()
     event.stopPropagation()
     send('set user intro', {

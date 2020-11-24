@@ -1,7 +1,7 @@
-module.exports = function (iterator) {
+module.exports = iterator => {
   return new Array(6)
     .fill()
-    .map(function (_, index) {
+    .map((_, index) => {
       return iterator(index + 1)
     })
 }

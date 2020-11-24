@@ -19,10 +19,10 @@ module.exports = pmMenu.menuBar({
         title: 'Strong',
         label: 'Strong',
         icon: icons.strong,
-        active: function (state) {
+        active: state => {
           return isMarkActive(state, schema.marks.strong)
         },
-        enable: function (state) {
+        enable: state => {
           return !state.selection.empty
         },
         run: commands.strong
@@ -31,10 +31,10 @@ module.exports = pmMenu.menuBar({
         title: 'Emphasis',
         label: 'Emphasis',
         icon: icons.em,
-        active: function (state) {
+        active: state => {
           return isMarkActive(state, schema.marks.em)
         },
-        enable: function (state) {
+        enable: state => {
           return !state.selection.empty
         },
         run: commands.em
@@ -43,10 +43,10 @@ module.exports = pmMenu.menuBar({
         title: 'Code',
         label: 'Code',
         icon: icons.code,
-        active: function (state) {
+        active: state => {
           return isMarkActive(state, schema.marks.code)
         },
-        enable: function (state) {
+        enable: state => {
           return !state.selection.empty
         },
         run: commands.code
@@ -79,13 +79,13 @@ module.exports = pmMenu.menuBar({
       new MenuItem({
         title: 'Lift out of enclosing block',
         run: commands.lift,
-        enable: function (state) {
+        enable: state => {
           return commands.lift(state)
         },
         icon: icons.lift
       }),
       new Dropdown(
-        eachHeadingLevel(function (level) {
+        eachHeadingLevel(level => {
           const name = 'h' + level
           return new MenuItem({
             title: 'Heading ' + level,

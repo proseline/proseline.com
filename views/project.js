@@ -13,7 +13,7 @@ const renderRefreshNotice = require('./partials/refresh-notice')
 const renderSection = require('./partials/section')
 const withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey) {
+module.exports = withProject((state, send, discoveryKey) => {
   state.route = 'project'
   const main = document.createElement('main')
   if (state.changed) {
@@ -164,13 +164,13 @@ function renderGraph (state, send) {
   const graph = new dagre.graphlib.Graph({ directed: true })
   graph.setGraph({})
   graph.setDefaultEdgeLabel(function () { return {} })
-  briefs.forEach(function (brief) {
+  briefs.forEach(brief => {
     graph.setNode(crypto.base64ToHex(brief.digest), {
       brief,
       width: BRIEF_WIDTH,
       height: BRIEF_HEIGHT
     })
-    brief.parents.forEach(function (parent) {
+    brief.parents.forEach(parent => {
       graph.setEdge(crypto.base64ToHex(brief.digest), parent)
     })
   })
@@ -200,7 +200,7 @@ function renderGraph (state, send) {
   title.appendChild(document.createTextNode('Graph of Drafts'))
 
   // Render nodes.
-  graph.nodes().forEach(function (name) {
+  graph.nodes().forEach(name => {
     const node = graph.node(name)
     const x = node.x + MARGIN - (node.width / 2)
     const y = node.y + MARGIN - (node.height / 2)
@@ -348,12 +348,12 @@ function renderGraph (state, send) {
 
     const marks = state.projectMarks
       .sort(byTimestamp)
-      .filter(function (mark) {
+      .filter(mark => {
         return mark.draft === brief.digest
       })
     const othersMarks = []
     const ourMarks = []
-    marks.forEach(function (mark) {
+    marks.forEach(mark => {
       (mark.envelope.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
         .push(mark)
     })
@@ -410,12 +410,12 @@ function renderGraph (state, send) {
   })
 
   // Render edges.
-  graph.edges().forEach(function (nodes) {
+  graph.edges().forEach(nodes => {
     const edge = graph.edge(nodes)
     const polyline = document.createElementNS(SVG, 'polyline')
     svg.appendChild(polyline)
     const points = edge.points
-      .map(function (point) {
+      .map(point => {
         return (point.x + MARGIN) + ' ' + (point.y + MARGIN)
       })
       .join(', ')
@@ -429,25 +429,32 @@ function renderGraph (state, send) {
   return svg
 }
 
-function renderSVGLink (options) {
-  assert(typeof options.label === 'string')
-  assert(typeof options.digest === 'string')
-  assert(typeof options.x === 'number')
-  assert(typeof options.y === 'number')
+function renderSVGLink ({
+  label,
+  digest,
+  x,
+  y,
+  href,
+  onClick
+}) {
+  assert(typeof label === 'string')
+  assert(typeof digest === 'string')
+  assert(typeof x === 'number')
+  assert(typeof y === 'number')
 
   const anchor = document.createElementNS(SVG, 'a')
-  anchor.setAttributeNS(null, 'id', options.label + '-' + crypto.base64ToHex(options.digest))
-  if (options.href) {
-    anchor.setAttribute('href', options.href)
-  } else if (options.onClick) {
-    anchor.addEventListener('click', options.onClick)
+  anchor.setAttributeNS(null, 'id', label + '-' + crypto.base64ToHex(digest))
+  if (href) {
+    anchor.setAttribute('href', href)
+  } else if (onClick) {
+    anchor.addEventListener('click', onClick)
   }
 
   const text = document.createElementNS(SVG, 'text')
   anchor.appendChild(text)
-  text.appendChild(document.createTextNode(options.label))
-  text.setAttributeNS(null, 'x', options.x)
-  text.setAttributeNS(null, 'y', options.y)
+  text.appendChild(document.createTextNode(label))
+  text.setAttributeNS(null, 'x', x)
+  text.setAttributeNS(null, 'y', y)
   text.setAttributeNS(null, 'text-anchor', 'middle')
 
   return anchor
@@ -471,7 +478,7 @@ function withoutOrphans (briefs) {
       digestsSeen.add(brief.digest)
       return (
         brief.parents.length === 0 ||
-        brief.parents.some(function (parent) {
+        brief.parents.some(parent => {
           return digestsSeen.has(parent)
         })
       )
@@ -514,7 +521,7 @@ function renderRenameExplanation () {
 
 function renderRename (state, send) {
   const form = document.createElement('form')
-  form.addEventListener('submit', function (event) {
+  form.addEventListener('submit', event => {
     event.preventDefault()
     event.stopPropagation()
     send('rename', input.value)

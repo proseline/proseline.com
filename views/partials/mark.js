@@ -1,6 +1,6 @@
 const renderMarkIcon = require('./mark-icon')
 
-module.exports = function (mark, state) {
+module.exports = (mark, state) => {
   const span = document.createElement('span')
   span.className = 'markName'
   span.appendChild(renderMarkIcon())

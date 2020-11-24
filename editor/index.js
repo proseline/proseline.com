@@ -17,21 +17,22 @@ const Plugin = pmState.Plugin
 const PluginKey = pmState.PluginKey
 const history = pmHistory.history
 
-module.exports = function (options) {
-  const element = options.element
+module.exports = ({
+  element,
+  content,
+  renderNoteForm,
+  renderNote,
+  renderMarkForm,
+  notes,
+  dirty,
+  prior
+}) => {
   assert(element instanceof Node)
-  const content = options.content
-  const renderNoteForm = options.renderNoteForm
   assert(!renderNoteForm || typeof renderNoteForm === 'function')
-  const renderNote = options.renderNote
   assert(!renderNote || typeof renderNote === 'function')
-  const renderMarkForm = options.renderMarkForm
   assert(!renderMarkForm || typeof renderMarkForm === 'function')
-  const notes = options.notes
   assert(!notes || Array.isArray(notes))
-  const dirty = options.dirty
   assert(!dirty || typeof dirty === 'function')
-  const prior = options.prior
   assert(!prior || typeof prior === 'object')
 
   const originalDocument = content
@@ -54,7 +55,7 @@ module.exports = function (options) {
   if (renderNoteForm) {
     const inlineNotePlugin = new Plugin({
       props: {
-        decorations: function (state) {
+        decorations: state => {
           if (modifiedPlugin.getState(state)) return
           const decorations = []
           const selection = state.selection
@@ -79,10 +80,10 @@ module.exports = function (options) {
   if (notes) {
     const notesPlugin = new Plugin({
       props: {
-        decorations: function (state) {
+        decorations: state => {
           if (modifiedPlugin.getState(state)) return
           const decorations = []
-          notes.forEach(function (note) {
+          notes.forEach(note => {
             const $start = state.doc.resolve(note.range.start)
             const $end = state.doc.resolve(note.range.end)
             decorations.push(
@@ -111,7 +112,7 @@ module.exports = function (options) {
     plugins.push(
       new Plugin({
         props: {
-          decorations: function (state) {
+          decorations: state => {
             if (modifiedPlugin.getState(state)) return
             return DecorationSet.create(
               state.doc,
@@ -127,14 +128,14 @@ module.exports = function (options) {
     key: new PluginKey('modified'),
     state: {
       init: function () { return false },
-      apply: function (tr, oldState, newState) {
+      apply: (tr, oldState, newState) => {
         const modified = !newState.doc.eq(originalDocument)
         return oldState || modified
       }
     },
-    view: function (view) {
+    view: view => {
       return {
-        update: function (view) {
+        update: view => {
           if (dirty) dirty(modifiedPlugin.getState(view.state))
         }
       }

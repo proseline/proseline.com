@@ -6,7 +6,7 @@ const renderRefreshNotice = require('./partials/refresh-notice')
 const renderRelativeTimestamp = require('./partials/relative-timestamp')
 const withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey, logPublicKey, identifier) {
+module.exports = withProject((state, send, discoveryKey, logPublicKey, identifier) => {
   state.route = 'mark'
   assert(typeof state === 'object')
   assert(typeof send === 'function')
@@ -53,10 +53,10 @@ module.exports = withProject(function (state, send, discoveryKey, logPublicKey, 
 function renderMarkHistory (state) {
   const ol = document.createElement('ol')
   ol.className = 'activity'
-  state.markHistory.forEach(function (entry) {
+  state.markHistory.forEach(entry => {
     const li = document.createElement('li')
     ol.appendChild(li)
-    const brief = state.draftBriefs.find(function (brief) {
+    const brief = state.draftBriefs.find(brief => {
       return brief.digest === entry.draft
     })
     li.appendChild(renderDraftLink(state, brief))

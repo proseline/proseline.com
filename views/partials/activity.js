@@ -6,10 +6,10 @@ const renderMarkLink = require('./mark-link')
 const renderNoteIcon = require('./note-icon')
 const renderRelativeTimestamp = require('./relative-timestamp')
 
-module.exports = function (state, activity) {
+module.exports = (state, activity) => {
   const ol = document.createElement('ol')
   ol.className = 'activity'
-  activity.forEach(function (entry) {
+  activity.forEach(entry => {
     const type = entry.type
     const li = document.createElement('li')
     let a, brief
@@ -48,7 +48,7 @@ module.exports = function (state, activity) {
       li.appendChild(renderRelativeTimestamp(entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'mark') {
-      brief = state.draftBriefs.find(function (brief) {
+      brief = state.draftBriefs.find(brief => {
         return brief.digest === entry.draft
       })
       if (!brief) return
@@ -63,7 +63,7 @@ module.exports = function (state, activity) {
       li.appendChild(renderRelativeTimestamp(entry.timestamp))
       li.appendChild(document.createTextNode('.'))
     } else if (type === 'note') {
-      brief = state.draftBriefs.find(function (brief) {
+      brief = state.draftBriefs.find(brief => {
         return brief.digest === entry.draft
       })
       if (!brief) return

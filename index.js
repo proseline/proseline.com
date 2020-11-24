@@ -17,7 +17,7 @@ runSeries([
   databases.setup,
   network,
   launchApplication
-], function (error) {
+], error => {
   if (error) throw error
 })
 
@@ -38,7 +38,7 @@ function detectFeatures (done) {
 
   function persistStorage (done) {
     if (navigator && navigator.storage.persist) {
-      navigator.storage.persist().then(function (succeeded) {
+      navigator.storage.persist().then(succeeded => {
         if (!succeeded) {
           console.error('Could not secure persistent storage.')
         }
@@ -60,7 +60,7 @@ const globalState = {}
 window.globalState = globalState
 
 const actions = new EventEmitter()
-  .on('error', function (error) {
+  .on('error', error => {
     console.error(error)
     window.alert(error.toString())
   })
@@ -88,7 +88,7 @@ require('./model')(
       reductions.listenerCount(name) === 0,
       'just one listener for ' + name
     )
-    reductions.on(name, function (data) {
+    reductions.on(name, data => {
       Object.assign(globalState, listener(data, globalState))
     })
   },
@@ -99,8 +99,8 @@ require('./model')(
       actions.listenerCount(name) === 0,
       'just one listener for ' + name
     )
-    actions.on(name, nanoraf(function (data) {
-      listener(data, globalState, reduce, function (error) {
+    actions.on(name, nanoraf(data => {
+      listener(data, globalState, reduce, error => {
         if (error) return send('error', error)
         update()
       })
@@ -165,7 +165,7 @@ function render (state) {
     if (!match) return renderNotFound(state, send)
     main = document.createElement('main')
     main.appendChild(
-      renderLoading(function () {
+      renderLoading(() => {
         send('join project', {
           replicationKey: crypto.hexToBase64(match[1]),
           encryptionKey: crypto.hexToBase64(match[2]),
@@ -222,19 +222,19 @@ function network (done) {
   domainSingleton({
     bus: pageBus,
     task: 'proseline-peer',
-    onAppointed: function () {
+    onAppointed: () => {
       debug('appointed peer')
       const client = new Client()
-      setInterval(function () {
+      setInterval(() => {
         pageBus.emit('peers', client.countPeers())
       }, PEER_COUNT_UPDATE_INTERVAL)
     }
   })
-  pageBus.on('peers', function (count) {
+  pageBus.on('peers', count => {
     // TODO: Prevent clearing inputs on redraw.
     // send('peers', count)
   })
-  pageBus.on('entry', function (entry) {
+  pageBus.on('entry', entry => {
     // If we created this entry, don't show an update.
     if (entry.local) return
     const discoveryKey = entry.discoveryKey
@@ -244,13 +244,13 @@ function network (done) {
     ) return send('changed')
     if (
       !globalState.discoveryKey &&
-      !globalState.projects.some(function (project) {
+      !globalState.projects.some(project => {
         return project.discoveryKey === discoveryKey
       })
     ) return send('changed')
   })
   /*
-  pageBus.on('added project', function (x) {
+  pageBus.on('added project', x => {
     if (!globalState.discoveryKey) {
       console.log('changed bc added project')
       return send('changed')
@@ -272,7 +272,7 @@ function launchApplication (done) {
 
 const findLocalLinkAnchor = require('./utilities/find-local-link-anchor')
 
-window.addEventListener('click', function (event) {
+window.addEventListener('click', event => {
   if (event.which === 2) return
   const node = findLocalLinkAnchor(event.target)
   if (node) {
@@ -285,7 +285,7 @@ window.addEventListener('click', function (event) {
     ) return
     window.history.pushState({}, null, pathOf(href) || '/')
     update()
-    setTimeout(function () {
+    setTimeout(() => {
       const match = /#([a-f0-9]{64})$/.exec(href)
       if (match) {
         const anchor = document.getElementById(match[1])
@@ -302,7 +302,7 @@ window.addEventListener('popstate', update)
 // Configure Copy-to-Clipboard Links
 
 new Clipboard('.clipboard')
-  .on('success', function (event) {
+  .on('success', event => {
     window.alert('Copied to clipboard.')
     event.clearSelection()
   })

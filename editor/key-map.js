@@ -21,7 +21,7 @@ const mappings = {
   'Shift-Enter': commands.hr
 }
 
-eachHeadingLevel(function (level) {
+eachHeadingLevel(level => {
   mappings['Ctrl-Shift-' + level] = commands['h' + level]
 })
 

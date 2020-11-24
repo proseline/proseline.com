@@ -2,7 +2,7 @@ const http = require('http')
 const fs = require('fs')
 
 http.createServer()
-  .on('request', function (request, response) {
+  .on('request', (request, response) => {
     const url = request.url
     if (url === '/styles.css') {
       response.setHeader('Content-Type', 'text/css')

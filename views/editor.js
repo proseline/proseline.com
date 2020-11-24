@@ -6,14 +6,14 @@ const renderDraftHeader = require('./partials/draft-header')
 const renderLoading = require('./loading')
 const withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey, parentDigests) {
+module.exports = withProject((state, send, discoveryKey, parentDigests) => {
   state.route = 'editor'
   assert(
     parentDigests === undefined ||
     (
       Array.isArray(parentDigests) &&
       parentDigests.length > 0 &&
-      parentDigests.every(function (element) {
+      parentDigests.every(element => {
         return (
           typeof element === 'string' &&
           element.length === 64
@@ -27,8 +27,8 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     (
       state.parents === null ||
       state.parents.length !== parentDigests.length ||
-      !parentDigests.every(function (digest) {
-        return state.parents.some(function (parent) {
+      !parentDigests.every(digest => {
+        return state.parents.some(parent => {
           return parent.digest === digest
         })
       })
@@ -45,7 +45,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     form.className = 'saveDraftForm'
     main.appendChild(form)
 
-    form.addEventListener('submit', function (event) {
+    form.addEventListener('submit', event => {
       event.preventDefault()
       event.stopPropagation()
       send('save', {
@@ -75,7 +75,7 @@ module.exports = withProject(function (state, send, discoveryKey, parentDigests)
     const editor = initializeEditor({
       element: div,
       content,
-      dirty: function (dirty) {
+      dirty: dirty => {
         if (dirty) beforeUnload.enable()
         else beforeUnload.disable()
       }

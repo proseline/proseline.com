@@ -20,11 +20,11 @@ module.exports = new Schema({
       defining: true,
       parseDOM: new Array(6)
         .fill()
-        .map(function (index) {
+        .map(index => {
           const level = index + 1
           return { tag: 'h' + level, attrs: { level } }
         }),
-      toDOM: function (node) { return ['h' + node.attrs.level, 0] }
+      toDOM: node => ['h' + node.attrs.level, 0]
     },
     blockquote: {
       group: 'block',
@@ -54,7 +54,7 @@ module.exports = new Schema({
     },
     text: {
       group: 'inline',
-      toDOM: function (node) { return node.text }
+      toDOM: node => node.text
     }
   },
   marks: {

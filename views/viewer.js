@@ -12,7 +12,7 @@ const renderRefreshNotice = require('./partials/refresh-notice')
 const renderRelativeTimestamp = require('./partials/relative-timestamp')
 const withProject = require('./with-project')
 
-module.exports = withProject(function (state, send, discoveryKey, digest) {
+module.exports = withProject((state, send, discoveryKey, digest) => {
   state.route = 'viewer'
   // <main>
   const main = document.createElement('main')
@@ -32,7 +32,7 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
       renderNote: renderNote.bind(null, state, send),
       notes: state.notesTree,
       renderMarkForm: renderMarkForm.bind(null, state, send),
-      dirty: function (dirty) {
+      dirty: dirty => {
         if (dirty) beforeUnload.enable()
         else beforeUnload.disable()
         if (saveForm) {
@@ -53,17 +53,17 @@ module.exports = withProject(function (state, send, discoveryKey, digest) {
     main.appendChild(renderDraftHeader(state, saveForm))
     main.appendChild(div)
     let bookmarks
-    if (state.projectMarks.filter(function (mark) {
+    if (state.projectMarks.filter(mark => {
       return mark.draft === state.draft.digest
     })) {
       const bookmarkWidth = 50
       bookmarks = document.createElementNS(SVG, 'svg')
-      const marks = state.projectMarks.filter(function (mark) {
+      const marks = state.projectMarks.filter(mark => {
         return mark.draft === state.draft.digest
       })
       const othersMarks = []
       const ourMarks = []
-      marks.forEach(function (mark) {
+      marks.forEach(mark => {
         (mark.envelope.logPublicKey === state.logKeyPair.publicKey ? ourMarks : othersMarks)
           .push(mark)
       })
@@ -98,7 +98,7 @@ function renderSaveForm (state, send, editor) {
   // <form>
   const form = document.createElement('form')
   form.className = SAVE_FORM_CLASS + ' hidden'
-  form.addEventListener('submit', function (event) {
+  form.addEventListener('submit', event => {
     event.preventDefault()
     event.stopPropagation()
     send('save', {
@@ -122,7 +122,7 @@ function renderText (text) {
   const fragment = document.createDocumentFragment()
   text
     .split(SEPARATOR)
-    .forEach(function (line) {
+    .forEach(line => {
       // <p>
       const p = document.createElement('p')
       fragment.appendChild(p)
@@ -135,11 +135,11 @@ function renderMarkForm (state, send) {
   // <form>
   const form = document.createElement('form')
   form.id = 'markDraft'
-  form.addEventListener('submit', function (event) {
+  form.addEventListener('submit', event => {
     event.preventDefault()
     event.stopPropagation()
     const name = input.value
-    const continuing = marksICanMove.find(function (mark) {
+    const continuing = marksICanMove.find(mark => {
       return mark.name === name
     })
     send('mark', {
@@ -155,7 +155,7 @@ function renderMarkForm (state, send) {
   input.required = true
   form.appendChild(input)
 
-  const marksICanMove = state.projectMarks.filter(function (mark) {
+  const marksICanMove = state.projectMarks.filter(mark => {
     return (
       mark.envelope.logPublicKey === state.logKeyPair.publicKey &&
       mark.draft !== state.draft.digest
@@ -167,7 +167,7 @@ function renderMarkForm (state, send) {
     form.appendChild(datalist)
     datalist.id = 'marksICanMove'
     input.setAttribute('list', datalist.id)
-    marksICanMove.forEach(function (mark) {
+    marksICanMove.forEach(mark => {
       const option = document.createElement('option')
       datalist.appendChild(option)
       option.value = mark.name
@@ -219,7 +219,7 @@ function renderNote (state, send, note) {
   if (note.children.length !== 0) {
     // <ol>
     const ol = document.createElement('ol')
-    note.children.forEach(function (child) {
+    note.children.forEach(child => {
       ol.appendChild(renderNote(state, send, child))
     })
     aside.appendChild(ol)
@@ -228,11 +228,7 @@ function renderNote (state, send, note) {
   return aside
 }
 
-function renderNoteForm (state, send, options) {
-  options = options || {}
-  const parent = options.parent
-  const range = options.range
-  const selected = options.selected
+function renderNoteForm (state, send, { parent, range, selected }) {
   assert(typeof state, 'object')
   assert(!parent || typeof parent === 'string')
   assert(
@@ -249,7 +245,7 @@ function renderNoteForm (state, send, options) {
   // <form>
   const form = document.createElement('form')
   form.className = 'noteForm'
-  form.addEventListener('submit', function (event) {
+  form.addEventListener('submit', event => {
     event.preventDefault()
     event.stopPropagation()
     send('note', { parent, range, text: textarea.value })

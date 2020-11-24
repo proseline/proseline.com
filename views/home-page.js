@@ -4,7 +4,7 @@ const renderLoading = require('./loading')
 const renderSection = require('./partials/section')
 const renderSharing = require('./partials/sharing')
 
-module.exports = function (state, send) {
+module.exports = (state, send) => {
   state.route = 'home'
   const main = document.createElement('main')
   if (!state.projects) {
@@ -26,7 +26,7 @@ module.exports = function (state, send) {
 function renderActiveProjectsList (subscription, projects, send) {
   const section = renderSection('Active Projects')
 
-  const activeProjects = projects.filter(function (project) {
+  const activeProjects = projects.filter(project => {
     return !project.deleted
   })
 
@@ -41,7 +41,7 @@ function renderActiveProjectsList (subscription, projects, send) {
     .sort(function byTitle (a, b) {
       return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
     })
-    .forEach(function (project) {
+    .forEach(project => {
       const li = document.createElement('li')
       const a = document.createElement('a')
       a.href = '/projects/' + crypto.base64ToHex(project.discoveryKey)
@@ -60,7 +60,7 @@ function renderActiveProjectsList (subscription, projects, send) {
 function renderArchivedProjectsList (subscription, projects, send) {
   const section = renderSection('Archived Projects')
 
-  const archivedProjects = projects.filter(function (project) {
+  const archivedProjects = projects.filter(project => {
     if (!project.deleted) return false
     return project.projectKeyPair && project.replicationKey
   })
@@ -76,7 +76,7 @@ function renderArchivedProjectsList (subscription, projects, send) {
     .sort(function byTitle (a, b) {
       return a.title.toLowerCase().localeCompare(b.title.toLowerCase())
     })
-    .forEach(function (project) {
+    .forEach(project => {
       const li = document.createElement('li')
       const a = document.createElement('a')
       a.appendChild(document.createTextNode(project.title))
@@ -96,7 +96,7 @@ function renderArchivedProjectsList (subscription, projects, send) {
 
 function renderCreateProject (subscription, send) {
   const form = document.createElement('form')
-  form.onsubmit = function (event) {
+  form.onsubmit = event => {
     event.stopPropagation()
     event.preventDefault()
     const data = { title: this.elements.title.value }

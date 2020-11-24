@@ -12,8 +12,8 @@ const treeifyNotes = require('./utilities/treeify-notes')
 
 // TODO: Copy draft to new project.
 
-module.exports = function (initialize, reduction, handler, withIndexedDB) {
-  initialize(function () {
+module.exports = (initialize, reduction, handler, withIndexedDB) => {
+  initialize(() => {
     return {
       changed: false,
       peers: 0,
@@ -42,10 +42,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Intro
 
-  handler('set user intro', function (data, state, reduce, done) {
-    withIndexedDB('proseline', function (error, db) {
+  handler('set user intro', (data, state, reduce, done) => {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
-      db.setIntro(data, function (error) {
+      db.setIntro(data, error => {
         if (error) return done(error)
         reduce('user intro', data)
         done()
@@ -53,11 +53,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('user intro', function (userIntro, state) {
+  reduction('user intro', (userIntro, state) => {
     return { userIntro }
   })
 
-  handler('introduce', function (data, state, reduce, done) {
+  handler('introduce', (data, state, reduce, done) => {
     const logKeyPair = state.logKeyPair
     const userIntro = state.userIntro
     const entry = {
@@ -66,9 +66,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       device: userIntro.device,
       timestamp: new Date().toISOString()
     }
-    withIndexedDB(state.discoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, (error, db) => {
       if (error) return done(error)
-      db.putIntro(entry, logKeyPair, function (error, entry) {
+      db.putIntro(entry, logKeyPair, (error, entry) => {
         if (error) return done(error)
         reduce('project intro', entry)
         done()
@@ -76,7 +76,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('project intro', function (newIntro, state) {
+  reduction('project intro', (newIntro, state) => {
     state.intros[newIntro.envelope.logPublicKey] = newIntro
     return {
       intros: state.intros,
@@ -86,7 +86,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Member Activity
 
-  handler('load member', function (data, state, reduce, done) {
+  handler('load member', (data, state, reduce, done) => {
     loadMember(data, state, reduce, done)
   })
 
@@ -96,9 +96,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     assert(typeof data.logPublicKey === 'string')
     assert(data.logPublicKey.length === 64)
     const logPublicKey = data.logPublicKey
-    withIndexedDB(data.discoveryKey, function (error, db) {
+    withIndexedDB(data.discoveryKey, (error, db) => {
       if (error) return done(error)
-      db.memberActivity(logPublicKey, 100, function (error, activity) {
+      db.memberActivity(logPublicKey, 100, (error, activity) => {
         if (error) return done(error)
         reduce('member', {
           member: logPublicKey,
@@ -109,29 +109,29 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  reduction('member', function (data, state) {
+  reduction('member', (data, state) => {
     return data
   })
 
   // Projects
 
-  handler('create project', function (data, state, reduce, done) {
+  handler('create project', (data, state, reduce, done) => {
     const title = data.title
     const persistent = data.persistent
-    createProject({ title, persistent }, function (error, project) {
+    createProject({ title, persistent }, (error, project) => {
       if (error) return done(error)
       redirectToProject(project.discoveryKey)
       done()
     })
   })
 
-  handler('leave project', function (discoveryKey, state, reduce, done) {
+  handler('leave project', (discoveryKey, state, reduce, done) => {
     assert(typeof discoveryKey === 'string')
     runParallel([
       function overwriteProject (done) {
-        withIndexedDB('proseline', function (error, db) {
+        withIndexedDB('proseline', (error, db) => {
           if (error) return done(error)
-          db.getProject(discoveryKey, function (error, project) {
+          db.getProject(discoveryKey, (error, project) => {
             if (error) return done(error)
             const stub = {
               deleted: true,
@@ -148,7 +148,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
         IndexedDB.deleteDatabase(discoveryKey)
         done()
       }
-    ], function (error) {
+    ], error => {
       if (error) return done(error)
       reduce('clear project', null)
       window.history.pushState({}, null, '/')
@@ -156,7 +156,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  handler('join project', function (data, state, reduce, done) {
+  handler('join project', (data, state, reduce, done) => {
     assert(typeof data === 'object')
     assert(typeof data.replicationKey === 'string')
     assert(typeof data.encryptionKey === 'string')
@@ -165,9 +165,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     const encryptionKey = data.encryptionKey
     const projectKeyPair = data.projectKeyPair
     const discoveryKey = crypto.discoveryKey(replicationKey)
-    withIndexedDB('proseline', function (error, db) {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
-      db.getProject(discoveryKey, function (error, project) {
+      db.getProject(discoveryKey, (error, project) => {
         if (error) return done(error)
         if (project && !project.deleted) return redirect()
         createProject({
@@ -178,14 +178,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           // If we are rejoining a project we left, reuse
           // the old title.
           title: data.title
-        }, function (error) {
+        }, error => {
           if (error) return done(error)
           redirect()
         })
       })
     })
     function redirect () {
-      loadProject(discoveryKey, state, reduce, function (error) {
+      loadProject(discoveryKey, state, reduce, error => {
         if (error) return done(error)
         redirectToProject(discoveryKey)
         done()
@@ -221,19 +221,19 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       persistent: !!data.persistent
     }
     runSeries([
-      function (done) {
-        withIndexedDB('proseline', function (error, db) {
+      done => {
+        withIndexedDB('proseline', (error, db) => {
           if (error) return done(error)
           db.putProject(project, done)
         })
       },
-      function (done) {
-        withIndexedDB(discoveryKey, function (error, db) {
+      done => {
+        withIndexedDB(discoveryKey, (error, db) => {
           if (error) return done(error)
           db.createLogKeyPair(true, done)
         })
       }
-    ], function (error) {
+    ], error => {
       if (error) return callback(error)
       callback(null, project)
     })
@@ -243,15 +243,15 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     window.history.pushState({}, null, '/projects/' + crypto.base64ToHex(discoveryKey))
   }
 
-  handler('rename', function (newTitle, state, reduce, done) {
-    withIndexedDB('proseline', function (error, db) {
+  handler('rename', (newTitle, state, reduce, done) => {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
-      db.getProject(state.discoveryKey, function (error, project) {
+      db.getProject(state.discoveryKey, (error, project) => {
         if (error) return done(error)
         if (!project) return done(new Error('no project to rename'))
         if (project.deleted) return done(new Error('deleted project'))
         project.title = newTitle
-        db.overwriteProject(project, function (error) {
+        db.overwriteProject(project, error => {
           if (error) return done(error)
           reduce('rename', newTitle)
           done()
@@ -260,19 +260,19 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('rename', function (newTitle, state) {
+  reduction('rename', (newTitle, state) => {
     return { title: newTitle }
   })
 
-  handler('persist', function (_, state, reduce, done) {
-    withIndexedDB('proseline', function (error, db) {
+  handler('persist', (_, state, reduce, done) => {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
-      db.getProject(state.discoveryKey, function (error, project) {
+      db.getProject(state.discoveryKey, (error, project) => {
         if (error) return done(error)
         if (!project) return done(new Error('no project'))
         if (project.deleted) return done(new Error('deleted project'))
         project.persistent = true
-        db.overwriteProject(project, function (error) {
+        db.overwriteProject(project, error => {
           if (error) return done(error)
           reduce('persistent', true)
           done()
@@ -281,17 +281,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('persistent', function (persistent, state) {
+  reduction('persistent', (persistent, state) => {
     return { persistent: persistent }
   })
 
   // Subscriptions
 
-  handler('subscribe', function (data, state, reduce, done) {
+  handler('subscribe', (data, state, reduce, done) => {
     // TODO: Subscribe API call
-    withIndexedDB('proseline', function (error, db) {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
-      db.getClientKeyPair(function (error, clientKeyPair) {
+      db.getClientKeyPair((error, clientKeyPair) => {
         if (error) return done(error)
         const email = data.email
         const token = data.token
@@ -311,34 +311,34 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
           referrer: 'no-referrer',
           body: JSON.stringify(order)
         })
-          .then(function (response) { return response.json() })
-          .then(function (result) {
+          .then(response => response.json())
+          .then(result => {
             const subscription = { email }
-            db.setSubscription(subscription, function (error) {
+            db.setSubscription(subscription, error => {
               if (error) return done(error)
               reduce('subscription', subscription)
               // TODO: Tell Client to reconnect on subscribe.
               done()
             })
           })
-          .catch(function (error) { done(error) })
+          .catch(error => { done(error) })
       })
     })
   })
 
   // Loading
 
-  handler('load projects', function (_, state, reduce, done) {
-    withIndexedDB('proseline', function (error, db) {
+  handler('load projects', (_, state, reduce, done) => {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
       runParallel({
-        projects: function (done) {
+        projects: done => {
           db.listProjects(done)
         },
-        subscription: function (done) {
+        subscription: done => {
           db.getSubscription(done)
         }
-      }, function (error, results) {
+      }, (error, results) => {
         if (error) return done(error)
         reduce('projects', results.projects)
         reduce('subscription', results.subscription || {})
@@ -347,63 +347,63 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('projects', function (projects, state) {
+  reduction('projects', (projects, state) => {
     return { projects: projects }
   })
 
-  handler('load project', function (discoveryKey, state, reduce, done) {
+  handler('load project', (discoveryKey, state, reduce, done) => {
     loadProject(discoveryKey, state, reduce, done)
   })
 
   function loadProject (discoveryKey, state, reduce, done) {
-    withIndexedDB(discoveryKey, function (error, db) {
+    withIndexedDB(discoveryKey, (error, db) => {
       if (error) return done(error)
       runParallel({
-        project: function (done) {
-          withIndexedDB('proseline', function (error, db) {
+        project: done => {
+          withIndexedDB('proseline', (error, db) => {
             if (error) return done(error)
-            db.getProject(discoveryKey, function (error, project) {
+            db.getProject(discoveryKey, (error, project) => {
               if (error) return done(error)
               if (project.deleted) return done(new Error('deleted project'))
               done(null, project)
             })
           })
         },
-        logKeyPair: function (done) {
+        logKeyPair: done => {
           db.getDefaultLogKeyPair(done)
         },
-        projectMarks: function (done) {
+        projectMarks: done => {
           db.listMarks(done)
         },
-        draftBriefs: function (done) {
+        draftBriefs: done => {
           db.listDraftBriefs(done)
         },
-        intros: function (done) {
-          db.listIntros(function (error, intros) {
+        intros: done => {
+          db.listIntros((error, intros) => {
             if (error) return done(error)
             const result = {}
-            intros.forEach(function (intro) {
+            intros.forEach(intro => {
               result[intro.envelope.logPublicKey] = intro
             })
             done(null, result)
           })
         },
-        activity: function (done) {
+        activity: done => {
           db.activity(10, done)
         },
-        subscription: function (done) {
-          withIndexedDB('proseline', function (error, db) {
+        subscription: done => {
+          withIndexedDB('proseline', (error, db) => {
             if (error) return done(error)
             db.getSubscription(done)
           })
         },
-        userIntro: function (done) {
-          withIndexedDB('proseline', function (error, db) {
+        userIntro: done => {
+          withIndexedDB('proseline', (error, db) => {
             if (error) return done(error)
             db.getIntro(done)
           })
         }
-      }, function (error, data) {
+      }, (error, data) => {
         if (error) return done(error)
         reduce('project', data)
         done()
@@ -411,7 +411,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  reduction('project', function (data, state) {
+  reduction('project', (data, state) => {
     return {
       projects: null,
       changed: false,
@@ -432,7 +432,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  reduction('clear project', function (_, state) {
+  reduction('clear project', (_, state) => {
     return {
       changed: false,
       replicationKey: null,
@@ -444,45 +444,45 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  handler('load draft', function (data, state, reduce, done) {
+  handler('load draft', (data, state, reduce, done) => {
     loadDraft(data, state, reduce, done)
   })
 
   function loadDraft (data, state, reduce, done) {
     const digest = data.digest
-    withIndexedDB(data.discoveryKey, function (error, db) {
+    withIndexedDB(data.discoveryKey, (error, db) => {
       if (error) return done(error)
       runParallel({
-        draft: function (done) {
+        draft: done => {
           db.getDraft(digest, done)
         },
-        marks: function (done) {
+        marks: done => {
           db.getMarks(digest, done)
         },
-        notes: function (done) {
+        notes: done => {
           db.getNotes(digest, done)
         },
-        children: function (done) {
+        children: done => {
           db.getChildren(digest, done)
         },
-        comparing: function (done) {
+        comparing: done => {
           if (data.comparing) {
             db.getDraft(data.comparing, done)
           } else done()
         }
-      }, function (error, results) {
+      }, (error, results) => {
         if (error) return done(error)
         results.draft.digest = digest
         const parents = results.draft.parents
-        runParallel(parents.map(function (digest) {
-          return function (done) {
-            db.getDraft(digest, function (error, parent) {
+        runParallel(parents.map(digest => {
+          return done => {
+            db.getDraft(digest, (error, parent) => {
               if (error) return done(error)
               parent.digest = digest
               done(null, parent)
             })
           }
-        }), function (error, parents) {
+        }), (error, parents) => {
           if (error) return done(error)
           results.parents = parents
           reduce('draft', results)
@@ -494,7 +494,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   reloadHandler('draft', loadDraft)
 
-  reduction('draft', function (data, state) {
+  reduction('draft', (data, state) => {
     const children = data.children || []
     const notes = data.notes || []
     return {
@@ -515,10 +515,10 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  handler('load subscription', function (_, state, reduce, done) {
-    withIndexedDB('proseline', function (error, db) {
+  handler('load subscription', (_, state, reduce, done) => {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
-      db.getSubscription(function (error, subscription) {
+      db.getSubscription((error, subscription) => {
         if (error) return done(error)
         reduce('subscription', subscription || {})
         done()
@@ -526,17 +526,17 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('subscription', function (subscription, state) {
+  reduction('subscription', (subscription, state) => {
     return { subscription: subscription }
   })
 
   handler(
     'add device to subscription',
-    function (data, state, reduce, done) {
+    (data, state, reduce, done) => {
       assert(has(data, 'email'))
-      withIndexedDB('proseline', function (error, db) {
+      withIndexedDB('proseline', (error, db) => {
         if (error) return done(error)
-        db.getClientKeyPair(function (error, clientKeyPair) {
+        db.getClientKeyPair((error, clientKeyPair) => {
           if (error) return done(error)
           const email = data.email
           const entry = {
@@ -558,30 +558,30 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             referrer: 'no-referrer',
             body: JSON.stringify(request)
           })
-            .then(function (response) {
+            .then(response => {
               const status = response.status
               if (status !== 200) {
                 return done(new Error('server responded ' + status))
               }
               return response.json()
             })
-            .then(function (body) {
+            .then(body => {
               if (body.error) return done(body.error)
               const subscription = { email }
-              db.setSubscription({ email }, function (error) {
+              db.setSubscription({ email }, error => {
                 if (error) return done(error)
                 reduce('subscription', subscription)
                 // TODO: Tell Client to reconnect on subscribe.
                 done()
               })
             })
-            .catch(function (error) { done(error) })
+            .catch(error => { done(error) })
         })
       })
     }
   )
 
-  handler('load parents', function (data, state, reduce, done) {
+  handler('load parents', (data, state, reduce, done) => {
     loadParents(data, state, reduce, done)
   })
 
@@ -592,19 +592,19 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     const parentDigests = data.parentDigests
     assert(Array.isArray(parentDigests))
     assert(parentDigests.length > 0)
-    assert(parentDigests.every(function (element) {
+    assert(parentDigests.every(element => {
       return (
         typeof element === 'string' &&
         element.length === 64
       )
     }))
-    withIndexedDB(state.discoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, (error, db) => {
       if (error) return done(error)
-      runParallel(parentDigests.map(function (digest) {
-        return function (done) {
+      runParallel(parentDigests.map(digest => {
+        return done => {
           db.getDraft(digest, done)
         }
-      }), function (error, parents) {
+      }), (error, parents) => {
         if (error) return done(error)
         reduce('parents', parents)
         done()
@@ -612,11 +612,11 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  reduction('parents', function (parents, state) {
+  reduction('parents', (parents, state) => {
     return { parents }
   })
 
-  handler('load mark', function (data, state, reduce, done) {
+  handler('load mark', (data, state, reduce, done) => {
     loadMark(data, state, reduce, done)
   })
 
@@ -626,9 +626,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     assert(has(data, 'discoveryKey'))
     assert(has(data, 'logPublicKey'))
     assert(has(data, 'identifier'))
-    withIndexedDB(data.discoveryKey, function (error, db) {
+    withIndexedDB(data.discoveryKey, (error, db) => {
       if (error) return done(error)
-      db.markHistory(data.logPublicKey, data.identifier, 100, function (error, history) {
+      db.markHistory(data.logPublicKey, data.identifier, 100, (error, history) => {
         if (error) return done(error)
         const latestMark = history[0]
         reduce('mark', {
@@ -642,13 +642,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   }
 
-  reduction('mark', function (data, state) {
+  reduction('mark', (data, state) => {
     return data
   })
 
   // Drafts
 
-  handler('save', function (data, state, reduce, done) {
+  handler('save', (data, state, reduce, done) => {
     const logKeyPair = state.logKeyPair
     const entry = {
       type: 'draft',
@@ -656,9 +656,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       text: data.text,
       timestamp: new Date().toISOString()
     }
-    withIndexedDB(state.discoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, (error, db) => {
       if (error) return done(error)
-      db.putDraft(entry, logKeyPair, function (error, entry, digest) {
+      db.putDraft(entry, logKeyPair, (error, entry, digest) => {
         if (error) return done(error)
         reduce('push draft', entry)
         reduce('push brief', {
@@ -678,20 +678,20 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('push draft', function (entry, state) {
+  reduction('push draft', (entry, state) => {
     return { activity: [entry].concat(state.activity) }
   })
 
-  reduction('push brief', function (brief, state) {
+  reduction('push brief', (brief, state) => {
     return { draftBriefs: (state.draftBriefs || []).concat(brief) }
   })
 
   // Marks
 
-  handler('mark', function (data, state, reduce, done) {
+  handler('mark', (data, state, reduce, done) => {
     putMark(
       data.identifier, data.name, state.draft.digest, state,
-      function (error, mark) {
+      (error, mark) => {
         if (error) return done(error)
         reduce('push mark', mark)
         done()
@@ -699,7 +699,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     )
   })
 
-  reduction('push mark', function (mark, state) {
+  reduction('push mark', (mark, state) => {
     return {
       marks: state.marks
         ? replacingPriorMarks(mark, state.marks)
@@ -711,7 +711,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     function replacingPriorMarks (newMark, oldMarks) {
       return [newMark]
-        .concat(oldMarks.filter(function (oldMark) {
+        .concat(oldMarks.filter(oldMark => {
           return !(
             oldMark.logPublicKey === newMark.logPublicKey &&
             identifierOf(oldMark) === identifierOf(newMark)
@@ -733,9 +733,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
       timestamp: new Date().toISOString(),
       draft: draft
     }
-    withIndexedDB(state.discoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, (error, db) => {
       if (error) return callback(error)
-      db.putMark(entry, logKeyPair, function (error, entry) {
+      db.putMark(entry, logKeyPair, (error, entry) => {
         if (error) return callback(error)
         callback(null, entry)
       })
@@ -744,7 +744,7 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
 
   // Notes
 
-  handler('note', function (data, state, reduce, done) {
+  handler('note', (data, state, reduce, done) => {
     const logKeyPair = state.logKeyPair
     const entry = {
       type: 'note',
@@ -754,9 +754,9 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
     if (data.parent) entry.parent = data.parent
     else if (data.range) entry.range = data.range
-    withIndexedDB(state.discoveryKey, function (error, db) {
+    withIndexedDB(state.discoveryKey, (error, db) => {
       if (error) return done(error)
-      db.putNote(entry, logKeyPair, function (error, entry) {
+      db.putNote(entry, logKeyPair, (error, entry) => {
         if (error) return done(error)
         reduce('push note', entry)
         done()
@@ -764,14 +764,14 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     })
   })
 
-  reduction('push note', function (newNote, state) {
+  reduction('push note', (newNote, state) => {
     const notes = state.notes.concat(newNote)
     return {
       notes: notes,
       notesTree: treeifyNotes(notes),
       replyTo: null,
       activity: [newNote].concat(state.activity),
-      draftBriefs: state.draftBriefs.map(function (brief) {
+      draftBriefs: state.draftBriefs.map(brief => {
         if (brief.digest === newNote.draft) {
           brief.notesCount++
         }
@@ -780,36 +780,36 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     }
   })
 
-  handler('reply to', function (parent, state, reduce, done) {
+  handler('reply to', (parent, state, reduce, done) => {
     reduce('reply to', parent)
     done()
   })
 
-  reduction('reply to', function (parent, state) {
+  reduction('reply to', (parent, state) => {
     return { replyTo: parent }
   })
 
-  handler('select draft', function (digest, state, reduce, done) {
+  handler('select draft', (digest, state, reduce, done) => {
     reduce('select draft', digest)
     done()
   })
 
-  reduction('select draft', function (draftSelection, state) {
+  reduction('select draft', (draftSelection, state) => {
     return { draftSelection }
   })
 
-  handler('deselect draft', function (digest, state, reduce, done) {
+  handler('deselect draft', (digest, state, reduce, done) => {
     reduce('deselect draft', digest)
     done()
   })
 
-  reduction('deselect draft', function (digest, state) {
+  reduction('deselect draft', (digest, state) => {
     return { draftSelection: null }
   })
 
   // Change
 
-  handler('changed', function (parent, state, reduce, done) {
+  handler('changed', (parent, state, reduce, done) => {
     reduce('changed')
     done()
   })
@@ -818,19 +818,19 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     return { changed: true }
   })
 
-  handler('peers', function (count, state, reduce, done) {
+  handler('peers', (count, state, reduce, done) => {
     reduce('peers', count)
     done()
   })
 
-  reduction('peers', function (count) {
+  reduction('peers', count => {
     return { peers: count }
   })
 
   // Downloads
 
   // TODO: Download in a word processor format
-  handler('download', function (_, state, reduce, done) {
+  handler('download', (_, state, reduce, done) => {
     saveAs(
       new Blob(
         [JSON.stringify(state.draft.text)],
@@ -841,19 +841,19 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
     )
   })
 
-  handler('backup', function (_, state, reduce, done) {
-    withIndexedDB('proseline', function (error, db) {
+  handler('backup', (_, state, reduce, done) => {
+    withIndexedDB('proseline', (error, db) => {
       if (error) return done(error)
       runParallel({
-        projects: function (done) {
-          db.listProjects(function (error, projects) {
+        projects: done => {
+          db.listProjects((error, projects) => {
             if (error) return done(error)
-            runParallel(projects.map(function (project) {
-              return function (done) {
+            runParallel(projects.map(project => {
+              return done => {
                 if (project.deleted) return done(null, { project })
-                withIndexedDB(project.discoveryKey, function (error, db) {
+                withIndexedDB(project.discoveryKey, (error, db) => {
                   if (error) return done(error)
-                  db.getDefaultLogKeyPair(function (error, logKeyPair) {
+                  db.getDefaultLogKeyPair((error, logKeyPair) => {
                     if (error) return done(error)
                     done(null, { project, logKeyPair })
                   })
@@ -862,13 +862,13 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
             }), done)
           })
         },
-        clientKeyPair: function (done) {
+        clientKeyPair: done => {
           db.getClientKeyPair(done)
         },
-        subscription: function (done) {
+        subscription: done => {
           db.getSubscription(done)
         }
-      }, function (error, results) {
+      }, (error, results) => {
         if (error) return done(error)
         saveAs(
           new Blob(
@@ -884,12 +884,12 @@ module.exports = function (initialize, reduction, handler, withIndexedDB) {
   // Helper Functions
 
   function reloadHandler (name, loader) {
-    handler('reload ' + name, function (data, state, reduce, done) {
+    handler('reload ' + name, (data, state, reduce, done) => {
       runParallel([
-        function (done) {
+        done => {
           loader(data, state, reduce, done)
         },
-        function (done) {
+        done => {
           loadProject(data.discoveryKey, state, reduce, done)
         }
       ], done)

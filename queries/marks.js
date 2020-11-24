@@ -1,4 +1,4 @@
-module.exports = function (db, digest, callback) {
+module.exports = (db, digest, callback) => {
   const transaction = db.transaction(['marks'], 'readonly')
   transaction.onerror = function () {
     callback(transaction.error)

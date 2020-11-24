@@ -1,6 +1,6 @@
 const SVG = require('../../svg')
 
-module.exports = function (x, y, color, width) {
+module.exports = (x, y, color, width) => {
   const bookmarkHeight = width * 2
   const bookmarkNotch = width / 2
   const bookmark = document.createElementNS(SVG, 'path')
@@ -12,7 +12,7 @@ module.exports = function (x, y, color, width) {
     ['l', -(width / 2), +bookmarkNotch],
     ['z']
   ]
-    .map(function (element) {
+    .map(element => {
       return element[0] + element.slice(1).join(' ')
     })
     .join(' ')

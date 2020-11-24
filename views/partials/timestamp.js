@@ -1,4 +1,4 @@
-module.exports = function (timestamp) {
+module.exports = timestamp => {
   const span = document.createElement('span')
   span.className = 'timestamp'
   span.appendChild(

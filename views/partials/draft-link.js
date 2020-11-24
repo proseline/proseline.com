@@ -2,7 +2,7 @@ const renderDraftDescription = require('./draft-description')
 const renderDraftIcon = require('./draft-icon')
 const renderIntro = require('./intro')
 
-module.exports = function (state, draftOrBrief) {
+module.exports = (state, draftOrBrief) => {
   const a = document.createElement('a')
   a.className = 'draft'
   a.href = (
