@@ -25,7 +25,7 @@
     "moment": "^2.29.1",
     "multiplex": "^6.7.0",
     "nanoassert": "^2.0.0",
-    "nanomorph": "^5.4.0",
+    "nanomorph": "^5.4.2",
     "nanoraf": "^3.1.0",
     "page-bus": "^3.0.1",
     "prosemirror-commands": "^1.0.8",
