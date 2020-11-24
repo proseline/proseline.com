@@ -14,7 +14,7 @@
     "@proseline/schemas": "^2.0.0",
     "classnames": "^2.2.6",
     "clipboard": "^2.0.6",
-    "dagre": "^0.8.4",
+    "dagre": "^0.8.5",
     "debug": "^4.1.1",
     "domain-singleton": "^3.0.0",
     "duplexify": "^4.0.0",
