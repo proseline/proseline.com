@@ -1,16 +1,10 @@
 #!/bin/sh
-set -e
-BUILD=build
-ROOT=/var/www/proseline.com
-TAGNAME="deployed-$(date --iso-8601=seconds --utc | tr -d ':' | sed 's/+0000//')"
-GITDIR="$PWD"
-TMPDIR=$(mktemp -d)
-trap '{ cd $GITDIR ; rm -rf $TMPDIR; exit 255; }' INT EXIT
-git clone -s "$GITDIR" "$TMPDIR"
-cd "$TMPDIR"
-npm install
-NODE_ENV=production STRIPE_PUBLISHABLE_KEY=pk_live_5wJPQjw3o8OhAtam7CpTRLbq npm run build
-rsync --verbose --checksum --recursive --sparse --compress --human-readable --progress $BUILD/* "node@proseline.com:$ROOT"
-cd "$GITDIR"
-git tag "$TAGNAME"
-git push origin "$TAGNAME"
+ssh proseline.com <<'SCRIPT'
+cd proseline.com
+old_hash="$(shasum package-lock.json)"
+git fetch origin
+git reset --hard origin/master
+new_hash="$(shasum package-lock.json)"
+[ "$old_hash" != "$new_hash" ] && npm ci
+systemctl --user restart proseline
+SCRIPT
