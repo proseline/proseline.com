@@ -166,9 +166,9 @@
       }
     },
     "@proseline/schemas": {
-      "version": "2.0.0",
-      "resolved": "https://registry.npmjs.org/@proseline/schemas/-/schemas-2.0.0.tgz",
-      "integrity": "sha512-IHl+GcAbTXFRzMO8SkwUV0+U6BL6xykVKKCofqCbdIf47xPX/IWLIeSOi+KzWWJguz5oHQyP1ct03NsVrkFOGg=="
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/@proseline/schemas/-/schemas-2.1.0.tgz",
+      "integrity": "sha512-oTrbHfVeMNlFERK2c6gbbVp/7THLcXF+wuby9BAUjb9coLEQoyX0F46IxEXGhdDK2/CD2Ei7R7CPPK6M4j2x8g=="
     },
     "@types/json5": {
       "version": "0.0.29",
