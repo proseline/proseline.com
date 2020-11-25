@@ -1,98 +1,109 @@
 # The Design of Proseline
 
-Proseline is a system for editing documents by taking turns.  It brings the commit-based approach of Git to prose writing, in the web browser.
+This document outlines the designs of Proseline's data model, protocol, and service architecture.
 
-## Vocabulary
+## Projects
 
-They unit of organization in Proseline is the Project.
+The basic unit of organization in Proseline is the **project**.
 
-Various actors can take part in a Project:
+The main **work** in a project takes the form of **drafts**.  Each draft contains the complete content of one version of a document, along with information on who created it, when, and its **parents**---up to two other drafts that it was based on.
 
-- Writers can add Drafts, make Notes to Drafts, make Replies to other Notes, move named Markers from Draft to Draft, and identify themselves as the authors of Logs.
+Participants can add **marks** to drafts to give them names, such as "current" or "rewrite".  Participants can move marks from draft to draft over time.
 
-- Readers can read the Drafts, Notes, Replies, and Markers of the Project, but can't add any of their own.
+Participants can add text **notes** to parts of drafts, mostly to share comments.
 
-- Distributors can replicate data about Projects, but can't read them.
+Participants can add **replies** to notes and the replies of others.
 
-Writers interact with Proseline through Clients, or instances of [proseline.com](https://proseline.com) running in their web browsers.  On creating a Project or joining a Project by Invitation from another, a Writer's Client creates an append-only Log for their contributions to that Project.  If the Writer joins the project on multiple devices, such as on their laptop and on their phone, the Client on each device creates its own Log for the project.
+Participants can publish **corrections** to the texts of notes and replies.
 
-Readers and Writers can use Account Servers, like [paid.proseline.com](https://paid.proseline.com), to invite all of their devices Clients' to all of their projects. [paid.proseline.com](https://paid.proseline.com) also acts as a Distributor, joining each Project and replicating its data, without being able to read those data.
+## Participants
 
-## Entries
+Each project has one or more **clients**, of three types:
 
-All Project data takes the form of an entry to an append-only log.  There are just a few entry types.
+1.  **Distributors** can share work in the project with others, but can't read the work or contribute to it.
+
+2.  **Readers** can read the work in the project, in addition to distributing it.
+
+3.  **Writers** can contribute work to the project, in addition to reading and distributing it. 
+
+<!--
+|             | Distribute | Read | Write |
+|-------------|------------|------|-------|
+| Distributor | Yes        |      |       |
+| Reader      | Yes        | Yes  |       |
+| Writer      | Yes        | Yes  | Yes   |
+-->
+
+The proseline.com JavaScript application is a client that can distribute, read, and write.
+
+The proseline.com server application is a client that distributes customers' projects.
+
+A person may use one or more **devices**, each of which may run one or more clients.  When a person joins a project with at least one client, that person is a **member** of the project.
+
+A person may or may not pay for a proseline.com **account**.
+
+## Distributing
+
+Participants contribute work to a project by creating and sharing project-specific **logs**.  Each log consists of **entries** for contributions to the project made with that particular client.
+
+One member of a project may contribute to the project with multiple clients.  For example, they might use the proseline.com web app on their laptop, smartphone, and desktop.
+
+## Accounts
+
+The proseline.com server application provides services to paying customers:
+
+1.  The server distributes work on all of their projects, so all members of the customer's projects can download and share it, even when other members aren't online.
+
+2.  The server invites all of the customer's clients to all of the customer's projects, so they can work on projects across devices without inviting themself manually.
+
+3.  The server stores **invitations** to all the customer's projects, so they can access them even if they lose all their clients.
+
+4.  The server provides access to ICE servers to improve WebRTC connectivity.
+
+The server stores keys for reading and writing to projects, encrypted with the customer's **privacy key**.
+
+The server stores the customer's privacy key, encrypted so that the customer can decrypt it using their **privacy secret**.  Participants never send privacy secrets to the server.
+
+People connect their clients to their paid accounts by logging in via links e-mailed to them by the server.  The client signs login requests for using its client key.
 
 ## Cryptography
 
-### Per Project
+On starting for the first time, a client generates a **client signing key** for signing requests to the proseline.com server application.
 
-- a <dfn>project replication key</dfn> for encrypting all replication traffic for the project with libsodium's `crytpto_stream_*`
+On creating a new project, a client generates:
 
-- a <dfn>project discovery key</dfn>, derived from the replication key with libsodium's `crypto_generichash`, for finding other Clients participating in the Project without revealing the project replication encryption key
+- a random **project distribution key** for stream encryption of data distribution
 
-- a <dfn>project read key</dfn> for encrypting and decrypting all Log entry message bodies with libsodium's `crypto_secretbox_*`.
+- a **project discovery key**, the digest of the distribution key, for finding other clients of the project without disclosing the distribution key
 
-- a <dfn>project write key</dfn> for signing all Log entry message bodies with libsodium's `crypto_sign_detached_*`.
+- a random **project read key** for encrypting log entries
 
-- one or more Logs of signed, encrypted, indexed, and hash-linked entries
+- a random **project write key pair** for signing entries to all project logs
 
-### Per Log
+On joining a project, a client generates a random **log key pair** for signing entries to the client's project log
 
-- a key pair for signing all log entries
+Participants wrap each entry to each project log in an **envelope**.  Each envelope includes:
+- a signature with the secret project write key
+- a signature with the secret log write key
+- the entry, encrypted with the project read key
 
-### Per Client
+Each entry includes a monotonically increasing index, starting with zero.  Each entry after the first includes the cryptographic digest of the prior entry in the log.
 
-- a signing key pair for signing requests to associate a Client with an Account and some Log entries
+Each invitation stored by the proseline.com server application includes:
+- the project distribution key
+- the public project write key
 
-### Per Account
+and optionally:
+- the secret project write key, encrypted with the customer's privacy key
+- the project read key, encrypted with the customer's privacy key
+- a title for the project, encrypted with the customer's privacy key
 
-- an e-mail address
+## Links
 
-- a password used to derived keys to encrypt and decrypt project discovery keys, project read keys, and project write keys sent to the Account Server
+To add someone to a project, users share links generated by their clients:
 
-## Message Format
+- links for **distributors** include just the distribution key.
 
-All Clients replicate Project data in the form of log entries wrapped in envelopes.
+- links for readers also include the project read key and public project write key.
 
-### Outer Envelope
-
-Format: JSON-encoded
-
-Contents:
-- project discovery key
-- log public key
-- log entry index (zero or greater)
-- inner envelope encryption nonce
-- inner envelop
-
-Outer Envelopes contain only the data Distributors with the project replication key need to replicate Project data to other Clients.
-
-### Inner Envelope
-
-Format: Object keys sorted, JSON-encoded, encrypted with project read key, then Base64-encoded
-
-Contents:
-- signature with log key
-- signature with project write key
-- `crypto_generichash` digest of prior log entry, for entries after the first
-- (optional) signature with client key
-
-Inner Envelopes contain signatures showing authorization to write to the Project and to the Log.
-
-### Entry
-
-Format: Object keys sorted, then JSON-encoded
-
-Entries contain the data that Clients need to display Projects.  Entries must conform to one of a set of schemas:
-
-- <dfn>Drafts</dfn> contain document text, optionally linked to one or more parent drafts.
-
-- <dfn>Notes</dfn> add comments to a specific range of text within a Draft.
-
-- <dfn>Replies</dfn> add comments to Notes and other Replies.
-
-- <dfn>Corrections</dfn> correct the text of Notes and Replies.
-
-- <dfn>Markers</dfn> move named markers from draft to draft over time.
-
-- <dfn>Introductions</dfn> self-identify the person and device writing to a Log.
+- links for writers also include the public secret project write key.
