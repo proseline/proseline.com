@@ -1,3 +1,4 @@
+node_modules
 build/LICENSES
 build/browser.js
 build/npm-shrinkwrap.json
