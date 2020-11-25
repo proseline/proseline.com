@@ -6,20 +6,20 @@ http.createServer()
     const url = request.url
     if (url === '/styles.css') {
       response.setHeader('Content-Type', 'text/css')
-      send('build/styles.css')
+      send('site/styles.css')
     } else if (url === '/normalize.css') {
       response.setHeader('Content-Type', 'text/css')
-      send('build/normalize.css')
+      send('site/normalize.css')
     } else if (url === '/styles.css.map') {
-      send('build/styles.css.map')
+      send('site/styles.css.map')
     } else if (url === '/browser.js') {
       response.setHeader('Content-Type', 'application/json')
-      send('build/browser.js')
+      send('site/browser.js')
     } else if (url === '/browser.js.map') {
-      send('build/browser.js.map')
+      send('site/browser.js.map')
     } else {
       response.setHeader('Content-Type', 'text/html')
-      send('build/index.html')
+      send('site/index.html')
     }
     function send (path) {
       fs.createReadStream(path).pipe(response)

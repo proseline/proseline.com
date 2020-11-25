@@ -1,6 +1,6 @@
 node_modules
-build/LICENSES
-build/browser.js
-build/npm-shrinkwrap.json
-build/styles.css
-build/*.map
+site/LICENSES
+site/browser.js
+site/npm-shrinkwrap.json
+site/styles.css
+site/*.map

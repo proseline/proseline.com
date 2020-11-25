@@ -64,14 +64,14 @@
   "private": true,
   "scripts": {
     "build": "npm-run-all --parallel build:*",
-    "build:css": "node-sass --output-style compressed styles.sass > build/styles.css",
-    "build:js": "browserify -p common-shakeify --debug index.js | terser --source-map \"url='/browser.js.map',content=inline\" -o build/browser.js",
+    "build:css": "node-sass --output-style compressed styles.sass > site/styles.css",
+    "build:js": "browserify -p common-shakeify --debug index.js | terser --source-map \"url='/browser.js.map',content=inline\" -o site/browser.js",
     "outdated": "npm outdated | tee outdated.log",
     "licenses": "licensee --production --errors-only | tee licenses.log",
     "lint": "standard",
     "prestart": "npm run build",
     "prewatch:css": "npm run build:css",
-    "watch:css": "node-sass --watch --source-map true --output build styles.sass",
-    "watch:js": "NODE_ENV=development STRIPE_PUBLISHABLE_KEY=pk_test_qSIOnRX1RuPvoXtBLiMCRjGV watchify -p common-shakeify --ignore-transform unassertify --ignore-transform uglifyify index.js -o 'exorcist build/browser.js.map > build/browser.js' -dv"
+    "watch:css": "node-sass --watch --source-map true --output site styles.sass",
+    "watch:js": "NODE_ENV=development STRIPE_PUBLISHABLE_KEY=pk_test_qSIOnRX1RuPvoXtBLiMCRjGV watchify -p common-shakeify --ignore-transform unassertify --ignore-transform uglifyify index.js -o 'exorcist site/browser.js.map > site/browser.js' -dv"
   }
 }
