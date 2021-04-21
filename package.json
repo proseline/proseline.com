@@ -13,7 +13,7 @@
     "@proseline/crypto": "^7.4.0",
     "@proseline/schemas": "^2.1.0",
     "classnames": "^2.2.6",
-    "clipboard": "^2.0.6",
+    "clipboard": "^2.0.8",
     "dagre": "^0.8.5",
     "debug": "^4.3.1",
     "domain-singleton": "^3.0.0",
